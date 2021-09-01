@@ -1,0 +1,113 @@
+#' @name ggInterval_minmax
+#' @title A min-max plot for interval data
+#' @description  Visualize the range of the variables of each observations
+#' by marking minimal and maximal point.
+#' @import ggplot2
+#' @importFrom dplyr arrange
+#' @importFrom RSDA is.sym.interval
+#' @param data A ggESDA object.It can also be either RSDA object or
+#' classical data frame,which will be automatically convert to ggESDA
+#' data.
+#' @param mapping Set of aesthetic mappings created by aes() or aes_().
+#' If specified and inherit.aes = TRUE (the default),
+#' it is combined with the default mapping at the top level of
+#' the plot. You must supply mapping if there is no plot mapping.
+#' @param sort if FALSE, it will not be sort by min data,default TRUE.
+#' @return Return a ggplot2 object.
+#' @usage ggInterval_minmax(data = NULL,mapping = aes(NULL),sort=TRUE)
+#' @examples
+#' ggInterval_minmax(mtcars,aes(disp))
+#'
+#' mydata2<-RSDA::Cardiological
+#' ggInterval_minmax(mydata2,aes(mydata2$Pulse,size=3))
+#'
+#' d<-mapply(c(10,20,40,80,160),c(20,40,80,160,320),FUN=runif,n=1000)
+#' d<-data.frame(qq=matrix(d,ncol=1))
+#' ggInterval_minmax(d,aes(qq))
+#'
+#' myIris<-classic2sym(iris,groupby=Species)
+#' myIris<-myIris$intervalData
+#' ggInterval_minmax(myIris,aes(myIris$Petal.Length))+
+#'    theme_classic()
+#' @export
+ggInterval_minmax <- function(data = NULL,mapping = aes(NULL),sort=TRUE){
+  #data preparing
+  argsNum<-length(mapping)
+  args<-lapply(mapping[1:argsNum],FUN=rlang::get_expr)
+  this.x <- args$x ; this.y <- args$y
+
+  #test data illegal
+  ggSymData <- testData(data)
+  iData <- ggSymData$intervalData
+  testXY(iData,this.x,this.y)
+  p<-dim(iData)[2]
+
+  #test big o
+  if(dim(iData)[1]>3000){
+    stop("Out of time limits")
+  }else if(dim(iData)[1]>200){
+    warning("It is not recommended for too many observations.")
+  }
+
+  #start process
+  with(data,{
+    #get attr
+    if(any(unlist(lapply(as.data.frame(data[,1:p]),FUN=identical,x=eval(this.x))))){
+      attr<-which(unlist(lapply(as.data.frame(data[,1:p]),FUN=identical,x=eval(this.x))))
+      attr<-names(attr)
+    }else if(any(unlist(lapply(as.data.frame(data[,1:p]),FUN=identical,x=eval(this.y))))){
+      attr<-which(unlist(lapply(as.data.frame(data[,1:p]),FUN=identical,x=eval(this.y))))
+      attr<-names(attr)
+    }else{
+      stop("ERROR : Cannot find variables in aes(...)")
+    }
+    if(p==1){
+      attr = colnames(data)
+    }
+    #test attribute illegal
+    if(all(!is.numeric(data[[attr]]) , !RSDA::is.sym.interval(data[[attr]]))){
+      stop("ERROR : Variables in Min-Max Plot can only be numeric.")
+    }
+
+    #build data frame for ggplot
+    d<-data.frame(min=iData[[attr]]$min,
+                  max=iData[[attr]]$max)
+    n<-length(iData[[attr]])
+    if(sort){
+      newd<-dplyr::arrange(d,min)
+    }else{newd <- d}
+
+    #build Aesthetic (mapping)
+    usermapping <- mapping[-1] #Aesthetic without x,y
+    if(sort){
+      mymapping <- list(mapping=aes(x=min,y=max,size=4,col="Max"))
+    }else{
+      mymapping <- list(mapping=aes(x=1:nrow(newd),y=max,size=4,col="Max"))
+    }
+    allmapping <-as.list(structure(as.expression(c(usermapping,mymapping)),class="uneval"))
+
+    mymapping2 <- list(mapping=aes(size=4,col="Min"))
+    allmapping2 <-as.list(structure(as.expression(c(usermapping,mymapping2)),class="uneval"))
+    #plot
+    if(sort){
+      ggplot(newd,aes(x=min,y=min))+
+        do.call(geom_point,allmapping2)+
+        do.call(geom_point,allmapping)+
+        geom_segment(aes(x=min,y=min,xend=min,yend=max))+
+        geom_segment(aes(x=min[1],y=min[1],xend=min[n],yend=min[n]),lty=2)+
+        labs(x="",y=attr,title = "Min-Max Plot")+
+        guides(size=FALSE,fill=FALSE)+
+        scale_x_continuous(breaks=newd$min,labels=rownames(iData))
+
+    }else{
+      ggplot(newd,aes(x=1:nrow(newd),y=min))+
+        do.call(geom_point,allmapping2)+
+        do.call(geom_point,allmapping)+
+        geom_segment(aes(x=1:nrow(newd),y=min,xend=1:nrow(newd),yend=max))+
+        labs(x="",y=attr,title = "Min-Max Plot")+
+        guides(size=FALSE,fill=FALSE)+
+        scale_x_continuous(breaks=1:nrow(newd),labels=rownames(iData))
+    }
+
+  })
+}
