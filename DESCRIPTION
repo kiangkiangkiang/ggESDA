@@ -1,6 +1,6 @@
 Package: ggESDA
 Type: Package
-Title: Visualizing symbolic data (interval data) with ggplot2
+Title: Exploratory symbolic data analysis with ggplot2
 Version: 0.1.0
 Author: Bo-Syue Jiang
 Maintainer: Bo-Syue Jiang <lucky1515699@gmail.com>
