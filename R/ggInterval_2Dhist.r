@@ -1,5 +1,5 @@
 #' @name ggInterval_2Dhist
-#' @title Plot a 2-dimension histogram by symbolic data with ggplot
+#' @title visualize a 2-dimension histogram by symbolic data with ggplot
 #' package.
 #' @description Visualize the two continuous variable distribution
 #' by dividing both the x axis and y axis into bins,and calculating

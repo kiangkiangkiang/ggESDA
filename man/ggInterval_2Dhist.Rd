@@ -2,7 +2,7 @@
 % Please edit documentation in R/ggInterval_2Dhist.r
 \name{ggInterval_2Dhist}
 \alias{ggInterval_2Dhist}
-\title{Plot a 2-dimension histogram by symbolic data with ggplot
+\title{visualize a 2-dimension histogram by symbolic data with ggplot
 package.}
 \usage{
 ggInterval_2Dhist(data = NULL,mapping = aes(NULL)
