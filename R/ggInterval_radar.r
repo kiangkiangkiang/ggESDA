@@ -21,10 +21,15 @@
 #' an interval data if the plotPartial is not null.
 #' @param fillBetween default TRUE,it will fill color between interval.
 #' Else,it will draw two radar plot to show min value and max value.
-#'
+#' @param base_lty line type in base figure
+#' @param base_circle boolean, if true, it will generate inner circle.
+#' @param alpha aesthetic alpha of fill color
 #' @usage ggInterval_radar(data=NULL,layerNumber=4,
-#' inOneFig=FALSE,showLegend=TRUE,showXYLabs=FALSE,
-#' plotPartial=NULL,fillBetween=TRUE)
+#'inOneFig=FALSE,showLegend=TRUE,showXYLabs=FALSE,
+#'plotPartial=NULL,fillBetween=TRUE,
+#'base_lty="solid",
+#'base_circle=FALSE,
+#'alpha=0.5)
 #' @examples
 #' mydata<-ggESDA::classic2sym(mtcars,k=4)$intervalData
 #' ggInterval_radar(data=mydata[,c("mpg","disp",'drat')])
@@ -35,8 +40,11 @@
 #' ggInterval_radar(mydata,inOneFig = TRUE)+geom_text(aes(x=0.6,0.6),label="Add anything you want")
 #' @export
 ggInterval_radar <- function(data=NULL,layerNumber=4,
-                      inOneFig=FALSE,showLegend=TRUE,showXYLabs=FALSE,
-                      plotPartial=NULL,fillBetween=TRUE){
+                    inOneFig=FALSE,showLegend=TRUE,showXYLabs=FALSE,
+                    plotPartial=NULL,fillBetween=TRUE,
+                    base_lty="solid",
+                    base_circle=FALSE,
+                    alpha=0.5){
 
   #notes
   if(dim(data)[1]<=1){
@@ -78,7 +86,11 @@ ggInterval_radar <- function(data=NULL,layerNumber=4,
   }
 
   #setting original plot
-  p<-generateCircle(nL)+coord_fixed(ratio = 1)
+  if(base_circle){
+    p<-generateCircle(nL)+coord_fixed(ratio = 1)
+  }else{
+    p<-ggplot()+coord_fixed(ratio = 1)
+  }
   d<-generatePoint(nP,nL)
   d<-d[(nP*nL-nP+1):(nP*nL),]
   p<-p+geom_point(data=d,aes(x=d$x,y=d$y))
@@ -119,6 +131,14 @@ ggInterval_radar <- function(data=NULL,layerNumber=4,
   plotMin<-data.frame(plotMin,Variables=myLabel)
   plotMax<-data.frame(plotMax,Variables=myLabel)
 
+  #make text in plot
+  minList<-unlist(lapply(1:nP,FUN=function(x) iDataList[[x]][,1]))
+  maxList<-unlist(lapply(1:nP,FUN=function(x) iDataList[[x]][,2]))
+  textMin<-as.data.frame(cbind(plotMin,min=minList))
+  textMax<-as.data.frame(cbind(plotMax,max=maxList))
+  textShift<-0.05
+  textMin$cos<-textMin$cos+textShift;textMin$sin<-textMin$sin+textShift
+  textMax$cos<-textMax$cos+textShift;textMax$sin<-textMax$sin+textShift
 
   if(inOneFig){
     if(fillBetween){
@@ -133,36 +153,45 @@ ggInterval_radar <- function(data=NULL,layerNumber=4,
         p<-p+geom_path(data=myPathData,aes(x=myPathData$x1, y=myPathData$y1))+
           geom_path(data=myPathData,aes(x=myPathData$x2, y=myPathData$y2))
       }
-      p<-p+geom_polygon(data=myPolyData,aes(x=myPolyData$cos,y=myPolyData$sin,fill=group),alpha = 0.2,col="black")
+      p<-p+geom_polygon(data=myPolyData,aes(x=myPolyData$cos,y=myPolyData$sin,fill=group),alpha = alpha,col="black")
     }else{
       p<-p+geom_polygon(data=plotMin,aes(x=plotMin$cos,y=plotMin$sin,group=plotMin$group,
-                                         fill=plotMin$group,colour=plotMin$group),alpha=0.7,size = 1,
+                                         fill=plotMin$group),alpha=alpha,size = 1,
                         show.legend = F)+
         geom_polygon(data=plotMax,aes(x=plotMax$cos,y=plotMax$sin,group=plotMax$group,
-                                      fill=plotMax$group,colour=plotMax$group),alpha=0.2,size = 0.2,
+                                      fill=plotMax$group),alpha=alpha,size = 0.2,
                      show.legend = F)
     }
-    p<-p+geom_point(data=plotMin,aes(x=plotMin$cos,y=plotMin$sin,col=plotMin$group,fill=plotMin$group,
+    p<-p+geom_point(data=plotMin,aes(x=plotMin$cos,y=plotMin$sin,fill=plotMin$group,
                                      group=plotMin$group),size=2)+
-      geom_segment(data=d,aes(x=0,y=0,xend=d$x,yend=d$y),lty=2,alpha=0.6)+
-      geom_point(data=plotMax,aes(x=plotMax$cos,y=plotMax$sin,col=plotMax$group,fill=plotMax$group,
+      geom_segment(data=d,aes(x=0,y=0,xend=d$x,yend=d$y),lty=base_lty,alpha=0.6)+
+      geom_point(data=plotMax,aes(x=plotMax$cos,y=plotMax$sin,fill=plotMax$group,
                                   group=plotMax$group),size=2)+
       geom_point(data=plotMax,aes(x=0,y=0,alpha=plotMax$Variables))+
       geom_text(data=d,aes(x=d$x,y=d$y,label=colnames(iData)),vjust=-0.4,hjust=1)
+
+    if(indNum==1){
+      p<-p+geom_text(data=textMin,aes(x=textMin$cos,y=textMin$sin,label=textMin$min))+
+        geom_text(data=textMax,aes(x=textMax$cos,y=textMax$sin,label=textMax$max))
+    }
     if(!showXYLabs){
-      p<-p+scale_x_continuous(labels =NULL,limits = c(-1.5,1.5))+
-        scale_y_continuous(labels =NULL,limits = c(-1.5,1.5))+xlab(NULL)+ylab(NULL)
+      p<-p+scale_x_continuous(labels =NULL,limits = c(-1,1))+
+        scale_y_continuous(labels =NULL,limits = c(-1,1))+xlab(NULL)+ylab(NULL)
     }else{
-      p<-p+scale_x_continuous(limits = c(-1.5,1.5))+
-        scale_y_continuous(limits = c(-1.5,1.5))
+      p<-p+scale_x_continuous(limits = c(-1,1))+
+        scale_y_continuous(limits = c(-1,1))
     }#showLegend
     if(showLegend){
-      p<-p+guides(fill=F)
+      if(indNum>1){
+        p<-p+guides()
+      }else{
+        p<-p+guides(fill=F)
+      }
     }else{
-      p<-p+guides(fill=F,col=F,alpha=F)
+      p<-p+guides(fill=F,alpha=F)
     }
     p<-p+labs(title=paste0("Radar : ",paste(sapply(rownames(iData), paste, collapse=":"), collapse=",")))+scale_colour_discrete(name = "Group")+
-      scale_alpha_discrete(name="Interval")
+      scale_alpha_discrete(name="Interval")+theme_bw()
   }else{
     plotList <- NULL
     u<-1
@@ -190,6 +219,7 @@ ggInterval_radar <- function(data=NULL,layerNumber=4,
   return(p)
 }
 
+
 plotFun<-function(p,iData,plotMin.temp,plotMax.temp,d,showXYLabs,showLegend,fillBetween){
   if(fillBetween){
     myPolyData<-data.frame(NULL)
@@ -199,34 +229,38 @@ plotFun<-function(p,iData,plotMin.temp,plotMax.temp,d,showXYLabs,showLegend,fill
                            x2=plotMax.temp$cos,y2=plotMax.temp$sin)
     base<-p+geom_path(data=myPathData,aes(x=myPathData$x1, y=myPathData$y1))+
       geom_path(data=myPathData,aes(x=myPathData$x2, y=myPathData$y2))
-    base<-base+geom_polygon(data=myPolyData,aes(x=myPolyData$cos,y=myPolyData$sin,fill=group),alpha = 0.2,col="black")
+    base<-base+geom_polygon(data=myPolyData,aes(x=myPolyData$cos,y=myPolyData$sin,fill=group),alpha = alpha,col="black")
   }else{
     base<-p+geom_polygon(data=plotMin.temp,aes(x=plotMin.temp$cos,y=plotMin.temp$sin,group=plotMin.temp$group,
-                                               fill=plotMin.temp$group,colour=plotMin.temp$group),alpha=0.7,size = 1,
+                                               fill=plotMin.temp$group),alpha=alpha,size = 1,
                          show.legend = F)+
       geom_polygon(data=plotMax.temp,aes(x=plotMax.temp$cos,y=plotMax.temp$sin,group=plotMax.temp$group,
-                                         fill=plotMax.temp$group,colour=plotMax.temp$group),alpha=0.2,size = 0.2,
+                                         fill=plotMax.temp$group),alpha=alpha,size = 0.2,
                    show.legend = F)
   }
-  base<-base+geom_point(data=plotMin.temp,aes(x=plotMin.temp$cos,y=plotMin.temp$sin,col=plotMin.temp$group,fill=plotMin.temp$group,
-                                           group=plotMin.temp$group),size=2)+
-    geom_segment(data=d,aes(x=0,y=0,xend=d$x,yend=d$y),lty=2,alpha=0.6)+
-    geom_point(data=plotMax.temp,aes(x=plotMax.temp$cos,y=plotMax.temp$sin,col=plotMax.temp$group,fill=plotMax.temp$group,
+  base<-base+geom_point(data=plotMin.temp,aes(x=plotMin.temp$cos,y=plotMin.temp$sin,fill=plotMin.temp$group,
+                                              group=plotMin.temp$group),size=2)+
+    geom_segment(data=d,aes(x=0,y=0,xend=d$x,yend=d$y),lty=base_lty,alpha=0.6)+
+    geom_point(data=plotMax.temp,aes(x=plotMax.temp$cos,y=plotMax.temp$sin,fill=plotMax.temp$group,
                                      group=plotMax.temp$group),size=2)+
     geom_point(data=plotMax.temp,aes(x=0,y=0,alpha=plotMax.temp$Variables))+
-    geom_text(data=d,aes(x=d$x,y=d$y,label=colnames(iData)),vjust=-0.4,hjust=1)
+    geom_text(data=d,aes(x=d$x,y=d$y,label=colnames(iData)),vjust=-0.4,hjust=1)+
+    geom_text(data=textMin,aes(x=textMin$cos,y=textMin$sin,label=textMin$min))+
+    geom_text(data=textMax,aes(x=textMax$cos,y=textMax$sin,label=textMax$max))
+
   if(!showXYLabs){
     base<-base+scale_x_continuous(labels =NULL,limits = c(-1.5,1.5))+
       scale_y_continuous(labels =NULL,limits = c(-1.5,1.5))+xlab(NULL)+ylab(NULL)
   }else{
-    base<-base+scale_x_continuous(limits = c(-1.5,1.5))+
-      scale_y_continuous(limits = c(-1.5,1.5))
+    base<-base+scale_x_continuous(limits = c(-1,1))+
+      scale_y_continuous(limits = c(-1,1))
   }#showLegend
   if(showLegend){
     base<-base+guides(fill=F)
   }else{
     base<-base+guides(fill=F,col=F,alpha=F)
   }
+  base<-base+theme_bw()
   return(base)
 }
 
