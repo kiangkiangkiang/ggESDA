@@ -19,17 +19,17 @@
 #' the data.if it is not null,it will extract the row user deciding
 #' to draw a radar plot from original data.Notes : the data must be
 #' an interval data if the plotPartial is not null.
-#' @param fillBetween default TRUE,it will fill color between interval.
-#' Else,it will draw two radar plot to show min value and max value.
 #' @param base_lty line type in base figure
 #' @param base_circle boolean, if true, it will generate inner circle.
 #' @param alpha aesthetic alpha of fill color
+#' @param addText add value in figure
 #' @usage ggInterval_radar(data=NULL,layerNumber=4,
 #' inOneFig=FALSE,showLegend=TRUE,showXYLabs=FALSE,
-#' plotPartial=NULL,fillBetween=TRUE,
+#' plotPartial=NULL,
 #' alpha=0.5,
 #' base_circle=FALSE,
-#' base_lty="solid")
+#' base_lty="solid",
+#' addText=TRUE)
 #' @examples
 #' mydata<-ggESDA::classic2sym(mtcars,k=4)$intervalData
 #' ggInterval_radar(data=mydata[,c("mpg","disp",'drat')])
@@ -44,8 +44,9 @@ ggInterval_radar <- function(data=NULL,layerNumber=4,
                              plotPartial=NULL,fillBetween=TRUE,
                              alpha=0.5,
                              base_circle=TRUE,
-                             base_lty=2){
-
+                             base_lty=2,
+                             addText=TRUE){
+  fillBetween=TRUE #not fix complete
   #notes
   if(dim(data)[1]<=1){
     stop("ERROR IN data : data must be full data with observations larger than 1.")
@@ -73,12 +74,11 @@ ggInterval_radar <- function(data=NULL,layerNumber=4,
   }
   #data preprocessing
   numericData <- unlist(lapply(iData[,1:dim(data)[2]] ,FUN = RSDA::is.sym.interval))
-  rawiData<-iData
-  if(indNum==1 || is.null(plotPartial)){
+
+  if(indNum==1 || is.null(plotPartial) || !inOneFig){
+    rawiData<-iData
     propData <-iData[,!numericData]
     allnP <- dim(rawiData)[2]
-  }else{
-
   }
   iData <- iData[,numericData]
   nP <- dim(iData)[2]
@@ -100,21 +100,27 @@ ggInterval_radar <- function(data=NULL,layerNumber=4,
     p<-ggplot()+coord_fixed(ratio = 1)
   }
 
-
-  d<-generatePoint(allnP,nL)
-  d<-d[(allnP*nL-allnP+1):(allnP*nL),]
+  if(indNum==1 || is.null(plotPartial) || !inOneFig){
+    d<-generatePoint(allnP,nL)
+    d<-d[(allnP*nL-allnP+1):(allnP*nL),]
+    propData<-propData[plotPartial,]
+  }else{
+    rawiData<-iData
+    d<-generatePoint(nP,nL)
+    d<-d[(nP*nL-nP+1):(nP*nL),]
+  }
   p<-p+geom_point(data=d,aes(x=d$x,y=d$y))
 
   #get all variables min max data
   allData<-iData[,1:nP]
   if(!is.null(plotPartial)){
     iData<-iData[plotPartial,1:nP]
-    propData<-propData[plotPartial,]
   }
   dataList<-lapply(1:nP,FUN=function(x) data.frame(allData[[x]]))
   iDataList<-lapply(1:nP,FUN=function(x) data.frame(iData[[x]]))
   maxList<-lapply(1:nP,FUN=function(x) max(dataList[[x]]))
   minList<-lapply(1:nP,FUN=function(x) min(dataList[[x]]))
+  minminList<-minList;  maxmaxList<-maxList
 
   #normalize data to 0,1
   normData<-lapply(1:nP ,FUN=function(x){
@@ -143,17 +149,25 @@ ggInterval_radar <- function(data=NULL,layerNumber=4,
   plotMax<-data.frame(plotMax,Variables=myLabel)
 
   #make text in plot
-  minList<-unlist(lapply(1:nP,FUN=function(x) iDataList[[x]][,1]))
-  maxList<-unlist(lapply(1:nP,FUN=function(x) iDataList[[x]][,2]))
-  textMin<-as.data.frame(cbind(plotMin,min=minList))
-  textMax<-as.data.frame(cbind(plotMax,max=maxList))
+  # minList<-unlist(lapply(1:nP,FUN=function(x) iDataList[[x]][,1]))
+  # maxList<-unlist(lapply(1:nP,FUN=function(x) iDataList[[x]][,2]))
+  #
+  newDf <- data.frame(NULL)
+  for(i in 1:indNum){
+    for(u in 1:nP){
+      newDf<-rbind(newDf,iDataList[[u]][i,])
+    }
+  }
+  #
+  textMin<-as.data.frame(cbind(plotMin,min=newDf$min))
+  textMax<-as.data.frame(cbind(plotMax,max=newDf$max))
   textShift<-0.05
   textMin$cos<-textMin$cos+textShift;textMin$sin<-textMin$sin+textShift
   textMax$cos<-textMax$cos+textShift;textMax$sin<-textMax$sin+textShift
 
 
   #calculate nominal variable
-  if(indNum==1 || is.null(plotPartial)){
+  if(indNum==1 || is.null(plotPartial) || !inOneFig){
     propDf<-data.frame()
     counter<-1
     for(var in colnames(propData)){
@@ -161,7 +175,7 @@ ggInterval_radar <- function(data=NULL,layerNumber=4,
       for(ele in 1:dim(propData)[1]){
         varPro<-unlist(propData[ele,var])
         propDf[counter:(counter+(length(varPro)/2)-1),"varName"] <- rep(var,length(varPro)/2)
-        propDf[counter:(counter+(length(varPro)/2)-1),"varLevels"]<-varPro[1:(length(varPro)/2)]
+        propDf[counter:(counter+(length(varPro)/2)-1),"varLevels"]<-paste(varPro[1:(length(varPro)/2)],round(as.numeric(varPro[(length(varPro)/2+1):length(varPro)]),2))
         propDf[counter:(counter+(length(varPro)/2)-1),"prop"]<-as.numeric(varPro[(length(varPro)/2+1):length(varPro)])
         propDf[counter:(counter+(length(varPro)/2)-1),"groupid"] <- as.factor(rep(ele,length(varPro)/2))
         pos<-seq(0,1,1/((length(varPro)+2)/2));pos<-pos[-length(pos)][-1]
@@ -182,6 +196,18 @@ ggInterval_radar <- function(data=NULL,layerNumber=4,
         myPolyData<-rbind(myPolyData,newTemp)
         myPathData<-data.frame(x1=plotMin.temp$cos,y1=plotMin.temp$sin,
                                x2=plotMax.temp$cos,y2=plotMax.temp$sin)
+        #add nominal
+        if(indNum==1){
+          tmp<-propDf[propDf$prop==max(propDf$prop),]
+          tmp<-tmp[1,] #還沒想到一次連兩個點的方法 先只取第一個
+          tmp2<-plotMin.temp[1,]
+          tmp2[,c("cos","sin")]<-c(tmp$x,tmp$y)
+          myPathData<-rbind(myPathData,data.frame(x1=tmp$x,y1=tmp$y,x2=tmp$x,y2=tmp$y))
+          myPolyData<-data.frame(NULL)
+          newTemp<-rbind(plotMin.temp,tmp2,
+                         plotMin.temp[1,], plotMax.temp,tmp2,plotMax.temp[1,])
+          myPolyData<-rbind(myPolyData,newTemp)
+        }
         p<-p+geom_path(data=myPathData,aes(x=myPathData$x1, y=myPathData$y1),lty=0)+
           geom_path(data=myPathData,aes(x=myPathData$x2, y=myPathData$y2),lty=0)
       }
@@ -202,11 +228,11 @@ ggInterval_radar <- function(data=NULL,layerNumber=4,
       geom_point(data=plotMax,aes(x=0,y=0,alpha=plotMax$Variables))+
       geom_text(data=d,aes(x=d$x,y=d$y,label=c(colnames(rawiData))),vjust=-0.4,hjust=1)
 
-
-    if(indNum==1){
+    if(addText){
       p<-p+geom_text(data=textMin,aes(x=textMin$cos,y=textMin$sin,label=textMin$min))+
         geom_text(data=textMax,aes(x=textMax$cos,y=textMax$sin,label=textMax$max))
-
+    }
+    if(indNum==1){
       #add nominal var
       p<-p+geom_point(data=propDf,aes(x=propDf$x,y=propDf$y,size=propDf$prop+0.5),alpha=0.5,
                       show.legend = F,col="black")+
@@ -217,8 +243,15 @@ ggInterval_radar <- function(data=NULL,layerNumber=4,
       p<-p+scale_x_continuous(labels =NULL,limits = c(-1.25,1.25))+
         scale_y_continuous(labels =NULL,limits = c(-1.25,1.25))+xlab(NULL)+ylab(NULL)
     }else{
+      #adds scale y continuous label
+      yLabelPos<-seq(-1.25,1.25,(1.25-(-1.25))/(nP+1))
+      yLabelPos<-yLabelPos[-1]
+      yLabelTitle<-paste0(colnames(iData),": [")
+      yLabels<-paste0(yLabelTitle,paste(unlist(minminList),unlist(maxmaxList),sep=","),"]")
+      yLabels<-c(yLabels,expression(bold("The range of each variable show as follows :")))
       p<-p+scale_x_continuous(limits = c(-1.25,1.25))+
-        scale_y_continuous(limits = c(-1.25,1.25))
+        scale_y_continuous(breaks=yLabelPos,labels=yLabels,limits = c(-1.25,1.25))+xlab(NULL)+ylab(NULL)+
+        scale_x_continuous(labels=NULL,limits = c(-1.25,1.25))
     }#showLegend
     if(showLegend){
       p<-p+guides(fill=F)
@@ -273,6 +306,18 @@ plotFun<-function(p,iData,plotMin.temp,plotMax.temp,d,showXYLabs,showLegend,fill
     myPolyData<-rbind(myPolyData,newTemp)
     myPathData<-data.frame(x1=plotMin.temp$cos,y1=plotMin.temp$sin,
                            x2=plotMax.temp$cos,y2=plotMax.temp$sin)
+
+    #add nominal data
+    tmp<-propDf[propDf$prop==max(propDf$prop),]
+    tmp<-tmp[1,] #還沒想到一次連兩個點的方法 先只取第一個
+    tmp2<-plotMin.temp[1,]
+    tmp2[,c("cos","sin")]<-c(tmp$x,tmp$y)
+    myPathData<-rbind(myPathData,data.frame(x1=tmp$x,y1=tmp$y,x2=tmp$x,y2=tmp$y))
+    myPolyData<-data.frame(NULL)
+    newTemp<-rbind(plotMin.temp,tmp2,
+                   plotMin.temp[1,], plotMax.temp,tmp2,plotMax.temp[1,])
+    myPolyData<-rbind(myPolyData,newTemp)
+
     base<-p+geom_path(data=myPathData,aes(x=myPathData$x1, y=myPathData$y1))+
       geom_path(data=myPathData,aes(x=myPathData$x2, y=myPathData$y2))
     base<-base+geom_polygon(data=myPolyData,aes(x=myPolyData$cos,y=myPolyData$sin,fill=group),alpha = alpha,col="black")
