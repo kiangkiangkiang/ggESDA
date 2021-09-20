@@ -73,6 +73,13 @@ ggInterval_radar <- function(data=NULL,layerNumber=4,
   }
   #data preprocessing
   numericData <- unlist(lapply(iData[,1:dim(data)[2]] ,FUN = RSDA::is.sym.interval))
+  rawiData<-iData
+  if(indNum==1 || is.null(plotPartial)){
+    propData <-iData[,!numericData]
+    allnP <- dim(rawiData)[2]
+  }else{
+
+  }
   iData <- iData[,numericData]
   nP <- dim(iData)[2]
 
@@ -94,14 +101,15 @@ ggInterval_radar <- function(data=NULL,layerNumber=4,
   }
 
 
-  d<-generatePoint(nP,nL)
-  d<-d[(nP*nL-nP+1):(nP*nL),]
+  d<-generatePoint(allnP,nL)
+  d<-d[(allnP*nL-allnP+1):(allnP*nL),]
   p<-p+geom_point(data=d,aes(x=d$x,y=d$y))
 
   #get all variables min max data
   allData<-iData[,1:nP]
   if(!is.null(plotPartial)){
     iData<-iData[plotPartial,1:nP]
+    propData<-propData[plotPartial,]
   }
   dataList<-lapply(1:nP,FUN=function(x) data.frame(allData[[x]]))
   iDataList<-lapply(1:nP,FUN=function(x) data.frame(iData[[x]]))
@@ -118,7 +126,7 @@ ggInterval_radar <- function(data=NULL,layerNumber=4,
 
   minDF<-matrix(minDF,ncol=nP)
   maxDF<-matrix(maxDF,ncol=nP)
-  transMatrix<-d[,c(3,4)]
+  transMatrix<-d[1:nP,c(3,4)]
 
   #convert data to match radar axis scale
   plotMin<-data2Vec(iData=iData,data=minDF,transMat = transMatrix)
@@ -142,6 +150,27 @@ ggInterval_radar <- function(data=NULL,layerNumber=4,
   textShift<-0.05
   textMin$cos<-textMin$cos+textShift;textMin$sin<-textMin$sin+textShift
   textMax$cos<-textMax$cos+textShift;textMax$sin<-textMax$sin+textShift
+
+
+  #calculate nominal variable
+  if(indNum==1 || is.null(plotPartial)){
+    propDf<-data.frame()
+    counter<-1
+    for(var in colnames(propData)){
+      varNum <- 1
+      for(ele in 1:dim(propData)[1]){
+        varPro<-unlist(propData[ele,var])
+        propDf[counter:(counter+(length(varPro)/2)-1),"varName"] <- rep(var,length(varPro)/2)
+        propDf[counter:(counter+(length(varPro)/2)-1),"varLevels"]<-varPro[1:(length(varPro)/2)]
+        propDf[counter:(counter+(length(varPro)/2)-1),"prop"]<-as.numeric(varPro[(length(varPro)/2+1):length(varPro)])
+        propDf[counter:(counter+(length(varPro)/2)-1),"groupid"] <- as.factor(rep(ele,length(varPro)/2))
+        pos<-seq(0,1,1/((length(varPro)+2)/2));pos<-pos[-length(pos)][-1]
+        propDf[counter:(counter+(length(varPro)/2)-1),"x"] <- d[nP+varNum,3] * pos
+        propDf[counter:(counter+(length(varPro)/2)-1),"y"] <- d[nP+varNum,4] * pos
+        counter<-counter+length(varPro)/2
+      }
+    }
+  }
 
   if(inOneFig){
     if(fillBetween){
@@ -171,17 +200,25 @@ ggInterval_radar <- function(data=NULL,layerNumber=4,
       geom_point(data=plotMax,aes(x=plotMax$cos,y=plotMax$sin,col=plotMax$group,fill=plotMax$group,
                                   group=plotMax$group),size=2)+
       geom_point(data=plotMax,aes(x=0,y=0,alpha=plotMax$Variables))+
-      geom_text(data=d,aes(x=d$x,y=d$y,label=colnames(iData)),vjust=-0.4,hjust=1)
+      geom_text(data=d,aes(x=d$x,y=d$y,label=c(colnames(rawiData))),vjust=-0.4,hjust=1)
+
+
     if(indNum==1){
       p<-p+geom_text(data=textMin,aes(x=textMin$cos,y=textMin$sin,label=textMin$min))+
         geom_text(data=textMax,aes(x=textMax$cos,y=textMax$sin,label=textMax$max))
+
+      #add nominal var
+      p<-p+geom_point(data=propDf,aes(x=propDf$x,y=propDf$y,size=propDf$prop+0.5),alpha=0.5,
+                      show.legend = F,col="black")+
+        geom_text(data=propDf,aes(x=propDf$x+textShift,y=propDf$y+textShift,label=varLevels))
+
     }
     if(!showXYLabs){
-      p<-p+scale_x_continuous(labels =NULL,limits = c(-1,1))+
-        scale_y_continuous(labels =NULL,limits = c(-1,1))+xlab(NULL)+ylab(NULL)
+      p<-p+scale_x_continuous(labels =NULL,limits = c(-1.25,1.25))+
+        scale_y_continuous(labels =NULL,limits = c(-1.25,1.25))+xlab(NULL)+ylab(NULL)
     }else{
-      p<-p+scale_x_continuous(limits = c(-1,1))+
-        scale_y_continuous(limits = c(-1,1))
+      p<-p+scale_x_continuous(limits = c(-1.25,1.25))+
+        scale_y_continuous(limits = c(-1.25,1.25))
     }#showLegend
     if(showLegend){
       p<-p+guides(fill=F)
@@ -190,6 +227,8 @@ ggInterval_radar <- function(data=NULL,layerNumber=4,
     }
     p<-p+labs(title=paste0("Radar : ",paste(sapply(rownames(iData), paste, collapse=":"), collapse=",")))+scale_colour_discrete(name = "Group")+
       scale_alpha_discrete(name="Interval")+theme_bw()
+
+
 
     #make circle interpret
     if(base_circle){
@@ -208,7 +247,7 @@ ggInterval_radar <- function(data=NULL,layerNumber=4,
       plotMin.temp <- dplyr::filter(plotMin,plotMin$group==i)
       plotMax.temp <- dplyr::filter(plotMax,plotMax$group==i)
       #print(paste(u,plotMin.temp))
-      base<-plotFun(p,iData,plotMin.temp,plotMax.temp,d,showXYLabs,showLegend,fillBetween,base_circle,layerNumber,textMin,textMax)
+      base<-plotFun(p,iData,plotMin.temp,plotMax.temp,d,showXYLabs,showLegend,fillBetween,base_circle,layerNumber,textMin,textMax,rawiData,propDf)
       base<-base+labs(title=paste0("Radar : ",rownames(iData)[u]))+labs(title=paste0("Radar : ",rownames(iData)[u]))+scale_colour_discrete(name = "Group")+
         scale_alpha_discrete(name="Interval")
 
@@ -227,7 +266,7 @@ ggInterval_radar <- function(data=NULL,layerNumber=4,
   return(p)
 }
 
-plotFun<-function(p,iData,plotMin.temp,plotMax.temp,d,showXYLabs,showLegend,fillBetween,base_circle,layerNumber,textMin,textMax){
+plotFun<-function(p,iData,plotMin.temp,plotMax.temp,d,showXYLabs,showLegend,fillBetween,base_circle,layerNumber,textMin,textMax,rawiData,propDf){
   if(fillBetween){
     myPolyData<-data.frame(NULL)
     newTemp<-rbind(plotMin.temp,plotMin.temp[1,],plotMax.temp,plotMax.temp[1,])
@@ -251,15 +290,21 @@ plotFun<-function(p,iData,plotMin.temp,plotMax.temp,d,showXYLabs,showLegend,fill
     geom_point(data=plotMax.temp,aes(x=plotMax.temp$cos,y=plotMax.temp$sin,col=plotMax.temp$group,fill=plotMax.temp$group,
                                      group=plotMax.temp$group),size=2)+
     geom_point(data=plotMax.temp,aes(x=0,y=0,alpha=plotMax.temp$Variables))+
-    geom_text(data=d,aes(x=d$x,y=d$y,label=colnames(iData)),vjust=-0.4,hjust=1)+
+    geom_text(data=d,aes(x=d$x,y=d$y,label=colnames(rawiData)),vjust=-0.4,hjust=1)+
     geom_text(data=textMin,aes(x=textMin$cos,y=textMin$sin,label=textMin$min))+
     geom_text(data=textMax,aes(x=textMax$cos,y=textMax$sin,label=textMax$max))
+
+  #add nominal var
+  base<-base+geom_point(data=propDf,aes(x=propDf$x,y=propDf$y,size=propDf$prop+0.5),alpha=0.5,
+                        show.legend = F,col="black")+
+    geom_text(data=propDf,aes(x=propDf$x+textShift,y=propDf$y+textShift,label=varLevels))
+
   if(!showXYLabs){
-    base<-base+scale_x_continuous(labels =NULL,limits = c(-1.5,1.5))+
-      scale_y_continuous(labels =NULL,limits = c(-1.5,1.5))+xlab(NULL)+ylab(NULL)
+    base<-base+scale_x_continuous(labels =NULL,limits = c(-1.25,1.25))+
+      scale_y_continuous(labels =NULL,limits = c(-1.25,1.25))+xlab(NULL)+ylab(NULL)
   }else{
-    base<-base+scale_x_continuous(limits = c(-1,1))+
-      scale_y_continuous(limits = c(-1,1))
+    base<-base+scale_x_continuous(limits = c(-1.25,1.25))+
+      scale_y_continuous(limits = c(-1.25,1.25))
   }#showLegend
   if(showLegend){
     base<-base+guides(fill=F)
@@ -326,22 +371,4 @@ generatePoint<-function(nPoly=NULL,nLayer=NULL){
     }
   }
   return(allPoint)
-}
-getCutLine<-function(startPoint,len,perp){
-  if(perp[1]==0&&perp[2]==0){
-    stop("(0,0) vector cannot find a Perpendicular")
-  }else if(perp[2]==0){
-    if(perp[1]<0){
-      return(c(startPoint[1]-len,startPoint[2]))
-    }
-    return(c(startPoint[1]+len,startPoint[2]))
-  }else if(perp[1]==0){
-    return(c(startPoint[1],startPoint[2]+len))
-  }else{
-    r<-perp[1]/perp[2]
-  }
-  #adjust <- abs(len/(perp[1]))
-  adjust <- (len^2/((perp[1]^2)*(1+(1/r)^2)))^0.5
-  result <-  c(perp[1]*adjust+startPoint[1] , perp[1]*adjust*(1/r)+startPoint[2])
-  return(result)
 }
