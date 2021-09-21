@@ -41,14 +41,14 @@
 #' mydata<-ggESDA::classic2sym(iris,groupby = Species)$intervalData
 #' ggInterval_radar(mydata,inOneFig = TRUE)+geom_text(aes(x=0.6,0.6),label="Add anything you want")
 #' @export
-ggInterval_radar <- function(data=NULL,layerNumber=4,
-                             inOneFig=FALSE,showLegend=TRUE,showXYLabs=FALSE,
-                             plotPartial=NULL,
-                             alpha=0.5,
-                             base_circle=TRUE,
-                             base_lty=2,
-                             addText=TRUE,
-                             type="default"){
+ggInterval_radar <-function(data=NULL,layerNumber=4,
+                            inOneFig=FALSE,showLegend=TRUE,showXYLabs=FALSE,
+                            plotPartial=NULL,
+                            alpha=0.5,
+                            base_circle=TRUE,
+                            base_lty=2,
+                            addText=TRUE,
+                            type="default"){
   fillBetween=TRUE #not fix complete
   #notes
   if(dim(data)[1]<=1){
@@ -85,11 +85,9 @@ ggInterval_radar <- function(data=NULL,layerNumber=4,
   numericData <- unlist(lapply(iData[,1:dim(data)[2]] ,FUN = RSDA::is.sym.interval))
 
   rawiData<-iData
-  if(indNum==1 || is.null(plotPartial) || !inOneFig){
-    propData <-iData[,!numericData]
-  }
-  iData <- iData[,numericData]
   allnP <- dim(rawiData)[2]
+  propData <-iData[,!numericData]
+  iData <- iData[,numericData]
   nP <- dim(iData)[2]
 
   #test ERROR
@@ -109,7 +107,7 @@ ggInterval_radar <- function(data=NULL,layerNumber=4,
     p<-ggplot()+coord_fixed(ratio = 1)
   }
 
-  if(indNum==1 || is.null(plotPartial) || !inOneFig){
+  if(allnP!=nP){
     d<-generatePoint(allnP,nL)
     d<-d[(allnP*nL-allnP+1):(allnP*nL),]
     propData<-propData[plotPartial,]
@@ -176,57 +174,104 @@ ggInterval_radar <- function(data=NULL,layerNumber=4,
 
 
   #calculate nominal variable (point)
-  if((indNum==1 || is.null(plotPartial) || !inOneFig ) && allnP!=nP){
-    propDf<-data.frame()
-    counter<-1
+  if(allnP!=nP){
+    # preparing the nominal data set
+    tmpDf<-data.frame(NULL)
     for(var in colnames(propData)){
+      propDf<-data.frame(NULL)
+      counter<-1
       varNum <- 1
-      for(ele in 1:dim(propData)[1]){
+      for(ele in 1:indNum){
         varPro<-unlist(propData[ele,var])
         propDf[counter:(counter+(length(varPro)/2)-1),"varName"] <- rep(var,length(varPro)/2)
         propDf[counter:(counter+(length(varPro)/2)-1),"varLevels"]<-paste(varPro[1:(length(varPro)/2)],round(as.numeric(varPro[(length(varPro)/2+1):length(varPro)]),2),sep=":")
         propDf[counter:(counter+(length(varPro)/2)-1),"prop"]<-as.numeric(varPro[(length(varPro)/2+1):length(varPro)])
-        propDf[counter:(counter+(length(varPro)/2)-1),"groupid"] <- as.factor(rep(ele,length(varPro)/2))
+        propDf[counter:(counter+(length(varPro)/2)-1),"groupid"] <- rep(ele,length(varPro)/2)
         pos<-seq(0,1,1/((length(varPro)+2)/2));pos<-pos[-length(pos)][-1]
         propDf[counter:(counter+(length(varPro)/2)-1),"x"] <- d[nP+varNum,3] * pos
         propDf[counter:(counter+(length(varPro)/2)-1),"y"] <- d[nP+varNum,4] * pos
         counter<-counter+length(varPro)/2
       }
+      tmpDf<-rbind(tmpDf,propDf)
+      varNum<-varNum+1
     }
+    propDf<-as.data.frame(tmpDf)
+    propDf$groupid <- as.factor(propDf$groupid)
+
+
+    # preparing the symbolic(rectangle) to represent nominal data
+    totalRectDf <- data.frame(NULL)
+    obsG<-1
+    #lastRect <- NULL
+    heiList <- list(NULL)
+    for(i in 1:indNum){
+      heiList[[i]]<-0
+    }
+    for(ele in levels(propDf$groupid)){
+      propDf.ele <- dplyr::filter(propDf,groupid==ele)
+      varG <-1
+      tempRectDf <- data.frame(NULL)
+      for(i in levels(as.factor(propDf$varName))){
+        rectDf <- data.frame(NULL)
+        propDf.temp <- dplyr::filter(propDf.ele,varName==i)
+        varL <- 1
+        heiVec <- NULL
+        for(u in 1:dim(propDf.temp)[1]){
+          #re range 0~1 to -0.9~0.5 (1 = 平面)
+          #print(paste0(ele,i,u))
+          #print(propDf.temp)
+          thisHei<-reRange(-0.99,-0.8,propDf.temp[u,"prop"])
+          heiVec<-cbind(heiVec,thisHei)
+          rect <- build3DRect(-0.95,-0.95,thisHei,g=paste0(i,u,ele))
+          #print(rect)
+          distx <- mean(rect$newx-propDf.temp[u,"x"])
+          disty <- mean(rect$newy[13:16]-propDf.temp[u,"y"])
+          rect$newx <- rect$newx - distx
+          rect$newy <- rect$newy - disty
+
+          #add in height
+          if(obsG>=2){
+            rect$newy <- rect$newy + unlist(heiList[[obsG-1]][varG])[u]
+          }
+
+          rect[,"varLevels"]<-varL
+          rectDf<-rbind(rectDf,rect)
+          varL<-varL+1
+        }#inner for
+        heiList[[obsG]][varG]<-list(1+heiVec)
+        if(obsG>=2){
+          heiList[[obsG]][varG]<-list(unlist(heiList[[obsG-1]][varG])+unlist(heiList[[obsG]][varG]))
+        }
+        rectDf[,"varGroup"]<-varG
+        tempRectDf<-rbind(tempRectDf,rectDf)
+        varG<-varG+1
+      }# sec for
+      tempRectDf[,"obsGroup"]<-obsG
+      obsG<-obsG+1
+      # if(!is.null(lastRect)){
+      #   tempRectDf$newy <- lastRect$newy+tempRectDf$newy
+      # }
+      totalRectDf<-rbind(totalRectDf,tempRectDf)
+      #lastRect<-tempRectDf
+      #print(lastRect)
+    }# first for
+
+    plotMin$group<-as.factor(plotMin$group)
+    #totalRectDf<-as.data.frame(totalRectDf)
+    totalRectDf$varLevels <- as.factor(totalRectDf$varLevels)
+    totalRectDf$varGroup <- as.factor(totalRectDf$varGroup)
+    totalRectDf$obsGroup <- as.factor(totalRectDf$obsGroup)
+    levels(propDf$groupid)<-levels(plotMin$group)
   }
+  #print(propDf)
+  #print(heiList)
+  #print(totalRectDf)
 
 
   #generate cut line for type==rect && build nominal rect
   if(type=="rect"){
     cutDf<-c(getCutDf(plotMin,transMatrix,nP,indNum),getCutDf(plotMax,transMatrix,nP,indNum))
-
-    # if there is nominal var exist
-    if(allnP!=nP && indNum==1){
-      totalRectDf <- data.frame(NULL)
-      obsG<-1
-      for(i in levels(as.factor(propDf$varName))){
-        rectDf <- data.frame(NULL)
-        propDf.temp <- dplyr::filter(propDf,varName==i)
-        varG <- 1
-        for(u in 1:dim(propDf.temp)[1]){
-          #re range 0~1 to -0.9~0.5 (1 = 平面)
-          rect <- build3DRect(-0.95,-0.95,reRange(-0.99,-0.8,propDf.temp[u,"prop"]),g=paste0(i,u))
-          distx <- mean(rect$newx-propDf.temp[u,"x"])
-          disty <- mean(rect$newy[13:16]-propDf.temp[u,"y"])
-          rect$newx <- rect$newx - distx
-          rect$newy <- rect$newy - disty
-          rect[,"varGroup"]<-as.factor(varG)
-          rectDf<-rbind(rectDf,rect)
-          varG<-varG+1
-        }
-        rectDf[,"obsGroup"]<-as.factor(obsG)
-        totalRectDf<-rbind(totalRectDf,rectDf)
-        obsG<-obsG+1
-      }
-    }
   }
-
-
 
   #plot
   if(inOneFig){
@@ -236,18 +281,19 @@ ggInterval_radar <- function(data=NULL,layerNumber=4,
       for(i in levels(as.factor(plotMin$group))){
         plotMin.temp <- dplyr::filter(plotMin,group==i)
         plotMax.temp <- dplyr::filter(plotMax,group==i)
-        newTemp<-rbind(plotMin.temp,plotMin.temp[1,],plotMax.temp,plotMax.temp[1,])
-        myPolyData<-rbind(myPolyData,newTemp)
         myPathData<-data.frame(x1=plotMin.temp$cos,y1=plotMin.temp$sin,
                                x2=plotMax.temp$cos,y2=plotMax.temp$sin)
-        #add nominal
-        if(indNum==1 && allnP!=nP){
-          tmp<-propDf[propDf$prop==max(propDf$prop),]
+        if(allnP==nP){
+          newTemp<-rbind(plotMin.temp,plotMin.temp[1,],plotMax.temp,plotMax.temp[1,])
+          myPolyData<-rbind(myPolyData,newTemp)
+        }else{ #add nominal
+          propDf.temp <- dplyr::filter(propDf,groupid==i)
+          tmp<-propDf[propDf.temp$prop==max(propDf.temp$prop),]
           tmp<-tmp[1,] #還沒想到一次連兩個點的方法 先只取第一個
           tmp2<-plotMin.temp[1,]
           tmp2[,c("cos","sin")]<-c(tmp$x,tmp$y)
           myPathData<-rbind(myPathData,data.frame(x1=tmp$x,y1=tmp$y,x2=tmp$x,y2=tmp$y))
-          myPolyData<-data.frame(NULL)
+
           newTemp<-rbind(plotMin.temp,tmp2,
                          plotMin.temp[1,], plotMax.temp,tmp2,plotMax.temp[1,])
           myPolyData<-rbind(myPolyData,newTemp)
@@ -256,8 +302,8 @@ ggInterval_radar <- function(data=NULL,layerNumber=4,
           geom_path(data=myPathData,aes(x=myPathData$x2, y=myPathData$y2),lty=0)
       }
       p<-p+geom_polygon(data=myPolyData,aes(x=myPolyData$cos,y=myPolyData$sin,fill=group),alpha = alpha,col="black",lty=0)+
-        geom_point(data=plotMin,aes(x=plotMin$cos,y=plotMin$sin,col=plotMin$group,fill=plotMin$group,group=plotMin$group),size=2)+
-        geom_point(data=plotMax,aes(x=plotMax$cos,y=plotMax$sin,col=plotMax$group,fill=plotMax$group,group=plotMax$group),size=2)
+        geom_point(data=plotMin,aes(x=plotMin$cos,y=plotMin$sin,fill=plotMin$group,group=plotMin$group),size=2)+
+        geom_point(data=plotMax,aes(x=plotMax$cos,y=plotMax$sin,fill=plotMax$group,group=plotMax$group),size=2)
     }
     #else{ #this is else for if(fillbetween)
     else if(type=="rect"){
@@ -282,16 +328,15 @@ ggInterval_radar <- function(data=NULL,layerNumber=4,
       p<-p+geom_polygon(data=rectPolyData,aes(x=x,y=y,group=varGroup,
                                               fill=obsGroup,col=obsGroup),alpha=alpha)
 
-      #nominal
-      if(allnP!=nP && indNum==1){
-        p<-p+geom_polygon(data=totalRectDf,aes(x=newx,y=newy,group=group),
-                          col="black",fill="gray",
-                          alpha=alpha)+
-          geom_text(data=propDf,aes(x=propDf$x+textShift,y=propDf$y+textShift,label=varLevels),
-                    vjust=2.75)
-      }
 
-
+    }
+    #nominal
+    if(allnP!=nP){
+      p<-p+geom_polygon(data=totalRectDf,aes(x=newx,y=newy,group=group,fill=obsGroup),
+                        col="black",
+                        alpha=alpha)+
+        geom_text(data=propDf,aes(x=propDf$x+textShift,y=propDf$y+textShift,label=varLevels),
+                  vjust=2.75)
     }
     p<-p+geom_segment(data=d,aes(x=0,y=0,xend=d$x,yend=d$y),lty=base_lty,alpha=0.6)+
       geom_point(data=plotMax,aes(x=0,y=0,alpha=plotMax$Variables))+
