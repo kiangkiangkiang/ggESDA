@@ -41,14 +41,14 @@
 #' mydata<-ggESDA::classic2sym(iris,groupby = Species)$intervalData
 #' ggInterval_radar(mydata,inOneFig = TRUE)+geom_text(aes(x=0.6,0.6),label="Add anything you want")
 #' @export
-ggInterval_radar <- funcfunction(data=NULL,layerNumber=4,
-                                 inOneFig=FALSE,showLegend=TRUE,showXYLabs=FALSE,
-                                 plotPartial=NULL,
-                                 alpha=0.5,
-                                 base_circle=TRUE,
-                                 base_lty=2,
-                                 addText=TRUE,
-                                 type="default"){
+ggInterval_radar <- function(data=NULL,layerNumber=4,
+                             inOneFig=FALSE,showLegend=TRUE,showXYLabs=FALSE,
+                             plotPartial=NULL,
+                             alpha=0.5,
+                             base_circle=TRUE,
+                             base_lty=2,
+                             addText=TRUE,
+                             type="default"){
   fillBetween=TRUE #not fix complete
   #notes
   if(dim(data)[1]<=1){
@@ -84,12 +84,12 @@ ggInterval_radar <- funcfunction(data=NULL,layerNumber=4,
   #data preprocessing
   numericData <- unlist(lapply(iData[,1:dim(data)[2]] ,FUN = RSDA::is.sym.interval))
 
+  rawiData<-iData
   if(indNum==1 || is.null(plotPartial) || !inOneFig){
-    rawiData<-iData
     propData <-iData[,!numericData]
-    allnP <- dim(rawiData)[2]
   }
   iData <- iData[,numericData]
+  allnP <- dim(rawiData)[2]
   nP <- dim(iData)[2]
 
   #test ERROR
@@ -184,7 +184,7 @@ ggInterval_radar <- funcfunction(data=NULL,layerNumber=4,
       for(ele in 1:dim(propData)[1]){
         varPro<-unlist(propData[ele,var])
         propDf[counter:(counter+(length(varPro)/2)-1),"varName"] <- rep(var,length(varPro)/2)
-        propDf[counter:(counter+(length(varPro)/2)-1),"varLevels"]<-paste(varPro[1:(length(varPro)/2)],round(as.numeric(varPro[(length(varPro)/2+1):length(varPro)]),2))
+        propDf[counter:(counter+(length(varPro)/2)-1),"varLevels"]<-paste(varPro[1:(length(varPro)/2)],round(as.numeric(varPro[(length(varPro)/2+1):length(varPro)]),2),sep=":")
         propDf[counter:(counter+(length(varPro)/2)-1),"prop"]<-as.numeric(varPro[(length(varPro)/2+1):length(varPro)])
         propDf[counter:(counter+(length(varPro)/2)-1),"groupid"] <- as.factor(rep(ele,length(varPro)/2))
         pos<-seq(0,1,1/((length(varPro)+2)/2));pos<-pos[-length(pos)][-1]
@@ -196,13 +196,39 @@ ggInterval_radar <- funcfunction(data=NULL,layerNumber=4,
   }
 
 
-  #generate cut line for type==rect
+  #generate cut line for type==rect && build nominal rect
   if(type=="rect"){
     cutDf<-c(getCutDf(plotMin,transMatrix,nP,indNum),getCutDf(plotMax,transMatrix,nP,indNum))
+
+    # if there is nominal var exist
+    if(allnP!=nP && indNum==1){
+      totalRectDf <- data.frame(NULL)
+      obsG<-1
+      for(i in levels(as.factor(propDf$varName))){
+        rectDf <- data.frame(NULL)
+        propDf.temp <- dplyr::filter(propDf,varName==i)
+        varG <- 1
+        for(u in 1:dim(propDf.temp)[1]){
+          #re range 0~1 to -0.9~0.5 (1 = 平面)
+          rect <- build3DRect(-0.95,-0.95,reRange(-0.99,-0.8,propDf.temp[u,"prop"]),g=paste0(i,u))
+          distx <- mean(rect$newx-propDf.temp[u,"x"])
+          disty <- mean(rect$newy[13:16]-propDf.temp[u,"y"])
+          rect$newx <- rect$newx - distx
+          rect$newy <- rect$newy - disty
+          rect[,"varGroup"]<-as.factor(varG)
+          rectDf<-rbind(rectDf,rect)
+          varG<-varG+1
+        }
+        rectDf[,"obsGroup"]<-as.factor(obsG)
+        totalRectDf<-rbind(totalRectDf,rectDf)
+        obsG<-obsG+1
+      }
+    }
   }
 
-  #print(cutDf)
-  #print(propDf)
+
+
+  #plot
   if(inOneFig){
     if(type=="default"){
       #if(fillBetween){
@@ -252,9 +278,18 @@ ggInterval_radar <- funcfunction(data=NULL,layerNumber=4,
       }
       #print(cutDf)
       #print(rectPolyData)
-
+      #numeric
       p<-p+geom_polygon(data=rectPolyData,aes(x=x,y=y,group=varGroup,
                                               fill=obsGroup,col=obsGroup),alpha=alpha)
+
+      #nominal
+      if(allnP!=nP && indNum==1){
+        p<-p+geom_polygon(data=totalRectDf,aes(x=newx,y=newy,group=group),
+                          col="black",fill="gray",
+                          alpha=alpha)+
+          geom_text(data=propDf,aes(x=propDf$x+textShift,y=propDf$y+textShift,label=varLevels),
+                    vjust=2.75)
+      }
 
 
     }
@@ -314,7 +349,7 @@ ggInterval_radar <- funcfunction(data=NULL,layerNumber=4,
       plotMin.temp <- dplyr::filter(plotMin,plotMin$group==i)
       plotMax.temp <- dplyr::filter(plotMax,plotMax$group==i)
       #print(paste(u,plotMin.temp))
-      base<-plotFun(p,iData,plotMin.temp,plotMax.temp,d,showXYLabs,showLegend,fillBetween,base_circle,layerNumber,textMin,textMax,rawiData,propDf,allnP,nP)
+      base<-plotFun(p,iData,plotMin.temp,plotMax.temp,d,showXYLabs,showLegend,fillBetween,base_circle,layerNumber,textMin,textMax,rawiData,propDf,allnP,nP,type,cutDf)
       base<-base+labs(title=paste0("Radar : ",rownames(iData)[u]))+labs(title=paste0("Radar : ",rownames(iData)[u]))+scale_colour_discrete(name = "Group")+
         scale_alpha_discrete(name="Interval")
 
@@ -326,8 +361,9 @@ ggInterval_radar <- funcfunction(data=NULL,layerNumber=4,
   return(p)
 }
 
-plotFun<-function(p,iData,plotMin.temp,plotMax.temp,d,showXYLabs,showLegend,fillBetween,base_circle,layerNumber,textMin,textMax,rawiData,propDf,allnP,nP){
-  if(fillBetween){
+plotFun<-function(p,iData,plotMin.temp,plotMax.temp,d,showXYLabs,showLegend,fillBetween,base_circle,layerNumber,textMin,textMax,rawiData,propDf,allnP,nP,type,cutDf,totalRectDf){
+  #if(fillBetween){
+  if(type=="default"){
     myPolyData<-data.frame(NULL)
     newTemp<-rbind(plotMin.temp,plotMin.temp[1,],plotMax.temp,plotMax.temp[1,])
     myPolyData<-rbind(myPolyData,newTemp)
@@ -335,27 +371,52 @@ plotFun<-function(p,iData,plotMin.temp,plotMax.temp,d,showXYLabs,showLegend,fill
                            x2=plotMax.temp$cos,y2=plotMax.temp$sin)
 
     #add nominal data
-    tmp<-propDf[propDf$prop==max(propDf$prop),]
-    tmp<-tmp[1,] #還沒想到一次連兩個點的方法 先只取第一個
-    tmp2<-plotMin.temp[1,]
-    tmp2[,c("cos","sin")]<-c(tmp$x,tmp$y)
-    myPathData<-rbind(myPathData,data.frame(x1=tmp$x,y1=tmp$y,x2=tmp$x,y2=tmp$y))
-    myPolyData<-data.frame(NULL)
-    newTemp<-rbind(plotMin.temp,tmp2,
-                   plotMin.temp[1,], plotMax.temp,tmp2,plotMax.temp[1,])
-    myPolyData<-rbind(myPolyData,newTemp)
-
+    if(indNum==1 && allnP!=nP){
+      tmp<-propDf[propDf$prop==max(propDf$prop),]
+      tmp<-tmp[1,] #還沒想到一次連兩個點的方法 先只取第一個
+      tmp2<-plotMin.temp[1,]
+      tmp2[,c("cos","sin")]<-c(tmp$x,tmp$y)
+      myPathData<-rbind(myPathData,data.frame(x1=tmp$x,y1=tmp$y,x2=tmp$x,y2=tmp$y))
+      myPolyData<-data.frame(NULL)
+      newTemp<-rbind(plotMin.temp,tmp2,
+                     plotMin.temp[1,], plotMax.temp,tmp2,plotMax.temp[1,])
+      myPolyData<-rbind(myPolyData,newTemp)
+    }
     base<-p+geom_path(data=myPathData,aes(x=myPathData$x1, y=myPathData$y1))+
       geom_path(data=myPathData,aes(x=myPathData$x2, y=myPathData$y2))
     base<-base+geom_polygon(data=myPolyData,aes(x=myPolyData$cos,y=myPolyData$sin,fill=group),alpha = alpha,col="black")
-  }else{
-    base<-p+geom_polygon(data=plotMin.temp,aes(x=plotMin.temp$cos,y=plotMin.temp$sin,group=plotMin.temp$group,
-                                               fill=plotMin.temp$group,colour=plotMin.temp$group),alpha=alpha,size = 1,
-                         show.legend = F)+
-      geom_polygon(data=plotMax.temp,aes(x=plotMax.temp$cos,y=plotMax.temp$sin,group=plotMax.temp$group,
-                                         fill=plotMax.temp$group,colour=plotMax.temp$group),alpha=0.1,size = 0.2,
-                   show.legend = F)
-  }
+  }else if(type=="rect"){
+    #add cut segment
+    rectPolyData<-data.frame(NULL)
+    gId <- 1
+    for(g in levels(as.factor(cutDf[[1]]$obsGroup))){
+      cutDf.temp<-lapply(1:4,FUN = function(x){as.data.frame(dplyr::filter(cutDf[[x]],obsGroup==g))})
+      #print(cutDf.temp)
+      for(i in 1:nP){
+        tmpDf<-data.frame(x=c(cutDf.temp[[1]]$x2[i],cutDf.temp[[2]]$x2[i],cutDf.temp[[4]]$x2[i],cutDf.temp[[3]]$x2[i]),
+                          y=c(cutDf.temp[[1]]$y2[i],cutDf.temp[[2]]$y2[i],cutDf.temp[[4]]$y2[i],cutDf.temp[[3]]$y2[i]),
+                          varGroup=as.factor(rep(gId,4)),
+                          obsGroup=as.factor(g))
+        rectPolyData<-rbind(rectPolyData,tmpDf)
+        gId<-gId+1
+      }
+    }
+    #print(cutDf)
+    #print(rectPolyData)
+    #numeric
+    p<-p+geom_polygon(data=rectPolyData,aes(x=x,y=y,group=varGroup,
+                                            fill=obsGroup,col=obsGroup),alpha=alpha)
+
+    #nominal
+    if(allnP!=nP && indNum==1){
+      p<-p+geom_polygon(data=totalRectDf,aes(x=newx,y=newy,group=group),
+                        col="black",fill="gray",
+                        alpha=alpha)+
+        geom_text(data=propDf,aes(x=propDf$x+textShift,y=propDf$y+textShift,label=varLevels),
+                  vjust=2.75)
+    }
+  }#end rect
+
   base<-base+geom_point(data=plotMin.temp,aes(x=plotMin.temp$cos,y=plotMin.temp$sin,col=plotMin.temp$group,fill=plotMin.temp$group,
                                               group=plotMin.temp$group),size=2)+
     geom_segment(data=d,aes(x=0,y=0,xend=d$x,yend=d$y),lty=base_lty,alpha=0.6)+
@@ -367,7 +428,7 @@ plotFun<-function(p,iData,plotMin.temp,plotMax.temp,d,showXYLabs,showLegend,fill
     geom_text(data=textMax,aes(x=textMax$cos,y=textMax$sin,label=textMax$max))
 
   #add nominal var
-  if(allnP!=nP){
+  if(type=="default" && allnP!=nP){
     base<-base+geom_point(data=propDf,aes(x=propDf$x,y=propDf$y,size=propDf$prop+0.5),alpha=0.5,
                           show.legend = F,col="black")+
       geom_text(data=propDf,aes(x=propDf$x+textShift,y=propDf$y+textShift,label=varLevels))
@@ -521,3 +582,42 @@ getCutDf <- function(tempDf,transMatrix,nP,indNum){
   cutDf2$x2<-as.numeric(cutDf2$x2);cutDf2$y2<-as.numeric(cutDf2$y2)
   return(list(data.frame(cutDf1),data.frame(cutDf2)))
 }
+build3DRect <- function(len=NULL,wid=NULL,hei=NULL,g=NULL){
+  if(is.null(g)){
+    g<-as.factor("g")
+  }
+  vertice<-get_vertice(3)
+  vertice[c(3,4,7:8),2]<-vertice[c(3,4,7:8),2]+hei
+  vertice[c(5:8),1]<-vertice[c(5:8),1]+wid
+  vertice[c(2,4,6,8),3]<-vertice[c(2,4,6,8),3]+len
+  vertice<-as.data.frame(vertice)
+  vertice <- point3Dto2D(vertice)
+  #rearrange
+  vertice[,6:11]<-0
+  vertice[c(1,2,4,3),6]<-paste0(g,1)
+  vertice[c(3,4,8,7),7]<-paste0(g,2)
+  vertice[c(5,6,8,7),8]<-paste0(g,3)
+  vertice[c(1,2,6,5),9]<-paste0(g,4)
+  vertice[c(1,3,7,5),10]<-paste0(g,5)
+  vertice[c(2,4,8,6),11]<-paste0(g,6)
+  d<-vertice[,c(4,5)]
+  d<-rbind(d[c(1,2,4,3),],
+           d[c(3,4,8,7),],
+           d[c(5,6,8,7),],
+           d[c(1,2,6,5),],
+           d[c(1,3,7,5),],
+           d[c(2,4,8,6),])
+  group<-matrix(c(vertice[,6],vertice[,7],
+                  vertice[,8],vertice[,9],
+                  vertice[,10],vertice[,11]),ncol=1)
+  group<-group[group!=0]
+  d<-cbind(d,group)
+  d$group <- as.factor(d$group)
+  return(d)
+}
+reRange <- function(min,max,data){
+  dist<-max-min
+  return(data*dist-abs(min))
+}
+
+
