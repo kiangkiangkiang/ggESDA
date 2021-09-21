@@ -23,13 +23,15 @@
 #' @param base_circle boolean, if true, it will generate inner circle.
 #' @param alpha aesthetic alpha of fill color
 #' @param addText add value in figure
+#' @param type different type of radar,it can be "default","rect"
 #' @usage ggInterval_radar(data=NULL,layerNumber=4,
 #' inOneFig=FALSE,showLegend=TRUE,showXYLabs=FALSE,
 #' plotPartial=NULL,
 #' alpha=0.5,
 #' base_circle=FALSE,
 #' base_lty="solid",
-#' addText=TRUE)
+#' addText=TRUE,
+#' type="default")
 #' @examples
 #' mydata<-ggESDA::classic2sym(mtcars,k=4)$intervalData
 #' ggInterval_radar(data=mydata[,c("mpg","disp",'drat')])
@@ -39,13 +41,14 @@
 #' mydata<-ggESDA::classic2sym(iris,groupby = Species)$intervalData
 #' ggInterval_radar(mydata,inOneFig = TRUE)+geom_text(aes(x=0.6,0.6),label="Add anything you want")
 #' @export
-ggInterval_radar <- function(data=NULL,layerNumber=4,
-                             inOneFig=FALSE,showLegend=TRUE,showXYLabs=FALSE,
-                             plotPartial=NULL,fillBetween=TRUE,
-                             alpha=0.5,
-                             base_circle=TRUE,
-                             base_lty=2,
-                             addText=TRUE){
+ggInterval_radar <- funcfunction(data=NULL,layerNumber=4,
+                                 inOneFig=FALSE,showLegend=TRUE,showXYLabs=FALSE,
+                                 plotPartial=NULL,
+                                 alpha=0.5,
+                                 base_circle=TRUE,
+                                 base_lty=2,
+                                 addText=TRUE,
+                                 type="default"){
   fillBetween=TRUE #not fix complete
   #notes
   if(dim(data)[1]<=1){
@@ -72,6 +75,12 @@ ggInterval_radar <- function(data=NULL,layerNumber=4,
     iData <- data
     indNum <- length(plotPartial)
   }
+  if( !(type%in%c("default","rect")) ){
+    warning(paste("There is no type called ",type,", automatically set default type."))
+    type<-"default"
+  }
+
+
   #data preprocessing
   numericData <- unlist(lapply(iData[,1:dim(data)[2]] ,FUN = RSDA::is.sym.interval))
 
@@ -161,13 +170,13 @@ ggInterval_radar <- function(data=NULL,layerNumber=4,
   #
   textMin<-as.data.frame(cbind(plotMin,min=newDf$min))
   textMax<-as.data.frame(cbind(plotMax,max=newDf$max))
-  textShift<-0.05
+  textShift<-0.065
   textMin$cos<-textMin$cos+textShift;textMin$sin<-textMin$sin+textShift
   textMax$cos<-textMax$cos+textShift;textMax$sin<-textMax$sin+textShift
 
 
-  #calculate nominal variable
-  if(indNum==1 || is.null(plotPartial) || !inOneFig){
+  #calculate nominal variable (point)
+  if((indNum==1 || is.null(plotPartial) || !inOneFig ) && allnP!=nP){
     propDf<-data.frame()
     counter<-1
     for(var in colnames(propData)){
@@ -186,8 +195,17 @@ ggInterval_radar <- function(data=NULL,layerNumber=4,
     }
   }
 
+
+  #generate cut line for type==rect
+  if(type=="rect"){
+    cutDf<-c(getCutDf(plotMin,transMatrix,nP,indNum),getCutDf(plotMax,transMatrix,nP,indNum))
+  }
+
+  #print(cutDf)
+  #print(propDf)
   if(inOneFig){
-    if(fillBetween){
+    if(type=="default"){
+      #if(fillBetween){
       myPolyData<-data.frame(NULL)
       for(i in levels(as.factor(plotMin$group))){
         plotMin.temp <- dplyr::filter(plotMin,group==i)
@@ -197,7 +215,7 @@ ggInterval_radar <- function(data=NULL,layerNumber=4,
         myPathData<-data.frame(x1=plotMin.temp$cos,y1=plotMin.temp$sin,
                                x2=plotMax.temp$cos,y2=plotMax.temp$sin)
         #add nominal
-        if(indNum==1){
+        if(indNum==1 && allnP!=nP){
           tmp<-propDf[propDf$prop==max(propDf$prop),]
           tmp<-tmp[1,] #還沒想到一次連兩個點的方法 先只取第一個
           tmp2<-plotMin.temp[1,]
@@ -211,20 +229,36 @@ ggInterval_radar <- function(data=NULL,layerNumber=4,
         p<-p+geom_path(data=myPathData,aes(x=myPathData$x1, y=myPathData$y1),lty=0)+
           geom_path(data=myPathData,aes(x=myPathData$x2, y=myPathData$y2),lty=0)
       }
-      p<-p+geom_polygon(data=myPolyData,aes(x=myPolyData$cos,y=myPolyData$sin,fill=group),alpha = alpha,col="black",lty=0)
-    }else{
-      p<-p+geom_polygon(data=plotMin,aes(x=plotMin$cos,y=plotMin$sin,group=plotMin$group,
-                                         fill=plotMin$group,colour=plotMin$group),alpha=alpha,size = 1,
-                        show.legend = F)+
-        geom_polygon(data=plotMax,aes(x=plotMax$cos,y=plotMax$sin,group=plotMax$group,
-                                      fill=plotMax$group,colour=plotMax$group),alpha=0.1,size = 0.2,
-                     show.legend = F)
+      p<-p+geom_polygon(data=myPolyData,aes(x=myPolyData$cos,y=myPolyData$sin,fill=group),alpha = alpha,col="black",lty=0)+
+        geom_point(data=plotMin,aes(x=plotMin$cos,y=plotMin$sin,col=plotMin$group,fill=plotMin$group,group=plotMin$group),size=2)+
+        geom_point(data=plotMax,aes(x=plotMax$cos,y=plotMax$sin,col=plotMax$group,fill=plotMax$group,group=plotMax$group),size=2)
     }
-    p<-p+geom_point(data=plotMin,aes(x=plotMin$cos,y=plotMin$sin,col=plotMin$group,fill=plotMin$group,
-                                     group=plotMin$group),size=2)+
-      geom_segment(data=d,aes(x=0,y=0,xend=d$x,yend=d$y),lty=base_lty,alpha=0.6)+
-      geom_point(data=plotMax,aes(x=plotMax$cos,y=plotMax$sin,col=plotMax$group,fill=plotMax$group,
-                                  group=plotMax$group),size=2)+
+    #else{ #this is else for if(fillbetween)
+    else if(type=="rect"){
+      #add cut segment
+      rectPolyData<-data.frame(NULL)
+      gId <- 1
+      for(g in levels(as.factor(cutDf[[1]]$obsGroup))){
+        cutDf.temp<-lapply(1:4,FUN = function(x){as.data.frame(dplyr::filter(cutDf[[x]],obsGroup==g))})
+        #print(cutDf.temp)
+        for(i in 1:nP){
+          tmpDf<-data.frame(x=c(cutDf.temp[[1]]$x2[i],cutDf.temp[[2]]$x2[i],cutDf.temp[[4]]$x2[i],cutDf.temp[[3]]$x2[i]),
+                            y=c(cutDf.temp[[1]]$y2[i],cutDf.temp[[2]]$y2[i],cutDf.temp[[4]]$y2[i],cutDf.temp[[3]]$y2[i]),
+                            varGroup=as.factor(rep(gId,4)),
+                            obsGroup=as.factor(g))
+          rectPolyData<-rbind(rectPolyData,tmpDf)
+          gId<-gId+1
+        }
+      }
+      #print(cutDf)
+      #print(rectPolyData)
+
+      p<-p+geom_polygon(data=rectPolyData,aes(x=x,y=y,group=varGroup,
+                                              fill=obsGroup,col=obsGroup),alpha=alpha)
+
+
+    }
+    p<-p+geom_segment(data=d,aes(x=0,y=0,xend=d$x,yend=d$y),lty=base_lty,alpha=0.6)+
       geom_point(data=plotMax,aes(x=0,y=0,alpha=plotMax$Variables))+
       geom_text(data=d,aes(x=d$x,y=d$y,label=c(colnames(rawiData))),vjust=-0.4,hjust=1)
 
@@ -232,7 +266,7 @@ ggInterval_radar <- function(data=NULL,layerNumber=4,
       p<-p+geom_text(data=textMin,aes(x=textMin$cos,y=textMin$sin,label=textMin$min))+
         geom_text(data=textMax,aes(x=textMax$cos,y=textMax$sin,label=textMax$max))
     }
-    if(indNum==1){
+    if(indNum==1 && type=="default" && allnP!=nP){
       #add nominal var
       p<-p+geom_point(data=propDf,aes(x=propDf$x,y=propDf$y,size=propDf$prop+0.5),alpha=0.5,
                       show.legend = F,col="black")+
@@ -280,26 +314,19 @@ ggInterval_radar <- function(data=NULL,layerNumber=4,
       plotMin.temp <- dplyr::filter(plotMin,plotMin$group==i)
       plotMax.temp <- dplyr::filter(plotMax,plotMax$group==i)
       #print(paste(u,plotMin.temp))
-      base<-plotFun(p,iData,plotMin.temp,plotMax.temp,d,showXYLabs,showLegend,fillBetween,base_circle,layerNumber,textMin,textMax,rawiData,propDf)
+      base<-plotFun(p,iData,plotMin.temp,plotMax.temp,d,showXYLabs,showLegend,fillBetween,base_circle,layerNumber,textMin,textMax,rawiData,propDf,allnP,nP)
       base<-base+labs(title=paste0("Radar : ",rownames(iData)[u]))+labs(title=paste0("Radar : ",rownames(iData)[u]))+scale_colour_discrete(name = "Group")+
         scale_alpha_discrete(name="Interval")
 
       plotList[[u]]<-base
       u<-u+1
     }
-    # print(gridExtra::marrangeGrob(list(u1),ncol=2,nrow=2))
-    # print(gridExtra::marrangeGrob(list(u2),ncol=2,nrow=2))
-    # print(gridExtra::marrangeGrob(list(u3),ncol=2,nrow=2))
-    # plotList<-paste0("u",seq(1,indNum,1))
-    # plotList<-paste(sapply(plotList, paste, collapse=","), collapse=",")
-    # plotList<-eval(parse(text=paste0("list(",eval(plotList),")")))
-    #print(gridExtra::marrangeGrob(plotList,ncol=2,nrow=2))
     p<-gridExtra::marrangeGrob(plotList,ncol=2,nrow=2)
   }
   return(p)
 }
 
-plotFun<-function(p,iData,plotMin.temp,plotMax.temp,d,showXYLabs,showLegend,fillBetween,base_circle,layerNumber,textMin,textMax,rawiData,propDf){
+plotFun<-function(p,iData,plotMin.temp,plotMax.temp,d,showXYLabs,showLegend,fillBetween,base_circle,layerNumber,textMin,textMax,rawiData,propDf,allnP,nP){
   if(fillBetween){
     myPolyData<-data.frame(NULL)
     newTemp<-rbind(plotMin.temp,plotMin.temp[1,],plotMax.temp,plotMax.temp[1,])
@@ -340,10 +367,11 @@ plotFun<-function(p,iData,plotMin.temp,plotMax.temp,d,showXYLabs,showLegend,fill
     geom_text(data=textMax,aes(x=textMax$cos,y=textMax$sin,label=textMax$max))
 
   #add nominal var
-  base<-base+geom_point(data=propDf,aes(x=propDf$x,y=propDf$y,size=propDf$prop+0.5),alpha=0.5,
-                        show.legend = F,col="black")+
-    geom_text(data=propDf,aes(x=propDf$x+textShift,y=propDf$y+textShift,label=varLevels))
-
+  if(allnP!=nP){
+    base<-base+geom_point(data=propDf,aes(x=propDf$x,y=propDf$y,size=propDf$prop+0.5),alpha=0.5,
+                          show.legend = F,col="black")+
+      geom_text(data=propDf,aes(x=propDf$x+textShift,y=propDf$y+textShift,label=varLevels))
+  }
   if(!showXYLabs){
     base<-base+scale_x_continuous(labels =NULL,limits = c(-1.25,1.25))+
       scale_y_continuous(labels =NULL,limits = c(-1.25,1.25))+xlab(NULL)+ylab(NULL)
@@ -416,4 +444,80 @@ generatePoint<-function(nPoly=NULL,nLayer=NULL){
     }
   }
   return(allPoint)
+}
+getCutLine<-function(startPoint,len,perp){
+  if(perp[1]==0&&perp[2]==0){
+    stop("(0,0) vector cannot find a Perpendicular")
+  }else if(perp[2]==0){
+    if(perp[1]<0){
+      return(c(startPoint[1]-len,startPoint[2]))
+    }
+    return(c(startPoint[1]+len,startPoint[2]))
+  }else if(perp[1]==0){
+    return(c(startPoint[1],startPoint[2]+len))
+  }else{
+    r<-perp[1]/perp[2]
+  }
+  #adjust <- abs(len/(perp[1]))
+  adjust <- (len^2/((perp[1]^2)*(1+(1/r)^2)))^0.5
+  result <-  c(perp[1]*adjust+startPoint[1] , perp[1]*adjust*(1/r)+startPoint[2])
+  return(result)
+}
+getPerpendicular <-function(v=NULL,changeSide=TRUE){
+  if(changeSide){
+    if(is.vector(v)&&length(v)==2){
+      if(v[1]==0&&v[2]==0){
+        stop("cannot find perp. with a point")
+      }else if(v[1]==0){
+        return(c(-1,0))
+      }else if(v[2]==0){
+        return(c(0,-1))
+      }else{
+        return(c(-1,v[1]/v[2]))
+      }
+    }else{
+      stop("generate perpendicular vector error, check data type and dimension.")
+    }
+  }else{
+    if(is.vector(v)&&length(v)==2){
+      if(v[1]==0&&v[2]==0){
+        stop("cannot find perp. with a point")
+      }else if(v[1]==0){
+        return(c(1,0))
+      }else if(v[2]==0){
+        return(c(0,1))
+      }else{
+        return(c(1,-v[1]/v[2]))
+      }
+    }else{
+      stop("generate perpendicular vector error, check data type and dimension.")
+    }
+  }
+}
+getCutDf <- function(tempDf,transMatrix,nP,indNum){
+  startDf<-data.frame(x=tempDf$cos,y=tempDf$sin,group=tempDf$group)
+  perp1<-lapply(1:nP,FUN=function(x) getPerpendicular(unlist(transMatrix[x,]),changeSide=T))
+  perp2<-lapply(1:nP,FUN=function(x) getPerpendicular(unlist(transMatrix[x,]),changeSide=F))
+
+  cutPos1<-sapply(1:(nP*indNum),FUN=function(x) {
+    u <- x %% nP
+    if(u==0){
+      u<-nP
+    }
+    getCutLine(startDf[x,],0.025,perp1[[u]])
+  })
+  cutPos2<-sapply(1:(nP*indNum),FUN=function(x) {
+    u <- x %% nP
+    if(u==0){
+      u<-nP
+    }
+    getCutLine(startDf[x,],0.025,perp2[[u]])
+  })
+  #print(as.data.frame(t(cutPos1)))
+  cutDf1<-cbind(startDf,as.data.frame(t(cutPos1)))
+  cutDf2<-cbind(startDf,as.data.frame(t(cutPos2)))
+  colnames(cutDf1)<-c("x1","y1","obsGroup","x2","y2");colnames(cutDf2)<-c("x1","y1","obsGroup","x2","y2");
+  cutDf1$x2<-as.numeric(cutDf1$x2);cutDf1$y2<-as.numeric(cutDf1$y2)
+  cutDf2$x2<-as.numeric(cutDf2$x2);cutDf2$y2<-as.numeric(cutDf2$y2)
+  return(list(data.frame(cutDf1),data.frame(cutDf2)))
 }
