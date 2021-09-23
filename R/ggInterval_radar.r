@@ -23,7 +23,8 @@
 #' @param base_circle boolean, if true, it will generate inner circle.
 #' @param alpha aesthetic alpha of fill color
 #' @param addText add value in figure
-#' @param type different type of radar,it can be "default","rect"
+#' @param type different type of radar,it can be "default","rect","quantile"
+#' @param quantileNum if type=="quantile" ,it will provide the number of percentage
 #' @usage ggInterval_radar(data=NULL,layerNumber=4,
 #' inOneFig=FALSE,showLegend=TRUE,showXYLabs=FALSE,
 #' plotPartial=NULL,
@@ -31,7 +32,8 @@
 #' base_circle=FALSE,
 #' base_lty="solid",
 #' addText=TRUE,
-#' type="default")
+#' type="default",
+#' quantileNum=4)
 #' @examples
 #' mydata<-ggESDA::classic2sym(mtcars,k=4)$intervalData
 #' ggInterval_radar(data=mydata[,c("mpg","disp",'drat')])
@@ -48,7 +50,8 @@ ggInterval_radar <-function(data=NULL,layerNumber=4,
                             base_circle=TRUE,
                             base_lty=2,
                             addText=TRUE,
-                            type="default"){
+                            type="default",
+                            quantileNum=4){
   fillBetween=TRUE #not fix complete
   #notes
   if(dim(data)[1]<=1){
@@ -73,9 +76,8 @@ ggInterval_radar <-function(data=NULL,layerNumber=4,
       stop("ERROR IN plotPartial : the input data must be numeric vector as the row index in full data.")
     }
     iData <- data
-    indNum <- length(plotPartial)
   }
-  if( !(type%in%c("default","rect")) ){
+  if( !(type%in%c("default","rect","quantile")) ){
     warning(paste("There is no type called ",type,", automatically set default type."))
     type<-"default"
   }
@@ -90,13 +92,33 @@ ggInterval_radar <-function(data=NULL,layerNumber=4,
   iData <- iData[,numericData]
   nP <- dim(iData)[2]
 
+  #setting quantile argument
+  if(type=="quantile"){
+    #warning("inOneFig will be unused in type=='quantile'.")
+    inOneFig<-TRUE
+    indNum <-dim(iData)[1]
+    if(!quantileNum%in%c(2:10)){
+      stop("the number of quantile must be in the range [2,10].")
+    }
+    if(nP<3){
+      stop("numerical variables must greater than 3 in type=='quantile'")
+    }
+    if(allnP!=nP){
+      warning("nominal variables will be ignore in type=='quantile'")
+      allnP<-nP
+    }
+    plotPartial<-NULL
+  }
+
   #test ERROR
-  if(indNum>50 & inOneFig==F){
-    stop("Out of time limits")
-  }else if(indNum>10 & inOneFig==T){
-    stop("Suggest set inOneFig to FALSE when the observations are large.")
-  }else if(indNum>5 & inOneFig==T){
-    warning("Suggest set inOneFig to FALSE when the observations are large.")
+  if(type!="quantile"){
+    if(indNum>50 & inOneFig==F){
+      stop("Out of time limits")
+    }else if(indNum>10 & inOneFig==T){
+      stop("Suggest set inOneFig to FALSE when the observations are large.")
+    }else if(indNum>5 & inOneFig==T){
+      warning("Suggest set inOneFig to FALSE when the observations are large.")
+    }
   }
 
   #setting original plot
@@ -129,10 +151,27 @@ ggInterval_radar <-function(data=NULL,layerNumber=4,
   minList<-lapply(1:nP,FUN=function(x) min(dataList[[x]]))
   minminList<-minList;  maxmaxList<-maxList
 
+  #quantile #this will over write iDataList
+  if(type=="quantile"){
+    indNum<-quantileNum+1
+    figQuaNum<-quantileNum+3
+    sepQua<-seq(0,1,1/figQuaNum)
+    for(i in 1:nP){
+      datatmp<-c(iDataList[[i]]$min,iDataList[[i]]$max)
+      datatmp<-round(quantile(datatmp,sepQua),2)[-(figQuaNum+1)][-1]
+      tempMin<-datatmp[1:indNum]
+      tempMax<-datatmp[2:(figQuaNum-1)]
+      iDataList[[i]]<-data.frame(min=tempMin,max=tempMax)
+    }
+  }
+
+
   #normalize data to 0,1
+
   normData<-lapply(1:nP ,FUN=function(x){
     sapply(iDataList[[x]],FUN=function(elem) (elem-minList[[x]])/(maxList[[x]]-minList[[x]]))
   })
+
   #rescale dataframe to input form which data2Vec need
   minDF<-sapply(1:nP,FUN=function(x) matrix(normData[[x]],ncol=2)[,1])
   maxDF<-sapply(1:nP,FUN=function(x) matrix(normData[[x]],ncol=2)[,2])
@@ -141,9 +180,18 @@ ggInterval_radar <-function(data=NULL,layerNumber=4,
   maxDF<-matrix(maxDF,ncol=nP)
   transMatrix<-d[1:nP,c(3,4)]
 
+
+
   #convert data to match radar axis scale
-  plotMin<-data2Vec(iData=iData,data=minDF,transMat = transMatrix)
-  plotMax<-data2Vec(iData=iData,data=maxDF,transMat = transMatrix)
+  if(type=="quantile"){
+    setRowNameDf <- iDataList[[1]]
+  }else{
+    setRowNameDf<-iData
+  }
+  plotMin<-data2Vec(iData=setRowNameDf,data=minDF,transMat = transMatrix,type,quantileNum)
+  plotMax<-data2Vec(iData=setRowNameDf,data=maxDF,transMat = transMatrix,type,quantileNum)
+
+
   #making labels
   temp<-lapply(1:nP,FUN=function(x) paste(iDataList[[x]][,1],iDataList[[x]][,2],sep=":"))
   temp<-lapply(1:nP,FUN=function(x) paste0("[",temp[[x]],"]"))
@@ -151,10 +199,11 @@ ggInterval_radar <-function(data=NULL,layerNumber=4,
   groupId<-rep(c(1:indNum),each=nP)
   myLabel=paste(groupId,paste(colnames(iData),temp),sep=" : ")
 
+
   #new a labels variable
   plotMin<-data.frame(plotMin,Variables=myLabel)
   plotMax<-data.frame(plotMax,Variables=myLabel)
-
+  print(plotMin)
   #make text in plot
   # minList<-unlist(lapply(1:nP,FUN=function(x) iDataList[[x]][,1]))
   # maxList<-unlist(lapply(1:nP,FUN=function(x) iDataList[[x]][,2]))
@@ -165,7 +214,7 @@ ggInterval_radar <-function(data=NULL,layerNumber=4,
       newDf<-rbind(newDf,iDataList[[u]][i,])
     }
   }
-  #
+
   textMin<-as.data.frame(cbind(plotMin,min=newDf$min))
   textMax<-as.data.frame(cbind(plotMax,max=newDf$max))
   textShift<-0.065
@@ -263,10 +312,6 @@ ggInterval_radar <-function(data=NULL,layerNumber=4,
     totalRectDf$obsGroup <- as.factor(totalRectDf$obsGroup)
     levels(propDf$groupid)<-levels(plotMin$group)
   }
-  #print(propDf)
-  #print(heiList)
-  #print(totalRectDf)
-
 
   #generate cut line for type==rect && build nominal rect
   if(type=="rect"){
@@ -275,7 +320,7 @@ ggInterval_radar <-function(data=NULL,layerNumber=4,
 
   #plot
   if(inOneFig){
-    if(type=="default"){
+    if(type=="default"||type=="quantile"){
       #if(fillBetween){
       myPolyData<-data.frame(NULL)
       for(i in levels(as.factor(plotMin$group))){
@@ -314,9 +359,16 @@ ggInterval_radar <-function(data=NULL,layerNumber=4,
           geom_point(data=plotMin,aes(x=plotMin$cos,y=plotMin$sin))+
           geom_point(data=plotMax,aes(x=plotMax$cos,y=plotMax$sin))
       }else{
-        p<-p+geom_polygon(data=myPolyData,aes(x=myPolyData$cos,y=myPolyData$sin,fill=myPolyData$group,col=myPolyData$group),alpha = alpha)+
-          geom_point(data=plotMin,aes(x=plotMin$cos,y=plotMin$sin))+
-          geom_point(data=plotMax,aes(x=plotMax$cos,y=plotMax$sin))
+        if(type=="quantile"){
+          p<-p+geom_polygon(data=myPolyData,aes(x=myPolyData$cos,y=myPolyData$sin,fill=myPolyData$group,col=myPolyData$group),alpha = alpha)
+        }else{
+          p<-p+geom_polygon(data=myPolyData,aes(x=myPolyData$cos,y=myPolyData$sin,fill=myPolyData$group,col=myPolyData$group),alpha = alpha,lty=0)
+        }
+
+        if(type!="quantile"){
+          p<-p+geom_point(data=plotMin,aes(x=plotMin$cos,y=plotMin$sin))+
+            geom_point(data=plotMax,aes(x=plotMax$cos,y=plotMax$sin))
+        }
 
       }
     }
@@ -386,7 +438,7 @@ ggInterval_radar <-function(data=NULL,layerNumber=4,
 
 
 
-    if(addText){
+    if(addText && type!="quantile"){
       p<-p+geom_text(data=textMin,aes(x=textMin$cos,y=textMin$sin,label=textMin$min))+
         geom_text(data=textMax,aes(x=textMax$cos,y=textMax$sin,label=textMax$max))
     }
@@ -403,19 +455,23 @@ ggInterval_radar <-function(data=NULL,layerNumber=4,
       p<-p+scale_x_continuous(limits = c(-1.25,1.25))+
         scale_y_continuous(breaks=yLabelPos,labels=yLabels,limits = c(-1.25,1.25))+xlab(NULL)+ylab(NULL)+
         scale_x_continuous(labels=NULL,limits = c(-1.25,1.25))
-    }#showLegend
+    }
+    #showLegend
     if(showLegend){
       p<-p+guides(col=F)
     }else{
       p<-p+guides(fill=F,col=F,alpha=F)
     }
-    p<-p+labs(title=paste0("Radar : ",paste(sapply(rownames(iData), paste, collapse=":"), collapse=",")))+
+    if(type=="quantile"){
+      myTitle<-"Radar : quantile plot"
+    }else{
+      myTitle<-paste0("Radar : ",paste(sapply(rownames(iData), paste, collapse=":"), collapse=","))
+    }
+    p<-p+labs(title=myTitle)+
       scale_colour_discrete(name = "Group")+
       scale_alpha_discrete(name="Interval value of each observation")+
       scale_fill_discrete(name = "Group")+
       theme_bw()
-
-
 
     #make circle interpret
     if(base_circle){
@@ -463,6 +519,14 @@ ggInterval_radar <-function(data=NULL,layerNumber=4,
 
 
     print("this.2")
+  }
+
+  if(type=="quantile"){
+    colShift<-4
+    myValues <- rev(grey.colors(quantileNum+1+colShift))[-c(1:colShift)]
+    p<-p+guides(alpha=F)+
+      scale_fill_manual(name="quantile percentage",values=myValues)+
+      scale_colour_manual(values=myValues)
   }
   return(p)
 }
@@ -611,14 +675,21 @@ plotFun<-function(p,iData,plotMin.temp,plotMax.temp,d,showXYLabs,showLegend,fill
   return(base)
 }
 
-data2Vec <- function(iData=NULL,data=NULL,transMat=NULL){
+data2Vec <- function(iData=NULL,data=NULL,transMat=NULL,type=NULL,quantileNum=NULL){
   if(dim(data)[2]!=dim(transMat)[1]){
     stop("ERROR : Cannot match data and transMat")
   }
   result=data.frame(NULL)
-  for(i in 1:dim(data)[1]){
-    result <- rbind(result,data.frame(data[i,]*transMat,
-                                      group=paste(paste("Group",as.factor(i)),rownames(iData)[i],sep=" : ")))
+  if(type=="quantile"){
+    for(i in 1:dim(data)[1]){
+      result <- rbind(result,data.frame(data[i,]*transMat,
+                                        group=paste(paste("Group",as.factor(letters[i])),rownames(iData)[i],sep=" : ")))
+    }
+  }else{
+    for(i in 1:dim(data)[1]){
+      result <- rbind(result,data.frame(data[i,]*transMat,
+                                        group=paste(paste("Group",as.factor(i)),rownames(iData)[i],sep=" : ")))
+    }
   }
   return(result)
 }
@@ -796,7 +867,6 @@ shift <-function(data,unit){
   }
   return(data)
 }
-
 
 
 
