@@ -134,6 +134,7 @@ ggInterval_radar <-function(data=NULL,layerNumber=4,
   if(allnP!=nP){
     d<-generatePoint(allnP,nL)
     d<-d[(allnP*nL-allnP+1):(allnP*nL),]
+    rawiData<-cbind(iData,propData)
     propData<-propData[plotPartial,]
   }else{
     rawiData<-iData
@@ -228,10 +229,10 @@ ggInterval_radar <-function(data=NULL,layerNumber=4,
   if(allnP!=nP){
     # preparing the nominal data set
     tmpDf<-data.frame(NULL)
+    varNum <- 1
     for(var in colnames(propData)){
       propDf<-data.frame(NULL)
       counter<-1
-      varNum <- 1
       for(ele in 1:indNum){
         varPro<-unlist(propData[ele,var])
         propDf[counter:(counter+(length(varPro)/2)-1),"varName"] <- rep(var,length(varPro)/2)
@@ -262,7 +263,7 @@ ggInterval_radar <-function(data=NULL,layerNumber=4,
       propDf.ele <- dplyr::filter(propDf,groupid==ele)
       varG <-1
       tempRectDf <- data.frame(NULL)
-      for(i in levels(as.factor(propDf$varName))){
+      for(i in unique(as.factor(propDf$varName))){
         rectDf <- data.frame(NULL)
         propDf.temp <- dplyr::filter(propDf.ele,varName==i)
         varL <- 1
@@ -334,12 +335,25 @@ ggInterval_radar <-function(data=NULL,layerNumber=4,
           newTemp<-rbind(plotMin.temp,plotMin.temp[1,],plotMax.temp,plotMax.temp[1,])
           myPolyData<-rbind(myPolyData,newTemp)
         }else{ #add nominal
-          propDf.temp <- dplyr::filter(propDf,groupid==i)
-          tmp<-propDf[propDf.temp$prop==max(propDf.temp$prop),]
-          tmp<-tmp[1,] #還沒想到一次連兩個點的方法 先只取第一個
-          tmp2<-plotMin.temp[1,]
-          tmp2[,c("cos","sin")]<-c(tmp$x,tmp$y)
-          myPathData<-rbind(myPathData,data.frame(x1=tmp$x,y1=tmp$y,x2=tmp$x,y2=tmp$y))
+          tmp2<-NULL;j<-1
+          # print(levels(as.factor(propDf$varName)))
+          # print(propDf)
+          for(u in unique(as.factor(propDf$varName))){
+            propDf.temp <- dplyr::filter(propDf,varName==u) %>%
+              dplyr::filter(groupid==i)
+            tmp<-propDf.temp[propDf.temp$prop==max(propDf.temp$prop),]
+            tmp<-tmp[1,]
+            tmp2<-rbind(tmp2,plotMin.temp[1,])
+            tmp2[j,c("cos","sin")]<-c(tmp$x,tmp$y)
+            myPathData<-rbind(myPathData,data.frame(x1=tmp$x,y1=tmp$y,x2=tmp$x,y2=tmp$y))
+            j<-j+1
+          }
+          #propDf.temp <- dplyr::filter(propDf,groupid==i)
+          #tmp<-propDf[propDf.temp$prop==max(propDf.temp$prop),]
+          #tmp<-tmp[1,] #還沒想到一次連兩個點的方法 先只取第一個
+          #tmp2<-plotMin.temp[1,]
+          #tmp2[,c("cos","sin")]<-c(tmp$x,tmp$y)
+          #myPathData<-rbind(myPathData,data.frame(x1=tmp$x,y1=tmp$y,x2=tmp$x,y2=tmp$y))
 
           newTemp<-rbind(plotMin.temp,tmp2,
                          plotMin.temp[1,], plotMax.temp,tmp2,plotMax.temp[1,])
@@ -412,11 +426,11 @@ ggInterval_radar <-function(data=NULL,layerNumber=4,
       p<-p+geom_text(data=newPropDf,aes(x=newPropDf$x+textShift,y=newPropDf$y+textShift,label=varLevels),vjust=2.75)
       #print(totalRectDf)
       tempd<-data.frame(NULL)
-      for(i in levels(totalRectDf$varGroup)){
+      for(i in unique(totalRectDf$varGroup)){
         temp.varG<-dplyr::filter(totalRectDf,varGroup==i)
         for(u in levels(temp.varG$obsGroup)){
           temp.obsG<-dplyr::filter(temp.varG,obsGroup==u)
-          for(k in levels(temp.obsG$varLevels)){
+          for(k in unique(temp.obsG$varLevels)){
             temp.varL<-dplyr::filter(temp.obsG,varLevels==k)
             tempd<-rbind(tempd,data.frame(x=mean(temp.varL$newx),y=mean(temp.varL$newy)))
           }
@@ -556,15 +570,21 @@ plotFun<-function(p,iData,plotMin.temp,plotMax.temp,d,showXYLabs,showLegend,fill
       myPolyData<-rbind(plotMin.temp,plotMin.temp[1,],plotMax.temp,plotMax.temp[1,])
 
     }else{ #add nominal
-      tmp<-propDf.temp[propDf.temp$prop==max(propDf.temp$prop),]
-      tmp<-tmp[1,] #還沒想到一次連兩個點的方法 先只取第一個
-      tmp2<-plotMin.temp[1,]
-      tmp2[,c("cos","sin")]<-c(tmp$x,tmp$y)
-      myPathData<-rbind(myPathData,data.frame(x1=tmp$x,y1=tmp$y,x2=tmp$x,y2=tmp$y))
-
-      myPolyData<-rbind(plotMin.temp,tmp2,
-                        plotMin.temp[1,], plotMax.temp,tmp2,plotMax.temp[1,])
-
+      tmp2<-NULL;j<-1
+      # print(levels(as.factor(propDf$varName)))
+      # print(propDf)
+      for(u in unique(as.factor(propDf.temp$varName))){
+        propDf.temp2 <- dplyr::filter(propDf.temp,varName==u)
+        tmp<-propDf.temp2[propDf.temp2$prop==max(propDf.temp2$prop),]
+        tmp<-tmp[1,]
+        tmp2<-rbind(tmp2,plotMin.temp[1,])
+        tmp2[j,c("cos","sin")]<-c(tmp$x,tmp$y)
+        myPathData<-rbind(myPathData,data.frame(x1=tmp$x,y1=tmp$y,x2=tmp$x,y2=tmp$y))
+        j<-j+1
+      }
+      newTemp<-rbind(plotMin.temp,tmp2,
+                     plotMin.temp[1,], plotMax.temp,tmp2,plotMax.temp[1,])
+      myPolyData<-rbind(myPolyData,newTemp)
     }
     base<-p+geom_path(data=myPathData,aes(x=myPathData$x1, y=myPathData$y1))+
       geom_path(data=myPathData,aes(x=myPathData$x2, y=myPathData$y2))
@@ -573,12 +593,15 @@ plotFun<-function(p,iData,plotMin.temp,plotMax.temp,d,showXYLabs,showLegend,fill
 
     if(allnP!=nP){
       #tmpN<-dim(myPolyData)[1]
+
       this.obs <- totalRectDf.temp$obsGroup[1]
       myPolyData[,"obsGroup"]<-as.factor(this.obs)
       tempRectDf <- totalRectDf.temp[,c(1,2,3,6)]
+
       tempPolyDf <- myPolyData[,c(1,2,3,5)]
       colnames(tempRectDf)<-colnames(tempPolyDf)
       polyDf<-as.data.frame(rbind(tempPolyDf,tempRectDf))
+
       base<-base+
         geom_point(data=plotMin.temp,aes(x=plotMin.temp$cos,y=plotMin.temp$sin))+
         geom_point(data=plotMax.temp,aes(x=plotMax.temp$cos,y=plotMax.temp$sin))
@@ -614,6 +637,7 @@ plotFun<-function(p,iData,plotMin.temp,plotMax.temp,d,showXYLabs,showLegend,fill
         rectPolyData<-rbind(rectPolyData,tmpDf)
         gId<-gId+1
       }
+
     }
     #print(cutDf)
     #print(rectPolyData)
@@ -640,7 +664,7 @@ plotFun<-function(p,iData,plotMin.temp,plotMax.temp,d,showXYLabs,showLegend,fill
     tempd<-data.frame(NULL)
     for(i in levels(totalRectDf.temp$varGroup)){
       temp.varG<-dplyr::filter(totalRectDf.temp,varGroup==i)
-      for(k in levels(temp.varG$varLevels)){
+      for(k in unique(temp.varG$varLevels)){
         temp.varL<-dplyr::filter(temp.varG,varLevels==k)
         tempd<-rbind(tempd,data.frame(x=mean(temp.varL$newx),y=mean(temp.varL$newy)))
       }
@@ -852,13 +876,20 @@ reRange <- function(min,max,data){
   return(data*dist-abs(min))
 }
 shift <-function(data,unit){
-  data$x<-round(data$x,6) ; data$y<-round(data$y,6)
+  data$x<-round(data$x,10) ; data$y<-round(data$y,10)
   for(i in 1:dim(data)[1]){
     if(data[i,"y"]==0){
-      r<-1
+      if(data[i,"x"]>0){
+        data[i,"x"]<-data[i,"x"]+unit
+      }else{
+        data[i,"x"]<-data[i,"x"]-unit
+      }
+      next
     }else{
       r<-data[i,"x"]/data[i,"y"]
     }
+
+
 
     if(data[i,"x"]<0){
       data[i,"x"] <- data[i,"x"] - unit
@@ -876,5 +907,3 @@ shift <-function(data,unit){
   }
   return(data)
 }
-
-

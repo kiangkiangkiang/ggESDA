@@ -69,7 +69,9 @@ classic2sym<-function(data=NULL,groupby = "kmeans",k=5,minData=NULL,maxData=NULL
   groupby<-substitute(groupby)
   numericData <- unlist(lapply(data.frame(data[1:dim(data)[2]]) ,FUN = is.numeric))
   #start debug version0825-1
-  data[,!numericData]<-as.factor(data[,!numericData])
+  for(i in c(1:dim(data)[2])[!numericData]){
+    data[[i]]<-as.factor(data[[i]])
+  }
   #end debug
   numericData <- data.frame(data[,which(numericData)])
   if(isNaExist(data)[[1]]){
@@ -83,6 +85,7 @@ classic2sym<-function(data=NULL,groupby = "kmeans",k=5,minData=NULL,maxData=NULL
              pkg.env$result<-stats::kmeans(numericData, centers=k)
              cluster <- as.factor(pkg.env$result$cluster)
              d<-as.data.frame(cbind(data,cluster=as.factor(pkg.env$result$cluster)))
+
              pkg.env$statisticsDF<-lapply(pkg.env$statistics,FUN=function(x) aggrByGroup(df=d,group = cluster,method=x))
              names(pkg.env$statisticsDF) <- pkg.env$statistics
              pkg.env$intervalData<-RSDA::classic.to.sym(d,concept = cluster)
