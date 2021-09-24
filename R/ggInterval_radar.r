@@ -52,6 +52,11 @@ ggInterval_radar <-function(data=NULL,layerNumber=4,
                             addText=TRUE,
                             type="default",
                             quantileNum=4){
+  #extend plot original xyLimits = 1.25, extendUnit=0
+  extendUnit <- 0.5
+  xyLimits <- extendUnit+1.25
+  #
+
   fillBetween=TRUE #not fix complete
   #notes
   if(dim(data)[1]<=1){
@@ -126,19 +131,19 @@ ggInterval_radar <-function(data=NULL,layerNumber=4,
   #setting original plot
   #p<-generateCircle(nL)+coord_fixed(ratio = 1)
   if(base_circle){
-    p<-generateCircle(nL)+coord_fixed(ratio = 1)
+    p<-generateCircle(nL+1,extendUnit)+coord_fixed(ratio = 1)
   }else{
     p<-ggplot()+coord_fixed(ratio = 1)
   }
 
   if(allnP!=nP){
-    d<-generatePoint(allnP,nL)
+    d<-generatePoint(allnP,nL,extendUnit)
     d<-d[(allnP*nL-allnP+1):(allnP*nL),]
     rawiData<-cbind(iData,propData)
     propData<-propData[plotPartial,]
   }else{
     rawiData<-iData
-    d<-generatePoint(nP,nL)
+    d<-generatePoint(nP,nL,extendUnit)
     d<-d[(nP*nL-nP+1):(nP*nL),]
   }
   p<-p+geom_point(data=d,aes(x=d$x,y=d$y))
@@ -161,7 +166,9 @@ ggInterval_radar <-function(data=NULL,layerNumber=4,
     sepQua<-seq(0,1,1/figQuaNum)
     for(i in 1:nP){
       datatmp<-c(iDataList[[i]]$min,iDataList[[i]]$max)
-      datatmp<-round(quantile(datatmp,sepQua),2)[-(figQuaNum+1)][-1]
+      #extend adjust
+      datatmp<-round(quantile(datatmp,sepQua),2)[-(figQuaNum+1)][-1] + extendUnit
+      #end adjust
       tempMin<-datatmp[1:indNum]
       tempMax<-datatmp[2:(figQuaNum-1)]
       iDataList[[i]]<-data.frame(min=tempMin,max=tempMax)
@@ -170,10 +177,14 @@ ggInterval_radar <-function(data=NULL,layerNumber=4,
 
 
   #normalize data to 0,1
-
+  #extend adjust
   normData<-lapply(1:nP ,FUN=function(x){
-    sapply(iDataList[[x]],FUN=function(elem) (elem-minList[[x]])/(maxList[[x]]-minList[[x]]))
+    sapply(iDataList[[x]],FUN=function(elem) {
+      ( (elem-minList[[x]])/(maxList[[x]]-minList[[x]]) ) + extendUnit
+    })
   })
+  #end adjust
+
 
   #rescale dataframe to input form which data2Vec need
   minDF<-sapply(1:nP,FUN=function(x) matrix(normData[[x]],ncol=2)[,1])
@@ -239,7 +250,11 @@ ggInterval_radar <-function(data=NULL,layerNumber=4,
         propDf[counter:(counter+(length(varPro)/2)-1),"varLevels"]<-paste(varPro[1:(length(varPro)/2)],round(as.numeric(varPro[(length(varPro)/2+1):length(varPro)]),2),sep=":")
         propDf[counter:(counter+(length(varPro)/2)-1),"prop"]<-as.numeric(varPro[(length(varPro)/2+1):length(varPro)])
         propDf[counter:(counter+(length(varPro)/2)-1),"groupid"] <- rep(ele,length(varPro)/2)
-        pos<-seq(0,1,1/((length(varPro)+2)/2));pos<-pos[-length(pos)][-1]
+        #extendUnit adjust  quantile(seq(0,1,1/3),seq(0,1,1/3))[2:(3+1)]
+        #pos<-seq(0,1,1/((length(varPro)+2)/2))
+        pos <- as.numeric(quantile(seq(0,1+extendUnit,1/((length(varPro)+2)/2)),seq(0,1,1/((length(varPro)+2)/2)))[2:(length(varPro)/2+1)])
+        #pos <- pos[-length(pos)][-1]
+        #end adjust
         propDf[counter:(counter+(length(varPro)/2)-1),"x"] <- d[nP+varNum,3] * pos
         propDf[counter:(counter+(length(varPro)/2)-1),"y"] <- d[nP+varNum,4] * pos
         counter<-counter+length(varPro)/2
@@ -459,18 +474,18 @@ ggInterval_radar <-function(data=NULL,layerNumber=4,
         geom_text(data=textMax,aes(x=textMax$cos,y=textMax$sin,label=textMax$max))
     }
     if(!showXYLabs){
-      p<-p+scale_x_continuous(labels =NULL,limits = c(-1.25,1.25))+
-        scale_y_continuous(labels =NULL,limits = c(-1.25,1.25))+xlab(NULL)+ylab(NULL)
+      p<-p+scale_x_continuous(labels =NULL,limits = c(-xyLimits,xyLimits))+
+        scale_y_continuous(labels =NULL,limits = c(-xyLimits,xyLimits))+xlab(NULL)+ylab(NULL)
     }else{
       #adds scale y continuous label
-      yLabelPos<-seq(-1.25,1.25,(1.25-(-1.25))/(nP+1))
+      yLabelPos<-seq(-xyLimits,xyLimits,(xyLimits-(-xyLimits))/(nP+1))
       yLabelPos<-yLabelPos[-1]
       yLabelTitle<-paste0(colnames(iData),": [")
       yLabels<-paste0(yLabelTitle,paste(unlist(minminList),unlist(maxmaxList),sep=","),"]")
       yLabels<-c(yLabels,expression(bold("The range of each variable show as follows :")))
-      p<-p+scale_x_continuous(limits = c(-1.25,1.25))+
-        scale_y_continuous(breaks=yLabelPos,labels=yLabels,limits = c(-1.25,1.25))+xlab(NULL)+ylab(NULL)+
-        scale_x_continuous(labels=NULL,limits = c(-1.25,1.25))
+      p<-p+scale_x_continuous(limits = c(-xyLimits,xyLimits))+
+        scale_y_continuous(breaks=yLabelPos,labels=yLabels,limits = c(-xyLimits,xyLimits))+xlab(NULL)+ylab(NULL)+
+        scale_x_continuous(labels=NULL,limits = c(-xyLimits,xyLimits))
     }
     #showLegend
     if(showLegend){
@@ -493,9 +508,11 @@ ggInterval_radar <-function(data=NULL,layerNumber=4,
     if(base_circle){
       a<-cos(120*pi/180)
       b<-sin(120*pi/180)
-
-      tmp<-seq(0,1,1/layerNumber)[-1]
-      tmp<-data.frame(x=a*tmp,y=b*tmp,label=paste0(as.character(round(tmp*100)),"%"))
+      #extend adjust quantile(seq(0,myRange,1/nLayer),seq(0,1,1/nLayer))[2:(nLayer+1)]
+      tmp<-quantile(seq(0+extendUnit,1+extendUnit,1/layerNumber),seq(0,1,1/layerNumber))
+      #tmp<-seq(0,1,1/layerNumber)[-1]
+      #end adjust
+      tmp<-data.frame(x=a*tmp,y=b*tmp,label=paste0(as.character(round((tmp-extendUnit)*100)),"%"))
       p<-p+geom_text(data=tmp,aes(x=x,y=y,label=label))
     }
   }else{
@@ -529,7 +546,7 @@ ggInterval_radar <-function(data=NULL,layerNumber=4,
 
       #print(paste(u,plotMin.temp))
       base<-plotFun(p,iData,plotMin.temp,plotMax.temp,d,showXYLabs,showLegend,fillBetween,base_circle,layerNumber,
-                    textMin.temp,textMax.temp,rawiData,propDf,propDf.temp,allnP,nP,type,cutDf.temp,totalRectDf.temp,addText,textShift,base_lty,alpha)
+                    textMin.temp,textMax.temp,rawiData,propDf,propDf.temp,allnP,nP,type,cutDf.temp,totalRectDf.temp,addText,textShift,base_lty,alpha,xyLimits,extendUnit)
 
 
       base<-base+labs(title=paste0("Radar : ",rownames(iData)[u]))+labs(title=paste0("Radar : ",rownames(iData)[u]))+scale_colour_discrete(name = "Group")+
@@ -558,7 +575,7 @@ ggInterval_radar <-function(data=NULL,layerNumber=4,
 
 
 
-plotFun<-function(p,iData,plotMin.temp,plotMax.temp,d,showXYLabs,showLegend,fillBetween,base_circle,layerNumber,textMin.temp,textMax.temp,rawiData,propDf,propDf.temp,allnP,nP,type,cutDf,totalRectDf.temp,addText,textShift,base_lty,alpha){
+plotFun<-function(p,iData,plotMin.temp,plotMax.temp,d,showXYLabs,showLegend,fillBetween,base_circle,layerNumber,textMin.temp,textMax.temp,rawiData,propDf,propDf.temp,allnP,nP,type,cutDf,totalRectDf.temp,addText,textShift,base_lty,alpha,xyLimits,extendUnit){
   #if(fillBetween){
 
   if(type=="default"){
@@ -685,11 +702,11 @@ plotFun<-function(p,iData,plotMin.temp,plotMax.temp,d,showXYLabs,showLegend,fill
   }
 
   if(!showXYLabs){
-    base<-base+scale_x_continuous(labels =NULL,limits = c(-1.25,1.25))+
-      scale_y_continuous(labels =NULL,limits = c(-1.25,1.25))+xlab(NULL)+ylab(NULL)
+    base<-base+scale_x_continuous(labels =NULL,limits = c(-xyLimits,xyLimits))+
+      scale_y_continuous(labels =NULL,limits = c(-xyLimits,xyLimits))+xlab(NULL)+ylab(NULL)
   }else{
-    base<-base+scale_x_continuous(limits = c(-1.25,1.25))+
-      scale_y_continuous(limits = c(-1.25,1.25))
+    base<-base+scale_x_continuous(limits = c(-xyLimits,xyLimits))+
+      scale_y_continuous(limits = c(-xyLimits,xyLimits))
   }#showLegend
   if(showLegend){
     base<-base+guides(fill=F,col=F)
@@ -701,8 +718,11 @@ plotFun<-function(p,iData,plotMin.temp,plotMax.temp,d,showXYLabs,showLegend,fill
     a<-cos(120*pi/180)
     b<-sin(120*pi/180)
 
-    tmp<-seq(0,1,1/layerNumber)[-1]
-    tmp<-data.frame(x=a*tmp,y=b*tmp,label=paste0(as.character(round(tmp*100)),"%"))
+    #extend adjust quantile(seq(0,myRange,1/nLayer),seq(0,1,1/nLayer))[2:(nLayer+1)]
+    tmp<-quantile(seq(0+extendUnit,1+extendUnit,1/layerNumber),seq(0,1,1/layerNumber))
+    #tmp<-seq(0,1,1/layerNumber)[-1]
+    #end adjust
+    tmp<-data.frame(x=a*tmp,y=b*tmp,label=paste0(as.character(round((tmp-extendUnit)*100)),"%"))
     base<-base+geom_text(data=tmp,aes(x=x,y=y,label=label))
   }
   base<-base+theme_bw()
@@ -726,27 +746,31 @@ data2Vec <- function(iData=NULL,data=NULL,transMat=NULL,type=NULL,quantileNum=NU
   }
   return(result)
 }
-generateCircle <- function(nLayer=NULL){
+generateCircle <- function(nLayer=NULL,extendUnit=0.5){
   if(is.null(nLayer)||nLayer<=0||nLayer>30){
     stop("Illegal layerNumber input. Recommended value will between 2 and 10.")
   }
   circles <- data.frame(
     x0 = rep(0,nLayer),
     y0 = rep(0,nLayer),
-    r = round(seq(0,1,1/nLayer)[2:(nLayer+1)],2)
+    #r = round(seq(0,myRange,1/nLayer)[2:(nLayer+1)],2)
+    #r = quantile(seq(0,myRange,1/nLayer),seq(0,1,1/nLayer))[2:(nLayer+1)]
+    r = quantile(seq(0+extendUnit,1+extendUnit,1/(nLayer-1)),seq(0,1,1/(nLayer-1)))
   )
   p<-ggplot() +
     ggforce::geom_circle(aes(x0 = circles$x0, y0 = circles$y0, r = circles$r), data = circles)
   return(p)
 }
-generatePoint<-function(nPoly=NULL,nLayer=NULL){
+generatePoint<-function(nPoly=NULL,nLayer=NULL,extendUnit=0.5){
   if(is.null(nPoly)||nPoly<=0||nPoly>360){
     stop("ERROR : Illegal parameter input in nPoly")
   }
   if(is.null(nLayer)||nLayer<=0||nLayer>30){
     stop("ERROR : Illegal parameter input in nLayer")
   }
-  rList = round(seq(0,1,1/nLayer)[2:(nLayer+1)],2)
+  #rList = round(seq(0,1,1/nLayer)[2:(nLayer+1)],2)
+  #rList = quantile(seq(0,myRange,1/nLayer),seq(0,1,1/nLayer))[2:(nLayer+1)]
+  rList = quantile(seq(0+extendUnit,1+extendUnit,1/(nLayer-1)),seq(0,1,1/(nLayer-1)))
   degreeUnit<-round(360/nPoly)
   allPoint<-data.frame(NULL)
   for(r in rList){
@@ -876,34 +900,9 @@ reRange <- function(min,max,data){
   return(data*dist-abs(min))
 }
 shift <-function(data,unit){
+  unit <- 1+unit
   data$x<-round(data$x,10) ; data$y<-round(data$y,10)
-  for(i in 1:dim(data)[1]){
-    if(data[i,"y"]==0){
-      if(data[i,"x"]>0){
-        data[i,"x"]<-data[i,"x"]+unit
-      }else{
-        data[i,"x"]<-data[i,"x"]-unit
-      }
-      next
-    }else{
-      r<-data[i,"x"]/data[i,"y"]
-    }
-
-
-
-    if(data[i,"x"]<0){
-      data[i,"x"] <- data[i,"x"] - unit
-      data[i,"y"] <- data[i,"x"]/r
-    }else if(data[i,"x"]>0){
-      data[i,"x"] <- data[i,"x"] + unit
-      data[i,"y"] <- data[i,"x"]/r
-    }else{
-      if(data[i,"y"]>0){
-        data[i,"y"] <- data[i,"y"] + unit
-      }else{
-        data[i,"y"] <- data[i,"y"] - unit
-      }
-    }
-  }
+  data$x <- data$x * unit
+  data$y <- data$y * unit
   return(data)
 }
