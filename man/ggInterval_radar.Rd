@@ -4,9 +4,15 @@
 \alias{ggInterval_radar}
 \title{A interval Radar plot}
 \usage{
-ggInterval_radar(data=NULL,layerNumber=4,
-inOneFig=FALSE,showLegend=TRUE,showXYLabs=FALSE,
-plotPartial=NULL,fillBetween=TRUE)
+ggInterval_radar(data=NULL,layerNumber=3,
+inOneFig=TRUE,showLegend=TRUE,showXYLabs=FALSE,
+plotPartial=NULL,
+alpha=0.5,
+base_circle=TRUE,
+base_lty=2,
+addText=TRUE,
+type="default",
+quantileNum=4)
 }
 \arguments{
 \item{data}{A ggESDA object.It can also be either RSDA object or
@@ -28,8 +34,17 @@ the data.if it is not null,it will extract the row user deciding
 to draw a radar plot from original data.Notes : the data must be
 an interval data if the plotPartial is not null.}
 
-\item{fillBetween}{default TRUE,it will fill color between interval.
-Else,it will draw two radar plot to show min value and max value.}
+\item{alpha}{aesthetic alpha of fill color}
+
+\item{base_circle}{boolean, if true, it will generate inner circle.}
+
+\item{base_lty}{line type in base figure}
+
+\item{addText}{add value in figure}
+
+\item{type}{different type of radar,it can be "default","rect","quantile"}
+
+\item{quantileNum}{if type=="quantile" ,it will provide the number of percentage}
 }
 \description{
 Using ggplot2 package to make a radar plot with multiple

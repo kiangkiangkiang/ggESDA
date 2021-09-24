@@ -6,6 +6,7 @@
 #' @import ggplot2 ggforce
 #' @importFrom gridExtra marrangeGrob
 #' @importFrom RSDA is.sym.interval
+#' @importFrom tidyr separate
 #' @param data A ggESDA object.It can also be either RSDA object or
 #' classical data frame(not recommended),which will be automatically convert to ggESDA
 #' data.
@@ -25,12 +26,12 @@
 #' @param addText add value in figure
 #' @param type different type of radar,it can be "default","rect","quantile"
 #' @param quantileNum if type=="quantile" ,it will provide the number of percentage
-#' @usage ggInterval_radar(data=NULL,layerNumber=4,
-#' inOneFig=FALSE,showLegend=TRUE,showXYLabs=FALSE,
+#' @usage ggInterval_radar(data=NULL,layerNumber=3,
+#' inOneFig=TRUE,showLegend=TRUE,showXYLabs=FALSE,
 #' plotPartial=NULL,
 #' alpha=0.5,
-#' base_circle=FALSE,
-#' base_lty="solid",
+#' base_circle=TRUE,
+#' base_lty=2,
 #' addText=TRUE,
 #' type="default",
 #' quantileNum=4)
@@ -43,8 +44,8 @@
 #' mydata<-ggESDA::classic2sym(iris,groupby = Species)$intervalData
 #' ggInterval_radar(mydata,inOneFig = TRUE)+geom_text(aes(x=0.6,0.6),label="Add anything you want")
 #' @export
-ggInterval_radar <-function(data=NULL,layerNumber=4,
-                            inOneFig=FALSE,showLegend=TRUE,showXYLabs=FALSE,
+ggInterval_radar <-function(data=NULL,layerNumber=3,
+                            inOneFig=TRUE,showLegend=TRUE,showXYLabs=FALSE,
                             plotPartial=NULL,
                             alpha=0.5,
                             base_circle=TRUE,

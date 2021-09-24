@@ -20,6 +20,7 @@ Imports:
   R6,
   stats,
   dplyr,
+  tidyr,
   grid,
   gridExtra,
   gtools,
