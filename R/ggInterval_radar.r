@@ -76,7 +76,9 @@ ggInterval_radar <-function(data=NULL,layerNumber=4,
       stop("ERROR IN plotPartial : the input data must be numeric vector as the row index in full data.")
     }
     iData <- data
+    indNum <- length(plotPartial)
   }
+
   if( !(type%in%c("default","rect","quantile")) ){
     warning(paste("There is no type called ",type,", automatically set default type."))
     type<-"default"
@@ -203,7 +205,7 @@ ggInterval_radar <-function(data=NULL,layerNumber=4,
   #new a labels variable
   plotMin<-data.frame(plotMin,Variables=myLabel)
   plotMax<-data.frame(plotMax,Variables=myLabel)
-  print(plotMin)
+
   #make text in plot
   # minList<-unlist(lapply(1:nP,FUN=function(x) iDataList[[x]][,1]))
   # maxList<-unlist(lapply(1:nP,FUN=function(x) iDataList[[x]][,2]))
@@ -491,21 +493,29 @@ ggInterval_radar <-function(data=NULL,layerNumber=4,
       plotMax.temp <- dplyr::filter(plotMax,plotMax$group==i)
       textMin.temp <- dplyr::filter(textMin,textMin$group==i)
       textMax.temp <- dplyr::filter(textMax,textMax$group==i)
-      propDf.temp <- dplyr::filter(propDf,propDf$groupid==levels(propDf$groupid)[u])
+      if(allnP!=nP){
+        propDf.temp <- dplyr::filter(propDf,propDf$groupid==levels(propDf$groupid)[u])
+        totalRectDf.temp <- dplyr::filter(totalRectDf,totalRectDf$obsGroup==levels(totalRectDf$obsGroup)[u])
+      }else{
+        propDf.temp<-0
+        totalRectDf.temp<-0
+      }
+
       if(type=="rect"){
         cutDf.temp<-list(NULL)
         for(k in 1:4){
-          cutDf.temp[[k]]<-dplyr::filter(cutDf[[k]],cutDf[[k]]$obsGroup==levels(cutDf[[k]]$obsGroup)[u])
+          cutDf[[k]]$obsGroup <- as.factor(cutDf[[k]]$obsGroup)
+          cutDf.temp[[k]]<-dplyr::filter(cutDf[[k]],obsGroup==levels(cutDf[[k]]$obsGroup)[u])
         }
       }else{
         cutDf.temp<-0
       }
-      totalRectDf.temp <- dplyr::filter(totalRectDf,totalRectDf$obsGroup==levels(totalRectDf$obsGroup)[u])
+
 
 
       #print(paste(u,plotMin.temp))
       base<-plotFun(p,iData,plotMin.temp,plotMax.temp,d,showXYLabs,showLegend,fillBetween,base_circle,layerNumber,
-                    textMin.temp,textMax.temp,rawiData,propDf,propDf.temp,allnP,nP,type,cutDf.temp,totalRectDf.temp,addText,textShift,base_lty)
+                    textMin.temp,textMax.temp,rawiData,propDf,propDf.temp,allnP,nP,type,cutDf.temp,totalRectDf.temp,addText,textShift,base_lty,alpha)
 
 
       base<-base+labs(title=paste0("Radar : ",rownames(iData)[u]))+labs(title=paste0("Radar : ",rownames(iData)[u]))+scale_colour_discrete(name = "Group")+
@@ -513,12 +523,12 @@ ggInterval_radar <-function(data=NULL,layerNumber=4,
       plotList[[u]]<-base
       u<-u+1
     }
-    print("this.1")
+
     #print(plotList[[1]])
     p<-gridExtra::marrangeGrob(plotList,ncol=2,nrow=1)
 
 
-    print("this.2")
+
   }
 
   if(type=="quantile"){
@@ -531,10 +541,12 @@ ggInterval_radar <-function(data=NULL,layerNumber=4,
   return(p)
 }
 
-plotFun<-function(p,iData,plotMin.temp,plotMax.temp,d,showXYLabs,showLegend,fillBetween,base_circle,layerNumber,textMin,textMax,rawiData,propDf,propDf.temp,allnP,nP,type,cutDf,totalRectDf,addText,textShift,base_lty){
+
+
+
+plotFun<-function(p,iData,plotMin.temp,plotMax.temp,d,showXYLabs,showLegend,fillBetween,base_circle,layerNumber,textMin.temp,textMax.temp,rawiData,propDf,propDf.temp,allnP,nP,type,cutDf,totalRectDf.temp,addText,textShift,base_lty,alpha){
   #if(fillBetween){
-  print("fuck")
-  indNum<-1
+
   if(type=="default"){
     myPolyData<-data.frame(NULL)
     myPathData<-data.frame(x1=plotMin.temp$cos,y1=plotMin.temp$sin,
@@ -561,10 +573,9 @@ plotFun<-function(p,iData,plotMin.temp,plotMax.temp,d,showXYLabs,showLegend,fill
 
     if(allnP!=nP){
       #tmpN<-dim(myPolyData)[1]
-      this.obs <- totalRectDf$obsGroup[1]
+      this.obs <- totalRectDf.temp$obsGroup[1]
       myPolyData[,"obsGroup"]<-as.factor(this.obs)
-      print(myPolyData)
-      tempRectDf <- totalRectDf[,c(1,2,3,6)]
+      tempRectDf <- totalRectDf.temp[,c(1,2,3,6)]
       tempPolyDf <- myPolyData[,c(1,2,3,5)]
       colnames(tempRectDf)<-colnames(tempPolyDf)
       polyDf<-as.data.frame(rbind(tempPolyDf,tempRectDf))
@@ -572,22 +583,21 @@ plotFun<-function(p,iData,plotMin.temp,plotMax.temp,d,showXYLabs,showLegend,fill
         geom_point(data=plotMin.temp,aes(x=plotMin.temp$cos,y=plotMin.temp$sin))+
         geom_point(data=plotMax.temp,aes(x=plotMax.temp$cos,y=plotMax.temp$sin))
 
-      print(gridExtra::marrangeGrob(list(base),nrow=1,ncol=1))
-      print(polyDf)
-      # p1<-ggplot(data=polyDf,aes(x=cos,y=sin,group=group,fill=obsGroup,col=obsGroup),
-      #        alpha=alpha)+geom_polygon()
-      # print(gridExtra::marrangeGrob(list(p1),nrow=1,ncol=1))
+
+
+
       base<-base+geom_polygon(data=polyDf,aes(x=polyDf$cos,y=polyDf$sin,group=polyDf$group,
                                               fill=polyDf$obsGroup,col=polyDf$obsGroup),
                               alpha=alpha)
-      print(gridExtra::marrangeGrob(list(base),nrow=1,ncol=1))
+
+
 
     }else{
       base<-base+geom_polygon(data=myPolyData,aes(x=myPolyData$cos,y=myPolyData$sin,fill=myPolyData$group,col=myPolyData$group),alpha = alpha)+
         geom_point(data=plotMin.temp,aes(x=plotMin.temp$cos,y=plotMin.temp$sin))+
         geom_point(data=plotMax.temp,aes(x=plotMax.temp$cos,y=plotMax.temp$sin))
     }
-    print(gridExtra::marrangeGrob(list(base),nrow=1,ncol=1))
+
     # base<-base+geom_polygon(data=myPolyData,aes(x=myPolyData$cos,y=myPolyData$sin,fill=group),alpha = alpha,col="black")
   }else if(type=="rect"){
     #add cut segment
@@ -609,16 +619,16 @@ plotFun<-function(p,iData,plotMin.temp,plotMax.temp,d,showXYLabs,showLegend,fill
     #print(rectPolyData)
     #numeric
     if(allnP!=nP){
-      tempRectDf<-totalRectDf[,c(1,2,3,6)]
+      tempRectDf<-totalRectDf.temp[,c(1,2,3,6)]
       colnames(tempRectDf) <- colnames(rectPolyData)
       levels(tempRectDf$obsGroup) <- levels(rectPolyData$obsGroup)
       rectPolyData<-as.data.frame(rbind(tempRectDf,rectPolyData))
     }
-    base<-base+geom_polygon(data=rectPolyData,aes(x=x,y=y,group=varGroup,
-                                                  fill=obsGroup,col=obsGroup),alpha=alpha)
+    base<-p+geom_polygon(data=rectPolyData,aes(x=x,y=y,group=varGroup,
+                                               fill=obsGroup,col=obsGroup),alpha=alpha)
 
   }#end rect
-  print(gridExtra::marrangeGrob(list(base),nrow=1,ncol=1))
+
   #add nominal text
   if(allnP!=nP && addText){
 
@@ -626,30 +636,30 @@ plotFun<-function(p,iData,plotMin.temp,plotMax.temp,d,showXYLabs,showLegend,fill
     newPropDf<-as.data.frame(dplyr::filter(newPropDf,groupid==levels(newPropDf$groupid)[1]))
     p<-p+geom_text(data=newPropDf,aes(x=newPropDf$x+textShift,y=newPropDf$y+textShift,label=varLevels),vjust=2.75)
 
-    #print(totalRectDf)
+    #print(totalRectDf.temp)
     tempd<-data.frame(NULL)
-    for(i in levels(totalRectDf$varGroup)){
-      temp.varG<-dplyr::filter(totalRectDf,varGroup==i)
+    for(i in levels(totalRectDf.temp$varGroup)){
+      temp.varG<-dplyr::filter(totalRectDf.temp,varGroup==i)
       for(k in levels(temp.varG$varLevels)){
         temp.varL<-dplyr::filter(temp.varG,varLevels==k)
         tempd<-rbind(tempd,data.frame(x=mean(temp.varL$newx),y=mean(temp.varL$newy)))
       }
     }
-    propTextDf<-data.frame(tempd,prop=propDf$prop)
-    print(propTextDf)
+    propTextDf<-data.frame(tempd,prop=propDf.temp$prop)
+    #print(propTextDf)
     base<-base+geom_text(data=propTextDf,aes(x=propTextDf$x+textShift,y=propTextDf$y,label=round(propTextDf$prop,2)))
   }
-  print("aaa")
+
   newD <- shift(d,0.1)
   base<-base+geom_segment(data=d,aes(x=0,y=0,xend=d$x,yend=d$y),lty=base_lty,alpha=0.6)+
     geom_point(data=plotMax.temp,aes(x=0,y=0,alpha=plotMax.temp$Variables))+
     geom_text(data=newD,aes(x=newD$x,y=newD$y,label=c(colnames(rawiData))))
-  print("bbb");print(gridExtra::marrangeGrob(list(base),nrow=1,ncol=1))
+
   if(addText){
-    base <- base+geom_text(data=textMin,aes(x=textMin$cos,y=textMin$sin,label=textMin$min))+
-      geom_text(data=textMax,aes(x=textMax$cos,y=textMax$sin,label=textMax$max))
+    base <- base+geom_text(data=textMin.temp,aes(x=textMin.temp$cos,y=textMin.temp$sin,label=textMin.temp$min))+
+      geom_text(data=textMax.temp,aes(x=textMax.temp$cos,y=textMax.temp$sin,label=textMax.temp$max))
   }
-  print(gridExtra::marrangeGrob(list(base),nrow=1,ncol=1))
+
   if(!showXYLabs){
     base<-base+scale_x_continuous(labels =NULL,limits = c(-1.25,1.25))+
       scale_y_continuous(labels =NULL,limits = c(-1.25,1.25))+xlab(NULL)+ylab(NULL)
@@ -658,11 +668,11 @@ plotFun<-function(p,iData,plotMin.temp,plotMax.temp,d,showXYLabs,showLegend,fill
       scale_y_continuous(limits = c(-1.25,1.25))
   }#showLegend
   if(showLegend){
-    base<-base+guides(fill=F)
+    base<-base+guides(fill=F,col=F)
   }else{
     base<-base+guides(fill=F,col=F,alpha=F)
   }
-  print("ccc")
+
   if(base_circle){
     a<-cos(120*pi/180)
     b<-sin(120*pi/180)
@@ -674,7 +684,6 @@ plotFun<-function(p,iData,plotMin.temp,plotMax.temp,d,showXYLabs,showLegend,fill
   base<-base+theme_bw()
   return(base)
 }
-
 data2Vec <- function(iData=NULL,data=NULL,transMat=NULL,type=NULL,quantileNum=NULL){
   if(dim(data)[2]!=dim(transMat)[1]){
     stop("ERROR : Cannot match data and transMat")
@@ -867,6 +876,5 @@ shift <-function(data,unit){
   }
   return(data)
 }
-
 
 
