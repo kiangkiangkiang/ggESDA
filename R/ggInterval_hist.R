@@ -169,6 +169,7 @@ ggInterval_hist<-function(data = NULL,mapping = aes(NULL),method="equal-bin",bin
       #build data frame and plot
       myhist<-data.frame(interval=interval[1:bins],
                          frequency=apply(f,2,FUN=sum))
+      myhist$frequency <- myhist$frequency/n
       ggplot(data=myhist, aes(x=interval,y=frequency))+
         do.call(geom_histogram,allmapping)+
         labs(x=attr)+
