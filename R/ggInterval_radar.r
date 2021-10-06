@@ -70,6 +70,7 @@ ggInterval_radar <-function(data=NULL,layerNumber=3,
     ggSymData <- testData(data)
     iData <- ggSymData$intervalData
     indNum <-dim(iData)[1]
+    plotPartial <- c(1:indNum)
   }else{
     #checking input format
     if(!"symbolic_tbl"%in%class(data)){

@@ -99,20 +99,25 @@ ggInterval_indexImage<-function(data = NULL,mapping = aes(NULL),
       #whether column condition
       if(!column_condition){
         midp<-(datasetMin+datasetMax)/2
+        #midp<-(max(d$y)+min(d$y))/2
         NAME <- "Matrix Condition"
         myColScale <- "scale_color_gradient2(low = 'blue', mid = 'yellow', high = 'red',
                               midpoint = midp,
                               name = 'Value',
                               breaks=c(min(d$y),max(d$y)),
                               labels = c(round(min(d$y)),round(max(d$y))))"
+        #breaks=c(min(d$y),max(d$y)),
+        #labels = c(round(min(d$y)),round(max(d$y))))
       }else{
         midp<-(max(d$y)+min(d$y))/2
+        #midp<-(datasetMin+datasetMax)/2
         NAME <- "Column Condition"
         myColScale <- "scale_color_gradient2(low = 'blue', mid = 'yellow', high = 'red',
                               midpoint = midp,
                               name = 'Value',
                               breaks=c(min(d$y),max(d$y)),
-                              labels = c(round(datasetMin),round(datasetMax)))"
+                              labels = c(round(min(d$y)),round(max(d$y))))"
+        #c(round(datasetMin),round(datasetMax)))
       }
 
       #plot
@@ -153,7 +158,7 @@ ggInterval_indexImage<-function(data = NULL,mapping = aes(NULL),
                               midpoint = midp,
                               name = 'Value',
                               breaks=c(min(d$value),max(d$value)),
-                              labels = c(round(datasetMin),round(datasetMax)))"
+                              labels = c(round(min(d$value)),round(max(d$value))))"
 
       }
 
@@ -162,7 +167,8 @@ ggInterval_indexImage<-function(data = NULL,mapping = aes(NULL),
         geom_segment(size = 3) +
         eval(parse(text=myColScale))+
         labs(y=attr,x="",title=paste0("Index Image-",NAME))+
-        scale_x_continuous(breaks=c(1:n),labels = rownames(iData))
+        scale_x_continuous(breaks=c(1:n),labels = rownames(iData))+
+        scale_y_continuous(breaks=NULL)
     }
   })
 }

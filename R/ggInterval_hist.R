@@ -1,5 +1,5 @@
 #' @name ggInterval_hist
-#' @title Histogram for symbolic data with equal-bin or inequal-bin.
+#' @title Histogram for symbolic data with equal-bin or unequal-bin.
 #' @description  Visualize the continuous variable distribution
 #' by dividing the x axis into bins,and calculating the frequency
 #' of observation interval in each bin.
@@ -13,10 +13,10 @@
 #' it is combined with the default mapping at the top level of
 #' the plot. You must supply mapping if there is no plot mapping.
 #' It is the same as the mapping of ggplot2.
-#' @param method It can be equal-bin(default) or inequal-bin.Enqual-bin means
+#' @param method It can be equal-bin(default) or unequal-bin.Enqual-bin means
 #' the width in histogram is equal,which represent all intervals divided
-#' have the same range.Inequal-bin means the range of intervals are not
-#' the same,and it can be more general on data.Thus,the bins of inequal-bin
+#' have the same range.unequal-bin means the range of intervals are not
+#' the same,and it can be more general on data.Thus,the bins of unequal-bin
 #' method depends on the data,and the argument "bins" will be unused.
 #' @param bins x axis bins,which mean how many partials the variable
 #' will be separate into.
@@ -82,7 +82,7 @@ ggInterval_hist<-function(data = NULL,mapping = aes(NULL),method="equal-bin",bin
     minimal<-min(iData[[attr]]$min)
     maximal<-max(iData[[attr]]$max)
 
-    if(method=="inequal-bin"){
+    if(method=="unequal-bin"){
       d<-as.data.frame(iData[[attr]])
       temp<-seq(minimal,maximal,0.01)
       f <- matrix(0,nrow=length(temp),ncol=n+1)
