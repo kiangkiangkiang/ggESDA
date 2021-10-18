@@ -61,11 +61,11 @@ testData <- function(data){
   }
 }
 
-testXY <- function(iData,x,y){
+testXY <- function(iData,this.x,this.y){
   p<-dim(iData)[2]
   with(iData,{
-    isVarX<-any(unlist(lapply(iData[,1:p],FUN=identical,x=eval(x))))
-    isVarY<-any(unlist(lapply(iData[,1:p],FUN=identical,x=eval(y))))
+    isVarX<-any(unlist(lapply(iData[,1:p],FUN=identical,x=eval(this.x))))
+    isVarY<-any(unlist(lapply(iData[,1:p],FUN=identical,x=eval(this.y))))
     if(isVarX&&isVarY){
       stop("ERROR : This plot must have exactly one variable")
     }
