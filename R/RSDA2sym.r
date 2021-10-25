@@ -47,11 +47,9 @@ RSDA2sym<-function(data=NULL,rawData=NULL){
   }
   numericData <- unlist(lapply(as.data.frame(data[,1:dim(data)[2]]) ,FUN = RSDA::is.sym.interval))
   numericData <- data[,numericData]
-  mind <- data.frame(matrix(sapply(numericData,min),nrow=dim(numericData)[1]))
-  maxd <- data.frame(matrix(sapply(numericData,max),nrow=dim(numericData)[1]))
-  colnames(mind)<-colnames(numericData);colnames(maxd)<-colnames(numericData)
-  pkg.env$statisticsDF <- list(mind,maxd)
-  names(pkg.env$statisticsDF) <- c("min","max")
+
+  pkg.env$statisticsDF <- buildStatsDf(numericData)
+  names(pkg.env$statisticsDF) <- c("min","median","max")
 
   symObj<-ggESDA$new(rawData=rawData,
                          statisticsDF=pkg.env$statisticsDF,

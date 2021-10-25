@@ -6,8 +6,9 @@ Author: Bo-Syue Jiang
 Maintainer: Bo-Syue Jiang <lucky1515699@gmail.com>
 Description: This package implements an extension of ggplot2 and visualizes the symbolic data with multiple plot which can be adjusted by more general and flexible input arguments.It also provides a function to transform the classical data to symbolic data by both clustering algorithm and customized method.
 Depends:
-  ggplot2,
-  tidyverse
+    ggplot2,
+    R (>= 2.10),
+    tidyverse
 Suggests: 
     testthat (>= 2.1.0),
     knitr,

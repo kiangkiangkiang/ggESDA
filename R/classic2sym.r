@@ -118,6 +118,9 @@ classic2sym<-function(data=NULL,groupby = "kmeans",k=5,minData=NULL,maxData=NULL
          customize={
            idata<-customize(numericData,minData,maxData)
            pkg.env$intervalData<-idata
+           pkg.env$statisticsDF <- buildStatsDf(numericData = idata)
+           names(pkg.env$statisticsDF) <- c("min","median","max")
+
          },
          #default
          {
@@ -129,11 +132,9 @@ classic2sym<-function(data=NULL,groupby = "kmeans",k=5,minData=NULL,maxData=NULL
            #d<-tibble::as.tibble(d)
            numericData <- unlist(lapply(data.frame(tibble::as.tibble(d)[,1:dim(d)[2]]) ,FUN = RSDA::is.sym.interval))
            numericData <- d[,numericData]
-           mind <- data.frame(matrix(sapply(numericData,min),nrow=dim(numericData)[1]))
-           maxd <- data.frame(matrix(sapply(numericData,max),nrow=dim(numericData)[1]))
-           colnames(mind)<-colnames(numericData);colnames(maxd)<-colnames(numericData)
-           pkg.env$statisticsDF <- list(mind,maxd)
-           names(pkg.env$statisticsDF) <- c("min","max")
+
+           pkg.env$statisticsDF <- buildStatsDf(numericData = numericData)
+           names(pkg.env$statisticsDF) <- c("min","median","max")
            pkg.env$intervalData<-d
          }
   )
@@ -286,6 +287,16 @@ customize <- function(nData=NULL,minList=NULL,maxList=NULL){
   finalData<-finalData[,2:(p+1)]
   return(finalData)
 }
+
+buildStatsDf <- function(numericData = NULL){
+  mind <- data.frame(matrix(sapply(numericData,min),nrow=dim(numericData)[1]))
+  maxd <- data.frame(matrix(sapply(numericData,max),nrow=dim(numericData)[1]))
+  mediand <- (mind+maxd)/2
+  colnames(mind)<-colnames(numericData);colnames(maxd)<-colnames(numericData)
+  colnames(mediand)<-colnames(numericData)
+  return(list(mind,mediand,maxd))
+}
+
 
 pkg.env <- new.env()
 pkg.env$statistics <- c("min","median","max","mean")
