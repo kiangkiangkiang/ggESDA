@@ -4,6 +4,8 @@
 #' by using color image.The index image replace margin bar by color,thus
 #' it will be more visible for data.
 #' @import ggplot2
+#' @import ggthemes
+#' @import ggpubr
 #' @importFrom RSDA is.sym.interval
 #' @param data A ggESDA object.It can also be either RSDA object or
 #' classical data frame,which will be automatically convert to ggESDA
@@ -16,6 +18,8 @@
 #' present by column condition (if TRUE) or matrix condition (if FALSE)
 #' @param full_strip Boolean variables,which mean the strip present
 #' in full figure-width (if TRUE) or only in its variable values(if FALSE).
+#' @param useHeatmap Boolean, which determine if the heatmap type for visualizing
+#' full variables is used. default FALSE.
 #' @return Return a ggplot2 object.
 #' @usage ggInterval_indexImage(data = NULL,mapping = aes(NULL),
 #' column_condition=TRUE,full_strip=FALSE)
@@ -38,7 +42,7 @@
 #' @export
 ggInterval_indexImage<-function(data = NULL,mapping = aes(NULL),
                         column_condition=TRUE,
-                        full_strip=FALSE){
+                        full_strip=FALSE, useHeatmap = FALSE){
 
   #data preparing
   argsNum<-length(mapping)
@@ -48,9 +52,17 @@ ggInterval_indexImage<-function(data = NULL,mapping = aes(NULL),
   #test data illegal
   ggSymData <- testData(data)
   iData <- ggSymData$intervalData
-  testXY(iData,this.x,this.y)
-  p<-dim(iData)[2]
+  myHeatMapNames <- rownames(iData)
+  if(useHeatmap){
+    if(!is.null(this.x) | !is.null(this.y)){
+      warning("Using heatmap presentation cannot specify variables.")
+    }
+  }else{
+    testXY(iData,this.x,this.y)
+  }
 
+  p<-dim(iData)[2]
+  n<-dim(iData)[1]
   #test big o
   if(full_strip==FALSE & dim(iData)[1]>200){
     stop("Out of time limits")
@@ -58,44 +70,57 @@ ggInterval_indexImage<-function(data = NULL,mapping = aes(NULL),
   if(full_strip==TRUE & dim(iData)[1]>50){
     stop("Out of time limits")
   }
-
   #start process
+  datasetMin<-min(ggSymData$statisticsDF$min)
+  datasetMax<-max(ggSymData$statisticsDF$max)
+
   with(data,{
-    #get attr
-    if(any(unlist(lapply(as.data.frame(data[,1:p]),FUN=identical,x=eval(this.x))))){
-      attr<-which(unlist(lapply(as.data.frame(data[,1:p]),FUN=identical,x=eval(this.x))))
-      attr<-names(attr)
-    }else if(any(unlist(lapply(as.data.frame(data[,1:p]),FUN=identical,x=eval(this.y))))){
-      attr<-which(unlist(lapply(as.data.frame(data[,1:p]),FUN=identical,x=eval(this.y))))
-      attr<-names(attr)
-    }else{
-      stop("ERROR : Cannot find variables in aes(...)")
-    }
-    if(p==1){
-      attr = colnames(data)
-    }
-    #test attribute illegal
-    if(all(!is.numeric(data[[attr]]) , !RSDA::is.sym.interval(data[[attr]]))){
-      stop("ERROR : Variables in Min-Max Plot can only be numeric.")
+    #add heatmap
+    if(useHeatmap){
+      #get numerical data
+      numericData <- unlist(lapply(data.frame(iData[1:dim(iData)[2]]) ,FUN = is.sym.interval))
+      iData <- iData[,which(numericData)]
+
+      d <- data.frame(NULL)
+      for(i in colnames(iData)){
+        a<-iData[[i]]$min
+        b<-iData[[i]]$max
+        adjustStrip <- min(b-a)/50
+        d <- rbind(d, data.frame(buildPlotData(a, b, adjustStrip, n), group=factor(i)))
+      }
+    }else{#end headmap
+
+      #get attr
+      if(any(unlist(lapply(as.data.frame(data[,1:p]),FUN=identical,x=eval(this.x))))){
+        attr<-which(unlist(lapply(as.data.frame(data[,1:p]),FUN=identical,x=eval(this.x))))
+        attr<-names(attr)
+      }else if(any(unlist(lapply(as.data.frame(data[,1:p]),FUN=identical,x=eval(this.y))))){
+        attr<-which(unlist(lapply(as.data.frame(data[,1:p]),FUN=identical,x=eval(this.y))))
+        attr<-names(attr)
+      }else{
+        stop("ERROR : Cannot find variables in aes(...)")
+      }
+      if(p==1){
+        attr = colnames(data)
+      }
+      #test attribute illegal
+      if(all(!is.numeric(data[[attr]]) , !RSDA::is.sym.interval(data[[attr]]))){
+        stop("ERROR : Variables in Min-Max Plot can only be numeric.")
+      }
+
+      #build data frame for ggplot
+      a<-iData[[attr]]$min
+      b<-iData[[attr]]$max
+
+      #whether full strip (if partial strip)
+      #debug for separate strip "adjustStrip"
+      adjustStrip <- min(b-a)/50
     }
 
-    #build data frame for ggplot
-    n<-length(iData[[attr]])
-    a<-iData[[attr]]$min
-    b<-iData[[attr]]$max
-    datasetMin<-min(ggSymData$statisticsDF$min)
-    datasetMax<-max(ggSymData$statisticsDF$max)
-
-    #whether full strip (if partial strip)
     if(!full_strip){
-      val<-mapply(a,b,FUN=function(x,y) seq(x,y,by=0.1))
-      y <- unlist(val)
-      mid <- rep(1:n, lengths(val))
-      d <- data.frame(x = mid - 0.4,
-                      xend = mid + 0.4,
-                      y = y,
-                      yend = y)
-
+      if(!useHeatmap){
+        d <- buildPlotData(a, b, adjustStrip, n)
+      }
       #whether column condition
       if(!column_condition){
         midp<-(datasetMin+datasetMax)/2
@@ -121,10 +146,45 @@ ggInterval_indexImage<-function(data = NULL,mapping = aes(NULL),
       }
 
       #plot
-      ggplot(d, aes(x = x, xend = xend, y = y, yend = yend, color = y)) +
-        geom_segment(size = 3)+eval(parse(text=myColScale)) +
-        labs(y=attr,x="",title=paste0("Index Image-",NAME))+
-        scale_x_continuous(breaks=c(1:n),labels = rownames(iData))
+      if(useHeatmap){
+        base <- ggplot(d, aes(x = x, xend = xend, y = y, yend = y,color=y)) +
+          geom_segment(size = 3) + facet_grid(. ~ group) +
+          eval(parse(text=myColScale))+
+          coord_flip()+scale_x_continuous(breaks = 1:n, label=myHeatMapNames)+
+          labs(x="Concepts",y="Values")+
+          theme(legend.position="bottom",
+                legend.title = element_blank())
+
+        base
+
+#         $need library(ggthemes) and library( ggpubr)
+#         v <- seq(min(d$y),max(d$y),(max(d$y)-min(d$y))/(1000-1))
+#         newd<-data.frame(x = rep(1:1000),
+#                          xend = rep(1:1000),
+#                          y = rep(1, 1000),
+#                          yend = rep(2, 1000),
+#                          val = v)
+#         p2 <- ggplot(newd,aes(x=x,xend=xend,y=y,yend=yend,col=val))+
+#           geom_segment()+
+#           scale_color_gradient2(low = 'blue', mid = 'yellow', high = 'red',
+#                                 midpoint = (min(newd$val)+max(newd$val))/2,
+#                                 name = 'Value',
+#                                 breaks=c(min(newd$val),max(newd$val)),
+#                                 labels = c(round(min(newd$val)),round(max(newd$val))))+
+#           guides(color=F,y=F)+theme_tufte()+labs(y=NULL,x=NULL)+
+#           scale_x_continuous(labels = quantile(v))
+#
+#         temp<-ggplot()+theme_void()
+#         temp2<-ggarrange(temp,p2,temp,nrow=1,widths = c(1,1,1))
+#         return(ggarrange(base,temp2,nrow=2,heights=c(8,1)))
+
+
+      }else{
+        ggplot(d, aes(x = x, xend = xend, y = y, yend = yend, color = y)) +
+          geom_segment(size = 3)+eval(parse(text=myColScale)) +
+          labs(y=attr,x="",title=paste0("Index Image-",NAME))+
+          scale_x_continuous(breaks=c(1:n),labels = rownames(iData))
+      }
     }# if full strip
     else{
       #adjust
@@ -133,13 +193,15 @@ ggInterval_indexImage<-function(data = NULL,mapping = aes(NULL),
       adjustCoef<-ifelse(datasetMax*n>2000,1,ceiling(2000/(datasetMax*n)))
 
       myAdjust <- seq(1,datasetMax,(datasetMax-1)/(datasetMax*adjustCoef-1))
-      d2 <- data.frame(x = rep(1:n,each=datasetMax*adjustCoef) - 0.8,
-                       xend = rep(1:n,each=datasetMax*adjustCoef) + 0.8,
+      #debug for unequal bin image
+      d2 <- data.frame(x = rep(1:n,each=datasetMax*adjustCoef)-0.5,
+                       xend = rep(1.5:(n+0.5),each=datasetMax*adjustCoef),
                        y = rep(myAdjust,n))
 
       val2<-mapply(a,b,FUN=function(x,y) sort(runif(datasetMax*adjustCoef,x,y)))
       val<-matrix(val2,ncol=1)
       d<-data.frame(d2,value=val)
+
 
       #whether column condition
       if(!column_condition){
@@ -163,7 +225,7 @@ ggInterval_indexImage<-function(data = NULL,mapping = aes(NULL),
       }
 
       #plot
-      ggplot(d, aes(x = x, xend = xend, y = y, yend = y,color=value)) +
+      ggplot(data = d, aes(x = x, xend = xend, y = y, yend = y,color=value)) +
         geom_segment(size = 3) +
         eval(parse(text=myColScale))+
         labs(y=attr,x="",title=paste0("Index Image-",NAME))+
@@ -172,3 +234,17 @@ ggInterval_indexImage<-function(data = NULL,mapping = aes(NULL),
     }
   })
 }
+
+
+buildPlotData <- function(a, b, adjustStrip, n){
+  val<-mapply(a,b,FUN=function(x,y) seq(x,y,by=adjustStrip))
+  y <- unlist(val)
+  mid <- rep(1:n, lengths(val))
+  d <- data.frame(x = mid - 0.4,
+                  xend = mid + 0.4,
+                  y = y,
+                  yend = y)
+}
+
+
+
