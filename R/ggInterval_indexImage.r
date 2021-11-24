@@ -86,7 +86,7 @@ ggInterval_indexImage<-function(data = NULL,mapping = aes(NULL),
         a<-iData[[i]]$min
         b<-iData[[i]]$max
         adjustStrip <- min(b-a)/50
-        d <- rbind(d, data.frame(buildPlotData(a, b, adjustStrip, n), group=factor(i)))
+        d <- rbind(d, data.frame(buildPlotData(a, b, adjustStrip, n, full_strip, datasetMax), group=factor(i)))
       }
     }else{#end headmap
 
@@ -133,7 +133,19 @@ ggInterval_indexImage<-function(data = NULL,mapping = aes(NULL),
                               labels = c(round(min(d$y)),round(max(d$y))))"
         #breaks=c(min(d$y),max(d$y)),
         #labels = c(round(min(d$y)),round(max(d$y))))
-      }else{
+
+        if(useHeatmap){
+          base <- ggplot(d, aes(x = x, xend = xend, y = y, yend = y,color=y)) +
+            geom_segment(size = 3) + facet_grid(. ~ group) +
+            eval(parse(text=myColScale))+
+            coord_flip()+scale_x_continuous(breaks = 1:n, label=myHeatMapNames)+
+            labs(x="Concepts",y="Values")+
+            theme(legend.position="bottom",
+                  legend.title = element_blank())
+
+          return(base)
+        }
+      }else{#column control
         midp<-(max(d$y)+min(d$y))/2
         #midp<-(datasetMin+datasetMax)/2
         NAME <- "Column Condition"
@@ -143,65 +155,36 @@ ggInterval_indexImage<-function(data = NULL,mapping = aes(NULL),
                               breaks=c(min(d$y),max(d$y)),
                               labels = c(round(min(d$y)),round(max(d$y))))"
         #c(round(datasetMin),round(datasetMax)))
+
+        if(useHeatmap){
+          u<-1
+          myp <- NULL
+          for(ele in levels(d$group)){
+            tempData <- dplyr::filter(d, d$group == ele)
+            myp[[u]] <- myplot(tempData, u, NAME, myHeatMapNames, n, ele,full_strip)
+            u<-u+1
+          }
+
+          #v <- seq(min(d$y),max(d$y),(max(d$y)-min(d$y))/(1000-1))
+          base <- ggarrange(plotlist=myp, nrow=1)
+
+          v <- seq(1,1000)
+          return(ggarrange(base, buildColLegend(v),nrow=2,heights=c(8,1)))
+        }
       }
 
       #plot
-      if(useHeatmap){
-        base <- ggplot(d, aes(x = x, xend = xend, y = y, yend = y,color=y)) +
-          geom_segment(size = 3) + facet_grid(. ~ group) +
-          eval(parse(text=myColScale))+
-          coord_flip()+scale_x_continuous(breaks = 1:n, label=myHeatMapNames)+
-          labs(x="Concepts",y="Values")+
-          theme(legend.position="bottom",
-                legend.title = element_blank())
-
-        base
-
-#         $need library(ggthemes) and library( ggpubr)
-#         v <- seq(min(d$y),max(d$y),(max(d$y)-min(d$y))/(1000-1))
-#         newd<-data.frame(x = rep(1:1000),
-#                          xend = rep(1:1000),
-#                          y = rep(1, 1000),
-#                          yend = rep(2, 1000),
-#                          val = v)
-#         p2 <- ggplot(newd,aes(x=x,xend=xend,y=y,yend=yend,col=val))+
-#           geom_segment()+
-#           scale_color_gradient2(low = 'blue', mid = 'yellow', high = 'red',
-#                                 midpoint = (min(newd$val)+max(newd$val))/2,
-#                                 name = 'Value',
-#                                 breaks=c(min(newd$val),max(newd$val)),
-#                                 labels = c(round(min(newd$val)),round(max(newd$val))))+
-#           guides(color=F,y=F)+theme_tufte()+labs(y=NULL,x=NULL)+
-#           scale_x_continuous(labels = quantile(v))
-#
-#         temp<-ggplot()+theme_void()
-#         temp2<-ggarrange(temp,p2,temp,nrow=1,widths = c(1,1,1))
-#         return(ggarrange(base,temp2,nrow=2,heights=c(8,1)))
-
-
-      }else{
         ggplot(d, aes(x = x, xend = xend, y = y, yend = yend, color = y)) +
           geom_segment(size = 3)+eval(parse(text=myColScale)) +
           labs(y=attr,x="",title=paste0("Index Image-",NAME))+
           scale_x_continuous(breaks=c(1:n),labels = rownames(iData))
-      }
     }# if full strip
     else{
       #adjust
       #newN<-sort(runif((n)*2,1,n))
-      datasetMax<-ceiling(datasetMax)
-      adjustCoef<-ifelse(datasetMax*n>2000,1,ceiling(2000/(datasetMax*n)))
-
-      myAdjust <- seq(1,datasetMax,(datasetMax-1)/(datasetMax*adjustCoef-1))
-      #debug for unequal bin image
-      d2 <- data.frame(x = rep(1:n,each=datasetMax*adjustCoef)-0.5,
-                       xend = rep(1.5:(n+0.5),each=datasetMax*adjustCoef),
-                       y = rep(myAdjust,n))
-
-      val2<-mapply(a,b,FUN=function(x,y) sort(runif(datasetMax*adjustCoef,x,y)))
-      val<-matrix(val2,ncol=1)
-      d<-data.frame(d2,value=val)
-
+      if(!useHeatmap){
+        d <- buildPlotData(a, b, adjustStrip, n, full_strip, datasetMax)
+      }
 
       #whether column condition
       if(!column_condition){
@@ -213,6 +196,17 @@ ggInterval_indexImage<-function(data = NULL,mapping = aes(NULL),
                               breaks=c(min(d$value),max(d$value)),
                               labels = c(round(min(d$value)),round(max(d$value))))"
 
+        if(useHeatmap){
+          base <- ggplot(d, aes(x = x, xend = xend, y = y, yend = y,color=value)) +
+            geom_segment(size = 3) + facet_grid(. ~ group) +
+            eval(parse(text=myColScale))+
+            coord_flip()+scale_x_continuous(breaks = 1:n, label=myHeatMapNames)+
+            labs(x="Concepts",y="Values")+
+            theme(legend.position="bottom",
+                  legend.title = element_blank())
+          return(base)
+        }
+
       }else{
         midp<-(max(d$value)+min(d$value))/2
         NAME <- "Column Condition"
@@ -222,29 +216,108 @@ ggInterval_indexImage<-function(data = NULL,mapping = aes(NULL),
                               breaks=c(min(d$value),max(d$value)),
                               labels = c(round(min(d$value)),round(max(d$value))))"
 
+        if(useHeatmap){
+          u<-1
+          myp <- NULL
+          for(ele in levels(d$group)){
+            tempData <- dplyr::filter(d, d$group == ele)
+            myp[[u]] <- myplot(tempData, u, NAME, myHeatMapNames, n, ele, full_strip)
+            u<-u+1
+          }
+
+          #v <- seq(min(d$y),max(d$y),(max(d$y)-min(d$y))/(1000-1))
+          base <- ggarrange(plotlist=myp, nrow=1)
+
+          v <- seq(1,1000)
+          return(ggarrange(base, buildColLegend(v),nrow=2,heights=c(8,1)))
+
+        }
+
       }
 
       #plot
-      ggplot(data = d, aes(x = x, xend = xend, y = y, yend = y,color=value)) +
-        geom_segment(size = 3) +
-        eval(parse(text=myColScale))+
-        labs(y=attr,x="",title=paste0("Index Image-",NAME))+
-        scale_x_continuous(breaks=c(1:n),labels = rownames(iData))+
-        scale_y_continuous(breaks=NULL)
+        ggplot(data = d, aes(x = x, xend = xend, y = y, yend = y,color=value)) +
+          geom_segment(size = 3) +
+          eval(parse(text=myColScale))+
+          labs(y=attr,x="",title=paste0("Index Image-",NAME))+
+          scale_x_continuous(breaks=c(1:n),labels = rownames(iData))+
+          scale_y_continuous(breaks=NULL)
     }
   })
 }
 
 
-buildPlotData <- function(a, b, adjustStrip, n){
-  val<-mapply(a,b,FUN=function(x,y) seq(x,y,by=adjustStrip))
-  y <- unlist(val)
-  mid <- rep(1:n, lengths(val))
-  d <- data.frame(x = mid - 0.4,
-                  xend = mid + 0.4,
-                  y = y,
-                  yend = y)
+buildPlotData <- function(a, b, adjustStrip, n, full_strip, datasetMax){
+  if(!full_strip){
+    val<-mapply(a,b,FUN=function(x,y) seq(x,y,by=adjustStrip))
+    y <- unlist(val)
+    mid <- rep(1:n, lengths(val))
+    d <- data.frame(x = mid - 0.4,
+                    xend = mid + 0.4,
+                    y = y,
+                    yend = y)
+  }else{
+    datasetMax<-ceiling(datasetMax)
+    adjustCoef<-ifelse(datasetMax*n>2000,1,ceiling(2000/(datasetMax*n)))
+
+    myAdjust <- seq(1,datasetMax,(datasetMax-1)/(datasetMax*adjustCoef-1))
+    #debug for unequal bin image
+    d2 <- data.frame(x = rep(1:n,each=datasetMax*adjustCoef)-0.5,
+                     xend = rep(1.5:(n+0.5),each=datasetMax*adjustCoef),
+                     y = rep(myAdjust,n))
+    val2<-mapply(a,b,FUN=function(x,y) sort(runif(datasetMax*adjustCoef,x,y)))
+    val<-matrix(val2,ncol=1)
+    d<-data.frame(d2,value=val)
+  }
+  return(d)
 }
 
 
+buildColLegend <- function(v){
+    newd<-data.frame(x = rep(1:1000),
+                     xend = rep(1:1000),
+                     y = rep(1, 1000),
+                     yend = rep(2, 1000),
+                     val = v)
+    p2 <- ggplot(newd,aes(x=x,xend=xend,y=y,yend=yend,col=val))+
+      geom_segment()+
+      scale_color_gradient2(low = 'blue', mid = 'yellow', high = 'red',
+                            midpoint = (min(newd$val)+max(newd$val))/2,
+                            name = 'Value',
+                            breaks=c(min(newd$val),max(newd$val)),
+                            labels = c(round(min(newd$val)),round(max(newd$val))))+
+      guides(color=F,y=F)+theme_tufte()+labs(y=NULL,x=NULL)+
+      scale_x_continuous(breaks=c(0,1000),labels = c("min","max"))
+
+    temp<-ggplot()+theme_void()
+    temp2<-ggarrange(temp,p2,temp,nrow=1,widths = c(1,1,1))
+    return(temp2)
+}
+
+
+myplot <- function(tempData, u, NAME, myHeatMapNames, n, ele, full_strip){
+
+
+  if(full_strip){
+    midp<-(max(tempData$value)+min(tempData$value))/2
+    p <- ggplot(tempData, aes(x = x, xend = xend, y = y, yend = y, color = value))
+  }else{
+    midp<-(max(tempData$y)+min(tempData$y))/2
+    p <- ggplot(tempData, aes(x = x, xend = xend, y = y, yend = yend, color = y))
+  }
+  p<-p+geom_segment(size = 3)+
+    scale_color_gradient2(low = 'blue', mid = 'yellow', high = 'red',
+                          midpoint = midp)+
+    labs(y="",x="",title=paste0("Index Image-",NAME))+
+    scale_x_continuous(breaks=c(1:n),labels = myHeatMapNames)+
+    coord_flip()+
+    guides(fill=F,col=F,alpha=F)+
+    theme(plot.title = element_text(hjust = 0.5))+ggtitle(ele)
+
+  if(u!=1){
+    p<-p+theme(axis.text.y = element_blank())
+  }
+
+  return(p)
+}
 
