@@ -106,58 +106,80 @@ ggInterval_hist<-function(data = NULL,mapping = aes(NULL),method="equal-bin",bin
     }#end plotAll
 
     if(method=="unequal-bin"){
-      d<-as.data.frame(iData[[attr]])
-      temp<-seq(minimal,maximal,0.01)
-      f <- matrix(0,nrow=length(temp),ncol=n+1)
-      f[,1]<-temp
-      #calculate fraquency
-      for (i in 1:n){
-        #start debug version0825-10
-        #raw code :
-        #start<-which(round(f[,1],2)==round(d[i,1],2))
-        #end<-which(round(f[,1],2)==round(d[i,2],2))
-        #new code :
-        start<-length(which(round(f[,1],2)<=round(d[i,1],2)))
-        end<-length(which(round(f[,1],2)<=round(d[i,2],2)))
-        #end debug
 
-        f[start:end,i+1]<-1
-      }
-      f<-cbind(temp,apply(f[,-1],1,FUN=sum))
+      plotData <- NULL ; intervalDf = NULL
+      for(u in 1:nrow(mmd)){
+        d<-as.data.frame(iData[[attr[u]]])
+        temp<-seq(mmd[u, "minimal"], mmd[u, "maximal"],0.01)
+        f <- matrix(0,nrow=length(temp),ncol=n+1)
+        f[,1]<-temp
 
-      x<-f[1,2]
-      y<-1
-      for (i in 1:(dim(f)[1]-1)){
-        if(f[i,2]!=f[i+1,2]){
-          y<-append(y,f[i+1,2])
-          x<-append(x,i)
-          x<-append(x,i+1)
+        #calculate fraquency
+        for (i in 1:n){
+          #start debug version0825-10
+          #raw code :
+          #start<-which(round(f[,1],2)==round(d[i,1],2))
+          #end<-which(round(f[,1],2)==round(d[i,2],2))
+          #new code :
+          start<-length(which(round(f[,1],2)<=round(d[i,1],2)))
+          end<-length(which(round(f[,1],2)<=round(d[i,2],2)))
+          #end debug
+
+          f[start:end,i+1]<-1
         }
-      }
-      x<-append(x,length(temp))
-      x<-t(matrix(x,nrow=2))
-      x1<-f[x[,1],1]
-      x2<-f[x[,2],1]
-      plotData<-data.frame(x1,x2,y1=0,y2=y/n)
 
-      nInt <- dim(x1)[1]
-      nameList<-paste(round(x1,2),round(x2,2),sep=":")
-      nameList<-paste0("[",nameList,"]")
-      midP <- (x1+x2)/2
+        f<-cbind(temp,apply(f[,-1],1,FUN=sum))
+
+        x<-f[1,2]
+        y<-1
+        for (i in 1:(dim(f)[1]-1)){
+          if(f[i,2]!=f[i+1,2]){
+            y<-append(y,f[i+1,2])
+            x<-append(x,i)
+            x<-append(x,i+1)
+          }
+        }
+        x<-append(x,length(temp))
+        x<-t(matrix(x,nrow=2))
+        x1<-f[x[,1],1]
+        x2<-f[x[,2],1]
+        plotData<-rbind(plotData,
+                        data.frame(x1,x2,y1=0,y2=y/n,group=factor(attr[u])))
+
+        tempDf <- data.frame(start = rep(NA, length(x1)),
+                             end = rep(NA, length(x1)))
+        tempDf[1:length(x1), "start"] <- round(x1,2)
+        tempDf[1:length(x1), "end"] <- round(x2,2)
+        intervalDf <- rbind(intervalDf, tempDf)
+      }
+
+      intervalDf <- intervalDf[order(intervalDf$start), ]
+      temp <- paste(intervalDf$start, intervalDf$end, sep = ":")
+      nameList <- paste0("[",temp,"]")
+
+      midP <- (plotData$x1 + plotData$x2)/2
       #build Aesthetic (mapping)
       usermapping <- mapping[-1] #Aesthetic without x,y
       mymapping <- list(mapping=aes(xmin=x1, xmax=x2, ymin=y1, ymax=y2),fill="grey",col="black")
       allmapping <-as.list(structure(as.expression(c(usermapping,mymapping)),class="uneval"))
 
-      ggplot(data=plotData,aes(x1,y1))+
+      #plot
+      base <- ggplot(data=plotData,aes(x1,y1))+
         do.call(geom_rect,allmapping)+
-        labs(x=attr,y="frequency")+
-        scale_x_continuous(n.breaks=(nInt-1),breaks=midP,labels=nameList)+
         theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
 
+      if(plotAll){
+        base <- base + facet_grid(group ~ .) +
+          labs(x = "", y="frequency") +
+          scale_x_continuous(n.breaks = 8)
+      }else{
+        base <- base + labs(x=attr,y="frequency")+
+          scale_x_continuous(breaks = midP, labels=nameList)
+      }
+      return(base)
 
     }else if(method=="equal-bin"){
-      myhist <- NULL ; nameList <- NULL
+      myhist <- NULL ; intervalDf <- NULL
       for(i in 1:nrow(mmd)){
         #seperate the attribute into bins
         dist<-(mmd[i, "maximal"]-mmd[i, "minimal"])/bins
@@ -185,8 +207,11 @@ ggInterval_hist<-function(data = NULL,mapping = aes(NULL),method="equal-bin",bin
 
         nInt <- length(interval)
         interval <- round(interval,2)
-        temp<-mapply(1:(nInt-1),2:nInt,FUN=function(x,y) paste(interval[x],interval[y],sep = ":"))
-        nameList<-c(nameList, paste0("[",temp,"]"))
+        tempDf <- data.frame(start = rep(NA, nInt-1),
+                             end = rep(NA, nInt-1))
+        tempDf[1:(nInt-1), "start"] <- interval[1:(nInt-1)]
+        tempDf[1:(nInt-1), "end"] <- interval[2:nInt]
+        intervalDf <- rbind(intervalDf, tempDf)
 
         #build data frame and plot
         myhist<-rbind(myhist,
@@ -195,6 +220,12 @@ ggInterval_hist<-function(data = NULL,mapping = aes(NULL),method="equal-bin",bin
                            group = factor(attr[i])))
 
       }
+      intervalDf <- intervalDf[order(intervalDf$start), ]
+      temp <- paste(intervalDf$start, intervalDf$end, sep = ":")
+      #temp<-mapply(intervalDf$start,intervalDf$end,FUN=function(x,y) paste(interval[x],interval[y],sep = ":"))
+      nameList <- paste0("[",temp,"]")
+
+
       myhist$frequency <- myhist$frequency/n
 
 
@@ -210,15 +241,14 @@ ggInterval_hist<-function(data = NULL,mapping = aes(NULL),method="equal-bin",bin
         do.call(geom_histogram,allmapping)+
         scale_fill_manual(values=rep("black",bins*length(attr)))+
         guides(colour = FALSE, alpha = FALSE,fill=FALSE)+
-        theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+        theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
+        scale_x_discrete(labels=nameList)
       if(plotAll){
         base <- base + facet_grid(group ~ .) +
-          scale_x_discrete(labels=nameList) +
           labs(x = "")
 
       }else{
-        base <- base + labs(x=attr) +
-          scale_x_discrete(labels=nameList)
+        base <- base + labs(x=attr)
       }
       return(base)
 

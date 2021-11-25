@@ -23,7 +23,9 @@ have the same range.unequal-bin means the range of intervals are not
 the same,and it can be more general on data.Thus,the bins of unequal-bin
 method depends on the data,and the argument "bins" will be unused.}
 
-\item{bins}{x axis bins,which mean how many partials the variable
+\item{bins}{x axis bins,which mean how many partials the variable}
+
+\item{plotAll}{boolean, whether plot all variables, default FALSE.
 will be separate into.}
 }
 \value{
