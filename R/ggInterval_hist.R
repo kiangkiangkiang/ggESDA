@@ -19,6 +19,7 @@
 #' the same,and it can be more general on data.Thus,the bins of unequal-bin
 #' method depends on the data,and the argument "bins" will be unused.
 #' @param bins x axis bins,which mean how many partials the variable
+#' @param plotAll boolean, whether plot all variables, default FALSE.
 #' will be separate into.
 #' @return Return a ggplot2 object.
 #' @usage ggInterval_hist(data = NULL,mapping = aes(NULL),method="equal-bin",bins=10)
@@ -36,7 +37,8 @@
 #' p+scale_fill_manual(values=rainbow(40))+labs(title="myNorm")
 #'
 #' @export
-ggInterval_hist<-function(data = NULL,mapping = aes(NULL),method="equal-bin",bins=10){
+ggInterval_hist<-function(data = NULL,mapping = aes(NULL),method="equal-bin",bins=10,
+                          plotAll = FALSE){
   #data preparing
   argsNum<-length(mapping)
   args<-lapply(mapping[1:argsNum],FUN=rlang::get_expr)
@@ -45,7 +47,13 @@ ggInterval_hist<-function(data = NULL,mapping = aes(NULL),method="equal-bin",bin
   #test data illegal
   ggSymData <- testData(data)
   iData <- ggSymData$intervalData
-  testXY(iData,this.x,this.y)
+  if(plotAll){
+    if(!is.null(this.x) | !is.null(this.y)){
+      warning("Using plotAll presentation cannot specify variables.")
+    }
+  }else{
+    testXY(iData,this.x,this.y)
+  }
   p<-dim(iData)[2]
   n<-dim(iData)[1]
 
@@ -60,27 +68,42 @@ ggInterval_hist<-function(data = NULL,mapping = aes(NULL),method="equal-bin",bin
   if("ggESDA" %in% class(data)){data <- iData}
   #start process
   with(data,{
-    #get attr
-    if(any(unlist(lapply(as.data.frame(data[,1:p]),FUN=identical,x=eval(this.x))))){
-      attr<-which(unlist(lapply(as.data.frame(data[,1:p]),FUN=identical,x=eval(this.x))))
-      attr<-names(attr)
-    }else if(any(unlist(lapply(as.data.frame(data[,1:p]),FUN=identical,x=eval(this.y))))){
-      attr<-which(unlist(lapply(as.data.frame(data[,1:p]),FUN=identical,x=eval(this.y))))
-      attr<-names(attr)
+    plotVarNum <- NULL
+    mmd <- data.frame(NULL) #min and max data frame
+    if(plotAll){
+      #get numerical data
+      numericData <- unlist(lapply(data.frame(iData[1:dim(iData)[2]]) ,FUN = is.sym.interval))
+      iData <- iData[,which(numericData)]
+      attr <- colnames(iData)
+
+      for(i in 1:length(attr)){
+        mmd[i, "minimal"]<-min(iData[[i]]$min)
+        mmd[i, "maximal"]<-max(iData[[i]]$max)
+      }
     }else{
-      stop("ERROR : Cannot find variables in aes(...)")
-    }
-    if(p==1){
-      attr = colnames(data)
-    }
 
-    #test attribute illegal
-    if(all(!is.numeric(data[[attr]]) , !RSDA::is.sym.interval(data[[attr]]))){
-      stop("ERROR : Variables in histogram can only be numeric.")
-    }
+      #get attr
+      if(any(unlist(lapply(as.data.frame(data[,1:p]),FUN=identical,x=eval(this.x))))){
+        attr<-which(unlist(lapply(as.data.frame(data[,1:p]),FUN=identical,x=eval(this.x))))
+        attr<-names(attr)
+      }else if(any(unlist(lapply(as.data.frame(data[,1:p]),FUN=identical,x=eval(this.y))))){
+        attr<-which(unlist(lapply(as.data.frame(data[,1:p]),FUN=identical,x=eval(this.y))))
+        attr<-names(attr)
+      }else{
+        stop("ERROR : Cannot find variables in aes(...)")
+      }
+      if(p==1){
+        attr = colnames(data)
+      }
 
-    minimal<-min(iData[[attr]]$min)
-    maximal<-max(iData[[attr]]$max)
+      #test attribute illegal
+      if(all(!is.numeric(data[[attr]]) , !RSDA::is.sym.interval(data[[attr]]))){
+        stop("ERROR : Variables in histogram can only be numeric.")
+      }
+      mmd[1, "minimal"]<-min(iData[[attr]]$min)
+      mmd[1, "maximal"]<-max(iData[[attr]]$max)
+
+    }#end plotAll
 
     if(method=="unequal-bin"){
       d<-as.data.frame(iData[[attr]])
@@ -134,57 +157,76 @@ ggInterval_hist<-function(data = NULL,mapping = aes(NULL),method="equal-bin",bin
 
 
     }else if(method=="equal-bin"){
-      #seperate the attribute into bins
-      dist<-(maximal-minimal)/bins
-      interval<-seq(minimal,maximal,dist)
+      myhist <- NULL ; nameList <- NULL
+      for(i in 1:nrow(mmd)){
+        #seperate the attribute into bins
+        dist<-(mmd[i, "maximal"]-mmd[i, "minimal"])/bins
+        interval<-seq(mmd[i, "minimal"],mmd[i, "maximal"],dist)
 
-      #calculate frequency
-      f <- matrix(nrow=length(iData[[attr]]),ncol=bins)
-      for (obs in 1:length(iData[[attr]])){
-        a<-iData[[attr]][obs]$min
-        b<-iData[[attr]][obs]$max
-        for(area in 1:bins){
-          headIn<-a %>% between(interval[area],interval[area+1])
-          tailIn<-b %>% between(interval[area],interval[area+1])
-          contain<-interval[area] %>% between(a,b)
-          if(headIn|tailIn|contain){
-            temp<-sort(c(a,b,interval[area],interval[area+1]))
-            f[obs,area]<-(temp[3]-temp[2])/(b-a)
-          }else{
-            f[obs,area]<-0
+
+        #calculate frequency
+        f <- NULL
+        f <- matrix(nrow=length(iData[[attr[i]]]),ncol=bins)
+        for (obs in 1:length(iData[[attr[i]]])){
+          a<-iData[[attr[i]]][obs]$min
+          b<-iData[[attr[i]]][obs]$max
+          for(area in 1:bins){
+            headIn<-a %>% between(interval[area],interval[area+1])
+            tailIn<-b %>% between(interval[area],interval[area+1])
+            contain<-interval[area] %>% between(a,b)
+            if(headIn|tailIn|contain){
+              temp<-sort(c(a,b,interval[area],interval[area+1]))
+              f[obs,area]<-(temp[3]-temp[2])/(b-a)
+            }else{
+              f[obs,area]<-0
+            }
           }
         }
+
+        nInt <- length(interval)
+        interval <- round(interval,2)
+        temp<-mapply(1:(nInt-1),2:nInt,FUN=function(x,y) paste(interval[x],interval[y],sep = ":"))
+        nameList<-c(nameList, paste0("[",temp,"]"))
+
+        #build data frame and plot
+        myhist<-rbind(myhist,
+                      data.frame(interval=interval[1:bins],
+                           frequency=apply(f,2,FUN=sum),
+                           group = factor(attr[i])))
+
       }
-      nInt <- length(interval)
-      interval <- round(interval,2)
-      nameList<-mapply(1:(nInt-1),2:nInt,FUN=function(x,y) paste(interval[x],interval[y],sep = ":"))
-      nameList<-paste0("[",nameList,"]")
+      myhist$frequency <- myhist$frequency/n
+
+
       #build Aesthetic (mapping)
       usermapping <- mapping[-1] #Aesthetic without x,y
       mymapping <- list(stat="identity",
-                        mapping=aes(alpha=0.5,fill=gray.colors(bins)),col="black")
+                        mapping=aes(alpha=0.5,fill=gray.colors(bins*length(attr))),col="black")
       allmapping <-as.list(structure(as.expression(c(usermapping,mymapping)),class="uneval"))
 
 
-      #build data frame and plot
-      myhist<-data.frame(interval=interval[1:bins],
-                         frequency=apply(f,2,FUN=sum))
-      myhist$frequency <- myhist$frequency/n
-      ggplot(data=myhist, aes(x=interval,y=frequency))+
+      #plot
+      base <- ggplot(data=myhist, aes(x=factor(interval),y=frequency))+
         do.call(geom_histogram,allmapping)+
-        labs(x=attr)+
-        scale_fill_manual(values=rep("black",bins))+
+        scale_fill_manual(values=rep("black",bins*length(attr)))+
         guides(colour = FALSE, alpha = FALSE,fill=FALSE)+
-        scale_x_continuous(n.breaks=(nInt-1),breaks=myhist$interval,labels=nameList)+
         theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+      if(plotAll){
+        base <- base + facet_grid(group ~ .) +
+          scale_x_discrete(labels=nameList) +
+          labs(x = "")
 
+      }else{
+        base <- base + labs(x=attr) +
+          scale_x_discrete(labels=nameList)
+      }
+      return(base)
 
     }else{
       stop(paste0("ERROR : Unrecognize method : ",method," ."))
     }
   })
 }
-
 
 
 
