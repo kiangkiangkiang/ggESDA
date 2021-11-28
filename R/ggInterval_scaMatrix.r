@@ -54,7 +54,7 @@ ggInterval_scaMatrix <- function(data = NULL,mapping = aes(NULL),showLegend=TRUE
   #test data illegal
   ggSymData <- testData(data)
   iData <- ggSymData$intervalData
-
+  myRowNames <- rownames(iData)
   #preparing data
   p<-dim(iData)[2]
   n<-dim(iData)[1]
@@ -62,9 +62,9 @@ ggInterval_scaMatrix <- function(data = NULL,mapping = aes(NULL),showLegend=TRUE
   iData <- iData[,numericData]
 
   #test big o
-  if(p>4 & p<=6){
-    warning("It is not recommended number of variables are greater than 4.")
-  }else if(p > 6){
+  if(p>8 & p<=20){
+    warning("It is not recommended number of variables are greater than 8.")
+  }else if(p > 20){
     stop("The number of variables are too large to visualize clearly.
          Suggested input variables less than 4. ex. data[,1:4]")
   }
@@ -81,53 +81,43 @@ ggInterval_scaMatrix <- function(data = NULL,mapping = aes(NULL),showLegend=TRUE
     p<-dim(iData)[2]; n<-dim(iData)[1]
     warning("Ignore non-numeric data.")
   }
-  dataSetMin <- min(sapply(iData,min))
-  dataSetMax <- max(sapply(iData,max))
 
+  plotData <- NULL
+  for(i in 1:p){
+    for(u in 1:p){
+      plotData <- rbind(plotData, data.frame(x1 = iData[[i]]$min,
+                                 x2 = iData[[i]]$max,
+                                 y1 = iData[[u]]$min,
+                                 y2 = iData[[u]]$max,
+                                 xv = colnames(iData)[i],
+                                 yv = colnames(iData)[u],
+                                 Concepts = myRowNames))
+    }
+  }
 
-  temp<-lapply(1:p,function(x) lapply(1:p,x,FUN=scatterMatrix,
-                                      data=iData,args=args,
-                                      dmin=dataSetMin,dmax=dataSetMax,showLegend=showLegend))
-  temp2<-mapply(1:p,FUN = function(x) gridExtra::marrangeGrob(temp[[x]],nrow=1, ncol=p,top=""))
-  gridExtra::marrangeGrob(temp2,nrow=p,ncol=1,top = "Scatter matrix")
+  #build Aesthetic (mapping)
+  xyLocation <- c(which(names(mapping) == "x"), which(names(mapping) == "y"))
+  if(length(xyLocation) != 0){
+    usermapping <- mapping[-xyLocation] #Aesthetic without x,y
+  }else{
+    usermapping <- mapping
+  }
 
-}
-scatterMatrix<-function(data,attr1,attr2,args,dmin,dmax,showLegend){
-  #build data frame for ggplot
-  n<-dim(data)[1]
-  p<-dim(data)[2]
-  d=data.frame(x1=data[[attr1]]$min
-               ,x2=data[[attr1]]$max
-               ,y1=data[[attr2]]$min
-               ,y2=data[[attr2]]$max)
-
-  #build Aesthetic
-  usermapping <- args
-  mymapping <- list(data=d,
-                    mapping=aes(xmin=d$x1, xmax=d$x2, ymin=d$y1, ymax=d$y2,
-                                fill=grDevices::gray.colors(n),alpha=0.5),col="black")
+  mymapping <- list(data=plotData,
+                    mapping=aes(xmin=x1, xmax=x2, ymin=y1, ymax=y2,
+                                 fill=Concepts,alpha=0.5),col="black")
   allmapping <-as.list(structure(as.expression(c(usermapping,mymapping)),class="uneval"))
 
-  #plot
-  if(attr1!=attr2){
-    p<-ggplot(data=d,aes(d$x1,d$y1))+
-      do.call(geom_rect,allmapping)+
-      geom_text(label=rownames(data),size=5)+
-      xlim(dmin,dmax)+ylim(dmin,dmax)+
-      theme_bw()+labs(x="",y="")+
-      theme(panel.grid = element_blank())+
-      scale_fill_manual(name="Concept",
-                        values=grDevices::gray.colors(n),
-                        labels=rownames(data))+
-      guides(colour = FALSE, alpha = FALSE)
-    if(!showLegend){
-      p<-p+guides(fill=FALSE)
-    }
-    p
-  }else{
-    ggplot()+
-      annotation_custom(grob=grid::textGrob(colnames(data)[attr1],gp = grid::gpar(fontsize = 35)),
-                        xmin = -Inf, xmax = Inf, ymin = -Inf, ymax = Inf)+
-      theme_void()
-  }
+
+
+  #start plot
+  ggplot(data=plotData, aes(x1,y1))+
+    do.call(geom_rect,allmapping)+
+    scale_fill_manual(name="Concept",
+                      values=gray.colors(n),
+                      labels=myRowNames)+
+    guides(colour = FALSE, alpha = FALSE)+
+    facet_grid(yv~xv, scale="free")+
+    theme(legend.position="bottom")+
+    labs(x="",y="")
 }

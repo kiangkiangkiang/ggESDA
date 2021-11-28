@@ -23,6 +23,10 @@ It is the same as the mapping of ggplot2.}
 x variable will be separate into.}
 
 \item{yBins}{y axis bins.It is the same as xBins.}
+
+\item{removeZero}{whether remove data whose frequency is equal to zero}
+
+\item{addFreq}{where add frequency text in each cells.}
 }
 \value{
 Return a ggplot2 object.

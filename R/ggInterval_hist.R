@@ -159,7 +159,12 @@ ggInterval_hist<-function(data = NULL,mapping = aes(NULL),method="equal-bin",bin
 
       midP <- (plotData$x1 + plotData$x2)/2
       #build Aesthetic (mapping)
-      usermapping <- mapping[-1] #Aesthetic without x,y
+      xyLocation <- c(which(names(mapping) == "x"), which(names(mapping) == "y"))
+      if(length(xyLocation) != 0){
+        usermapping <- mapping[-xyLocation] #Aesthetic without x,y
+      }else{
+        usermapping <- mapping
+      }
       mymapping <- list(mapping=aes(xmin=x1, xmax=x2, ymin=y1, ymax=y2),fill="grey",col="black")
       allmapping <-as.list(structure(as.expression(c(usermapping,mymapping)),class="uneval"))
 
@@ -220,6 +225,7 @@ ggInterval_hist<-function(data = NULL,mapping = aes(NULL),method="equal-bin",bin
                            group = factor(attr[i])))
 
       }
+      myhist <- cbind(myhist, intervalDf)
       intervalDf <- intervalDf[order(intervalDf$start), ]
       temp <- paste(intervalDf$start, intervalDf$end, sep = ":")
       #temp<-mapply(intervalDf$start,intervalDf$end,FUN=function(x,y) paste(interval[x],interval[y],sep = ":"))
@@ -230,25 +236,36 @@ ggInterval_hist<-function(data = NULL,mapping = aes(NULL),method="equal-bin",bin
 
 
       #build Aesthetic (mapping)
-      usermapping <- mapping[-1] #Aesthetic without x,y
+      #
+      xyLocation <- c(which(names(mapping) == "x"), which(names(mapping) == "y"))
+      if(length(xyLocation) != 0){
+        usermapping <- mapping[-xyLocation] #Aesthetic without x,y
+      }else{
+        usermapping <- mapping
+      }
       mymapping <- list(stat="identity",
                         mapping=aes(alpha=0.5,fill=gray.colors(bins*length(attr))),col="black")
       allmapping <-as.list(structure(as.expression(c(usermapping,mymapping)),class="uneval"))
 
 
       #plot
-      base <- ggplot(data=myhist, aes(x=factor(interval),y=frequency))+
-        do.call(geom_histogram,allmapping)+
-        scale_fill_manual(values=rep("black",bins*length(attr)))+
-        guides(colour = FALSE, alpha = FALSE,fill=FALSE)+
-        theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
-        scale_x_discrete(labels=nameList)
       if(plotAll){
-        base <- base + facet_grid(group ~ .) +
-          labs(x = "")
+        mymapping <- list(mapping=aes(xmin=start, xmax=end, ymin=0, ymax=frequency),fill="grey",col="black")
+        allmapping <-as.list(structure(as.expression(c(usermapping,mymapping)),class="uneval"))
+        base <- ggplot(data=myhist)+
+          do.call(geom_rect,allmapping) +
+          facet_grid(group ~ .) +
+          labs(x = "", y="frequency") +
+          scale_x_continuous(n.breaks = 8)
 
       }else{
-        base <- base + labs(x=attr)
+        base <- ggplot(data=myhist, aes(x=factor(interval),y=frequency))+
+          do.call(geom_histogram,allmapping)+
+          scale_fill_manual(values=rep("black",bins*length(attr)))+
+          guides(colour = FALSE, alpha = FALSE,fill=FALSE)+
+          theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
+          labs(x=attr)+
+          scale_x_discrete(labels = nameList)
       }
       return(base)
 

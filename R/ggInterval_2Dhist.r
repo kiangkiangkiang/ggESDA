@@ -18,6 +18,8 @@
 #' @param xBins x axis bins,which mean how many partials
 #' x variable will be separate into.
 #' @param yBins y axis bins.It is the same as xBins.
+#' @param removeZero whether remove data whose frequency is equal to zero
+#' @param addFreq where add frequency text in each cells.
 #' @return Return a ggplot2 object.
 #' @usage ggInterval_2Dhist(data = NULL,mapping = aes(NULL)
 #' ,xBins = 14,yBins=16)
@@ -51,7 +53,8 @@
 #'
 #' @export
 ggInterval_2Dhist<- function(data = NULL,mapping = aes(NULL),
-                             xBins = 14,yBins=16){
+                             xBins = 14,yBins=16,removeZero = F,
+                             addFreq = T){
 
   #test big O
   if(xBins+yBins>200) {
@@ -171,9 +174,14 @@ ggInterval_2Dhist<- function(data = NULL,mapping = aes(NULL),
     )
     colnames(freq.matrix)<-c("freq","x1","x2","y1","y2")
     freq.matrix<-as.data.frame(freq.matrix)
+    #freq.matrix$freq <- freq.matrix$freq/dim(iData)[1]
+    freq.matrix[,"xmid"] <- (freq.matrix$x1+freq.matrix$x2)/2
+    freq.matrix[,"ymid"] <- (freq.matrix$y1+freq.matrix$y2)/2
 
     #escape sparse matrix
-    freq.matrix<-freq.matrix[freq.matrix$freq!=0,]
+    if(removeZero){
+      freq.matrix<-freq.matrix[freq.matrix$freq!=0,]
+    }
     m <- (max(freq.matrix$freq)+min(freq.matrix$freq))/2
 
     #build Aesthetic
@@ -185,13 +193,17 @@ ggInterval_2Dhist<- function(data = NULL,mapping = aes(NULL),
 
 
     #plot
-    ggplot(freq.matrix,aes(x1,y1))+
+    base <- ggplot(freq.matrix,aes(x1,y1))+
       do.call(geom_rect,allmapping)+
       scale_fill_gradient2(low = "blue",mid="yellow",
                            high = "red",midpoint = m,
                            limits=c(0,max(freq.matrix$freq)))+
       labs(x=attr1,y=attr2,title="2D hist.")+
       guides(alpha = FALSE)
+    if(addFreq){
+      base<-base+geom_text(aes(x=xmid,y=ymid,label=round(freq,1)))
+    }
+    return(base)
   })
 }
 

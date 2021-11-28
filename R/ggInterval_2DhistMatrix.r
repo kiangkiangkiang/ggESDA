@@ -24,6 +24,8 @@
 #' @param xBins x axis bins,which mean how many bins
 #' x variable will be separate into
 #' @param yBins y axis bins.It is the same as xBins
+#' @param removeZero whether remove data whose frequency is equal to zero
+#' @param addFreq where add frequency text in each cells.
 #' @return Return a plot with no longer a ggplot2 object,instead
 #' of a marrangeGrob object.
 #' @usage ggInterval_2DhistMatrix(data = NULL,mapping = aes(NULL)
@@ -39,7 +41,8 @@
 #'
 #' @export
 ggInterval_2DhistMatrix<-function(data = NULL,mapping = aes(NULL),
-                          xBins = 14,yBins=16){
+                          xBins = 8,yBins=8,removeZero = F,
+                          addFreq = T){
   #test big O
   if(xBins+yBins>100) {
     stop("ERROR : Bins are too large to calculate.Suggest two bins be smaller than 100.")
@@ -56,9 +59,9 @@ ggInterval_2DhistMatrix<-function(data = NULL,mapping = aes(NULL),
   n<-dim(iData)[1]
 
   #test clearly visualize
-  if(p>4 & p<=6){
+  if(p>6 & p<=15){
     warning("It is not recommended number of variables are greater than 4.")
-  }else if(p > 6){
+  }else if(p > 15){
     stop("The number of variables are too large to visualize clearly.
          Suggested input variables less than 4. ex. data[,1:4]")
   }
@@ -83,21 +86,55 @@ ggInterval_2DhistMatrix<-function(data = NULL,mapping = aes(NULL),
     warning("Ignore non-numeric data.")
   }
 
-  temp<-lapply(1:p,function(x) lapply(1:p,x,FUN=hist2d,
-                                      data=ggSymData,xBins=xBins,
-                                      yBins=yBins,args=args))
+  freq.matrix<-NULL
+  for(i in 1:p){
+    for(u in 1:p){
+      freq.matrix <- rbind(freq.matrix,
+                       data.frame(hist2d(data=ggSymData,
+                                         attr1=i,
+                                         attr2=u,
+                         xBins=xBins,yBins=yBins,args=args),
+                         xv = colnames(iData)[i],
+                         yv = colnames(iData)[u]))
+    }
+  }
+  freq.matrix[,"xmid"] <- (freq.matrix$x1+freq.matrix$x2)/2
+  freq.matrix[,"ymid"] <- (freq.matrix$y1+freq.matrix$y2)/2
+  #escape sparse matrix
+  if(removeZero){
+    freq.matrix<-freq.matrix[freq.matrix$freq!=0,]
+  }
+  m <- (max(freq.matrix$freq)+min(freq.matrix$freq))/2
 
-  a<-mapply(1:p,FUN = function(x) gridExtra::marrangeGrob(temp[[x]],nrow=1, ncol=p,top=""))
+  #build Aesthetic
+  usermapping <- args
+  mymapping <- list(data=freq.matrix
+                    ,mapping=aes(xmin=freq.matrix$x1, xmax=freq.matrix$x2,
+                                 ymin=freq.matrix$y1, ymax=freq.matrix$y2,
+                                 fill=freq.matrix$freq)
+                    , alpha=0.5)
+  allmapping <-as.list(structure(as.expression(c(usermapping,mymapping)),class="uneval"))
 
-  #start debug version0825-6 (nrow=p -> nrow=4)
-  gridExtra::marrangeGrob(a,nrow=p,ncol=1,top = "2D hist. matrix")
-  #end debug
+  #plot
+  base <- ggplot(data=freq.matrix, aes(freq.matrix$x1,freq.matrix$y1))+
+    do.call(geom_rect,allmapping)+
+    facet_grid(yv~xv, scale="free")+
+    scale_fill_gradient2(name="frequency",
+                       low = "blue",mid="yellow",
+                       high = "red",midpoint = m,
+                       limits=c(0,max(freq.matrix$freq)))+
+    labs(x="",y="")
+
+  if(addFreq){
+    base <- base + geom_text(aes(x=xmid,y=ymid,label=round(freq,1)))
+  }
+  return(base)
+
 }
 
 hist2d <- function(data = NULL,attr1,attr2,xBins,yBins,args){
   #start process
   iData<-data$intervalData
-  if(attr1!=attr2){
 
     #calculate each frequency
     x.freq <- as.data.frame(calFreq(attr1,data=data))
@@ -166,32 +203,6 @@ hist2d <- function(data = NULL,attr1,attr2,xBins,yBins,args){
     )
     colnames(freq.matrix)<-c("freq","x1","x2","y1","y2")
     freq.matrix<-as.data.frame(freq.matrix)
-
-    #escape sparse matrix
-    freq.matrix<-freq.matrix[freq.matrix$freq!=0,]
-    m <- (max(freq.matrix$freq)+min(freq.matrix$freq))/2
-
-    #build Aesthetic
-    usermapping <- args
-    mymapping <- list(data=freq.matrix
-                      ,mapping=aes(xmin=freq.matrix$x1, xmax=freq.matrix$x2,
-                                   ymin=freq.matrix$y1, ymax=freq.matrix$y2,
-                                   fill=freq.matrix$freq)
-                      , alpha=0.5)
-    allmapping <-as.list(structure(as.expression(c(usermapping,mymapping)),class="uneval"))
-
-    #plot
-    ggplot(freq.matrix,aes(freq.matrix$x1,freq.matrix$y1))+
-      do.call(geom_rect,allmapping)+
-      scale_fill_gradient2(name="frequency",
-                           low = "blue",mid="yellow",
-                           high = "red",midpoint = m,
-                           limits=c(0,max(freq.matrix$freq)))+
-      labs(x=colnames(iData)[attr1],y=colnames(iData)[attr2],title="2D hist.")
-  }else{
-    ggplot()+
-      annotation_custom(grob=grid::textGrob(colnames(iData)[attr1],gp = grid::gpar(fontsize = 35)),
-                        xmin = -Inf, xmax = Inf, ymin = -Inf, ymax = Inf)+
-      theme_void()
-  }
+    freq.matrix$freq <- freq.matrix$freq/dim(iData)[1]
+    return(freq.matrix)
 }

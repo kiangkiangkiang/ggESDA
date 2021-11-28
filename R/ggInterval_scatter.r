@@ -51,6 +51,7 @@ ggInterval_scatter <- function(data = NULL,mapping = aes(NULL)){
   iData <- ggSymData$intervalData
   p<-dim(data)[2]
   n<-dim(iData)[1]
+  myRowNames<- rownames(iData)
 
   #test big o
   if(n>150 & n<=2000){
@@ -84,7 +85,12 @@ ggInterval_scatter <- function(data = NULL,mapping = aes(NULL)){
                  ,y2=iData[[attr2]]$max)
 
     #build Aesthetic (mapping)
-    usermapping <- mapping[-c(1,2)] #Aesthetic without x,y
+    xyLocation <- c(which(names(mapping) == "x"), which(names(mapping) == "y"))
+    if(length(xyLocation) != 0){
+      usermapping <- mapping[-xyLocation] #Aesthetic without x,y
+    }else{
+      usermapping <- mapping
+    }
     mymapping <- list(data=d,
                       mapping=aes(xmin=x1, xmax=x2, ymin=y1, ymax=y2,
                                   fill=gray.colors(n),alpha=0.5),col="black")
@@ -94,10 +100,10 @@ ggInterval_scatter <- function(data = NULL,mapping = aes(NULL)){
     #start plot
     ggplot(data=d,aes(x1,y1))+
       do.call(geom_rect,allmapping)+
-      geom_text(label=rownames(iData))+
+      geom_text(label=myRowNames)+
       scale_fill_manual(name="Concept",
                         values=gray.colors(n),
-                        labels=rownames(iData))+
+                        labels=myRowNames)+
       guides(colour = FALSE, alpha = FALSE)+
       labs(x=attr1,y=attr2)
   })

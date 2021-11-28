@@ -77,6 +77,9 @@ ggInterval_indexImage<-function(data = NULL,mapping = aes(NULL),
   with(data,{
     #add heatmap
     if(useHeatmap){
+      #set adjust ggarrange width scale
+      widthScale <- 10
+
       #get numerical data
       numericData <- unlist(lapply(data.frame(iData[1:dim(iData)[2]]) ,FUN = is.sym.interval))
       iData <- iData[,which(numericData)]
@@ -166,7 +169,11 @@ ggInterval_indexImage<-function(data = NULL,mapping = aes(NULL),
           }
 
           #v <- seq(min(d$y),max(d$y),(max(d$y)-min(d$y))/(1000-1))
-          base <- ggarrange(plotlist=myp, nrow=1)
+          #adjust grid
+          maxChar <- max(unlist(lapply(myHeatMapNames, nchar)))
+          adjustWidth <- 1 + sqrt(maxChar)/widthScale
+          base <- ggarrange(plotlist=myp, nrow=1,
+                            widths = c(adjustWidth,rep(1, p-1)))
 
           v <- seq(1,1000)
           return(ggarrange(base, buildColLegend(v),nrow=2,heights=c(8,1)))
@@ -178,8 +185,8 @@ ggInterval_indexImage<-function(data = NULL,mapping = aes(NULL),
           geom_segment(size = 3)+eval(parse(text=myColScale)) +
           labs(y=attr,x="",title=paste0("Index Image-",NAME))+
           scale_x_continuous(breaks=c(1:n),labels = rownames(iData))
-    }# if full strip
-    else{
+    }
+    else{# if full strip
       #adjust
       #newN<-sort(runif((n)*2,1,n))
       if(!useHeatmap){
@@ -207,7 +214,7 @@ ggInterval_indexImage<-function(data = NULL,mapping = aes(NULL),
           return(base)
         }
 
-      }else{
+      }else{# column condition
         midp<-(max(d$value)+min(d$value))/2
         NAME <- "Column Condition"
         myColScale<-"scale_color_gradient2(low = 'blue', mid = 'yellow', high = 'red',
@@ -226,7 +233,11 @@ ggInterval_indexImage<-function(data = NULL,mapping = aes(NULL),
           }
 
           #v <- seq(min(d$y),max(d$y),(max(d$y)-min(d$y))/(1000-1))
-          base <- ggarrange(plotlist=myp, nrow=1)
+          #adjust grid
+          maxChar <- max(unlist(lapply(myHeatMapNames, nchar)))
+          adjustWidth <- 1 + sqrt(maxChar)/widthScale
+          base <- ggarrange(plotlist=myp, nrow=1,
+                            widths = c(adjustWidth, rep(1, p-1)))
 
           v <- seq(1,1000)
           return(ggarrange(base, buildColLegend(v),nrow=2,heights=c(8,1)))
