@@ -54,7 +54,7 @@ ggInterval_PCA<-function(data = NULL,mapping = aes(NULL),plot=TRUE){
   #test data illegal
   ggSymData <- testData(data)
   iData <- ggSymData$intervalData
-
+  myRowNames <- rownames(iData)
   #preparing data
   temp.1<-ggSymData$statisticsDF$min
   temp.2<-ggSymData$statisticsDF$max
@@ -85,6 +85,7 @@ ggInterval_PCA<-function(data = NULL,mapping = aes(NULL),plot=TRUE){
 
   #remove repeat value
   m<-m[!duplicated(as.data.frame(m[,1:p])),]
+  m[, 1:p]<- apply(m[,1:p], 2, scale)
 
   #start PCA
   mypca<-stats::princomp(m[,1:p])
@@ -99,6 +100,8 @@ ggInterval_PCA<-function(data = NULL,mapping = aes(NULL),plot=TRUE){
     }
   }
   PCscores_interval<-as.data.frame(PCscores_interval)
+
+
   myname<-NULL
   for(i in 1:p){
     a<-paste0("PC",i,".min")
@@ -117,16 +120,18 @@ ggInterval_PCA<-function(data = NULL,mapping = aes(NULL),plot=TRUE){
                                 xmax=PCscores_interval$PC1.max,
                                 ymin=PCscores_interval$PC2.min,
                                 ymax=PCscores_interval$PC2.max,
-                                fill=grDevices::gray.colors(n),alpha=0.3),col="black")
+                                fill=grDevices::gray.colors(n),alpha=0.5),col="black")
   allmapping <-as.list(structure(as.expression(c(usermapping,mymapping)),class="uneval"))
 
   #plot
   pcPlot<-ggplot(PCscores_interval,aes(PCscores_interval$PC1.min,
                                        PCscores_interval$PC2.min))+
     do.call(geom_rect,allmapping)+
-    geom_text(label=rownames(iData),size=3)+
+    geom_text(label=myRowNames,size=3)+
     labs(x="PC1",y="PC2")+
-    scale_fill_manual(values=rep("black",n))+
+    scale_fill_manual(name="Concept",
+                      values=gray.colors(n),
+                      labels=myRowNames)+
     guides(colour = FALSE, alpha = FALSE,fill=FALSE)
   mypca$ggplotPCA <- pcPlot
   if(plot){
