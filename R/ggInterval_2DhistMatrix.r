@@ -59,11 +59,11 @@ ggInterval_2DhistMatrix<-function(data = NULL,mapping = aes(NULL),
   n<-dim(iData)[1]
 
   #test clearly visualize
-  if(p>6 & p<=15){
-    warning("It is not recommended number of variables are greater than 4.")
-  }else if(p > 15){
-    stop("The number of variables are too large to visualize clearly.
-         Suggested input variables less than 4. ex. data[,1:4]")
+  if(p*p*n*xBins*yBins > 200000 & p*p*n*xBins*yBins <= 200000){
+    warning("It is not recommended number of variables and xy Bins be too large.")
+  }else if(p*p*n*xBins*yBins > 200000){
+    stop(paste0("Out of time limits. The sample size and xy bins ",
+                p*p*n*xBins*yBins," are too large."))
   }
 
   #test big O
@@ -133,12 +133,9 @@ ggInterval_2DhistMatrix<-function(data = NULL,mapping = aes(NULL),
 }
 
 hist2d <- function(data = NULL,attr1,attr2,xBins,yBins,args){
-  #start process
-  iData<-data$intervalData
-
-    #calculate each frequency
-    x.freq <- as.data.frame(calFreq(attr1,data=data))
-    y.freq <- as.data.frame(calFreq(attr2,data=data))
+    #start process
+    iData<-data$intervalData
+    n <- dim(iData)[1]
 
     #prepare loop data
     r<-8
@@ -146,48 +143,48 @@ hist2d <- function(data = NULL,attr1,attr2,xBins,yBins,args){
     maxX<-max(iData[[attr1]]$max)
     minY<-min(iData[[attr2]]$min)
     maxY<-max(iData[[attr2]]$max)
-    distX<-(maxX-minX)/r
-    distY<-(maxY-minY)/r
-    intervalX<-seq(minX,maxX,distX)
-    intervalY<-seq(minY,maxY,distY)
     recX <- seq(minX,maxX,(maxX-minX)/xBins)
     recY <- seq(minY,maxY,(maxY-minY)/yBins)
-    allObs <- data.frame(
-      x1=iData[[attr1]]$min,
-      x2=iData[[attr1]]$max,
-      y1=iData[[attr2]]$min,
-      y2=iData[[attr2]]$max
-    )
+
     freq.Rectangle <- matrix(0,nrow=xBins,ncol=yBins)
 
     #start loop to calculate frequency values in histogram matrix
     for(rx in 1:(length(recX)-1)){
       for(ry in 1:(length(recY)-1)){
-        for(obs in 1:nrow(allObs)){
+        for(obs in 1:n){
           fx<-0;fy<-0
-          for(areaX in 1:(length(x.freq))){
-            if(x.freq[obs,areaX]!=0){
-              headIn<-dplyr::between(intervalX[areaX],recX[rx],recX[rx+1])
-              tailIn<-dplyr::between(intervalX[areaX+1],recX[rx],recX[rx+1])
-              contain<-dplyr::between(recX[rx],intervalX[areaX],intervalX[areaX+1])
-              if(headIn|tailIn|contain){
-                temp<-sort(c(recX[rx],recX[rx+1],intervalX[areaX],intervalX[areaX+1]))
-                fx<-fx+((temp[3]-temp[2])/(intervalX[areaX+1]-intervalX[areaX]))*x.freq[obs,areaX]
-              }
+          a <- iData[[attr1]][obs]$min
+          b <- iData[[attr1]][obs]$max
+          headIn<-a %>% between(recX[rx],recX[rx+1])
+          tailIn<-b %>% between(recX[rx],recX[rx+1])
+          contain <- recX[rx] %>% between(a,b)
+          if(headIn|tailIn|contain){
+            temp<-sort(c(recX[rx],recX[rx+1],a,b))
+            if(b-a == 0){
+              fx <- fx + 1
+            }else{
+              fx<-fx+((temp[3]-temp[2])/(b-a))
             }
           }
-          for(areaY in 1:(length(y.freq))){
-            if(y.freq[obs,areaY]!=0){
-              headIn<-dplyr::between(intervalY[areaY],recY[ry],recY[ry+1])
-              tailIn<-dplyr::between(intervalY[areaY+1],recY[ry],recY[ry+1])
-              contain<-dplyr::between(recY[ry],intervalY[areaY],intervalY[areaY+1])
-              if(headIn|tailIn|contain){
-                temp<-sort(c(recY[ry],recY[ry+1],intervalY[areaY],intervalY[areaY+1]))
-                fy<-fy+((temp[3]-temp[2])/(intervalY[areaY+1]-intervalY[areaY]))*y.freq[obs,areaY]
-              }
+
+
+          a <- iData[[attr2]][obs]$min
+          b <- iData[[attr2]][obs]$max
+          headIn<-a %>% between(recY[ry],recY[ry+1])
+          tailIn<-b %>% between(recY[ry],recY[ry+1])
+          contain <- recY[ry] %>% between(a,b)
+          if(headIn|tailIn|contain){
+            temp<-sort(c(recY[ry],recY[ry+1],a,b))
+            if(b-a == 0){
+              fy <- fy + 1
+            }else{
+              fy<-fy+((temp[3]-temp[2])/(b-a))
             }
           }
           freq.Rectangle[rx,ry] <- freq.Rectangle[rx,ry]+fx*fy
+          # if(is.na(fx*fy)){
+          #   print(paste0("this is na, rx = ",rx,". ry = ",ry,". obs = ",obs))
+          # }
         }
       }
     }
@@ -196,13 +193,14 @@ hist2d <- function(data = NULL,attr1,attr2,xBins,yBins,args){
     #build data frame to plot (combine margin and values)
     freq.matrix<-(c(as.matrix(freq.Rectangle)))
     freq.matrix<-cbind(freq.matrix,
-                       rep(recX[1:length(recX)-1],length(recY)-1),
+                       rep(recX[1:(length(recX)-1)],length(recY)-1),
                        rep(recX[2:length(recX)],length(recY)-1),
-                       rep(recY[1:length(recY)-1],each=length(recX)-1),
+                       rep(recY[1:(length(recY)-1)],each=length(recX)-1),
                        rep(recY[2:length(recY)],each=length(recX)-1)
     )
     colnames(freq.matrix)<-c("freq","x1","x2","y1","y2")
     freq.matrix<-as.data.frame(freq.matrix)
-    freq.matrix$freq <- freq.matrix$freq/dim(iData)[1]
+
+    #freq.matrix$freq <- freq.matrix$freq/dim(iData)[1]
     return(freq.matrix)
 }
