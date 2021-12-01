@@ -4,8 +4,6 @@
 #' by using color image.The index image replace margin bar by color,thus
 #' it will be more visible for data.
 #' @import ggplot2
-#' @import ggthemes
-#' @import ggpubr
 #' @importFrom RSDA is.sym.interval
 #' @param data A ggESDA object.It can also be either RSDA object or
 #' classical data frame,which will be automatically convert to ggESDA
@@ -122,7 +120,7 @@ ggInterval_indexImage<-function(data = NULL,mapping = aes(NULL),
 
     if(!full_strip){
       if(!useHeatmap){
-        d <- buildPlotData(a, b, adjustStrip, n)
+        d <- buildPlotData(a, b, adjustStrip, n, full_strip, datasetMax)
       }
       #whether column condition
       if(!column_condition){

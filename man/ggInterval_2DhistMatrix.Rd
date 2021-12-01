@@ -28,8 +28,7 @@ x variable will be separate into}
 \item{addFreq}{where add frequency text in each cells.}
 }
 \value{
-Return a plot with no longer a ggplot2 object,instead
-of a marrangeGrob object.
+Return a plot with ggplot2 object
 }
 \description{
 Visualize the all continuous variable distribution

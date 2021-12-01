@@ -9,10 +9,9 @@
 #' variables in aes such like (aes(x=x,y=y)).It isn't also
 #' recommended to deal with too many variables because the
 #' big O in calculating full matrix will be too large.
-#' @import tidyverse rlang ggplot2 grid
+#' @import tidyverse rlang ggplot2
 #' @importFrom RSDA is.sym.interval
-#' @importFrom dplyr between
-#' @importFrom gridExtra marrangeGrob
+#' @importFrom dplyr between filter
 #' @param data A ggESDA object.It can also be either RSDA object or
 #' classical data frame,which will be automatically convert to ggESDA
 #' data.
@@ -26,8 +25,7 @@
 #' @param yBins y axis bins.It is the same as xBins
 #' @param removeZero whether remove data whose frequency is equal to zero
 #' @param addFreq where add frequency text in each cells.
-#' @return Return a plot with no longer a ggplot2 object,instead
-#' of a marrangeGrob object.
+#' @return Return a plot with ggplot2 object
 #' @usage ggInterval_2DhistMatrix(data = NULL,mapping = aes(NULL)
 #' ,xBins = 14,yBins=16)
 #'
@@ -51,6 +49,13 @@ ggInterval_2DhistMatrix<-function(data = NULL,mapping = aes(NULL),
   #data preparing
   argsNum<-length(mapping)
   args<-lapply(mapping[1:argsNum],FUN=rlang::get_expr)
+  this.x <- args$x ; this.y <- args$y
+  #remove user's x,y input,remain Aesthetic
+  if((!is.null(this.x))&&(!is.null(this.y))){#both have value
+    usermapping <- mapping[-c(1,2)]
+  }else if((!is.null(this.x))||(!is.null(this.y))){#only one value
+    usermapping <- mapping[-1]
+  }
 
   #test data illegal
   ggSymData <- testData(data)
@@ -89,15 +94,38 @@ ggInterval_2DhistMatrix<-function(data = NULL,mapping = aes(NULL),
   freq.matrix<-NULL
   for(i in 1:p){
     for(u in 1:p){
-      freq.matrix <- rbind(freq.matrix,
-                       data.frame(hist2d(data=ggSymData,
-                                         attr1=i,
-                                         attr2=u,
-                         xBins=xBins,yBins=yBins,args=args),
-                         xv = colnames(iData)[i],
-                         yv = colnames(iData)[u]))
+      if(i != u){
+        freq.matrix <- rbind(freq.matrix,
+                         data.frame(hist2d(data=ggSymData,
+                                           attr1=i,
+                                           attr2=u,
+                           xBins=xBins,yBins=yBins,args=args),
+                           xv = colnames(iData)[i],
+                           yv = colnames(iData)[u],
+                           isPlot = T,
+                           textXY = 0))
+      }
+      else{
+        freq.matrix <- rbind(freq.matrix,
+                             data.frame(freq = 0,
+                                        x1 = 0,
+                                        x2 = 0,
+                                        y1 = 0,
+                                        y2 = 0,
+                                        xv = colnames(iData)[i],
+                                        yv = colnames(iData)[u],
+                                        isPlot = F,
+                                        textXY = 0))
+      }
     }
   }
+
+  for(var in colnames(iData)){
+    temp <- dplyr::filter(freq.matrix, xv == var & isPlot)
+    freq.matrix[!freq.matrix$isPlot & freq.matrix$xv==var, "textXY"] <- (min(temp$x1) + max(temp$x2))/2
+
+  }
+
   freq.matrix[,"xmid"] <- (freq.matrix$x1+freq.matrix$x2)/2
   freq.matrix[,"ymid"] <- (freq.matrix$y1+freq.matrix$y2)/2
   #escape sparse matrix
@@ -108,25 +136,29 @@ ggInterval_2DhistMatrix<-function(data = NULL,mapping = aes(NULL),
 
   #build Aesthetic
   usermapping <- args
-  mymapping <- list(data=freq.matrix
-                    ,mapping=aes(xmin=freq.matrix$x1, xmax=freq.matrix$x2,
-                                 ymin=freq.matrix$y1, ymax=freq.matrix$y2,
-                                 fill=freq.matrix$freq)
+  mymapping <- list(data=. %>% dplyr::filter(isPlot)
+                    ,mapping=aes(xmin=x1, xmax=x2,
+                                 ymin=y1, ymax=y2,
+                                 fill=freq)
                     , alpha=0.5)
   allmapping <-as.list(structure(as.expression(c(usermapping,mymapping)),class="uneval"))
 
   #plot
-  base <- ggplot(data=freq.matrix, aes(freq.matrix$x1,freq.matrix$y1))+
+  base <- ggplot(data=freq.matrix, aes(x1, y1))+
     do.call(geom_rect,allmapping)+
+    geom_text(data = .%>% dplyr::filter(!isPlot), aes(x = textXY, y = textXY, label = xv),
+              size=12)+
     facet_grid(yv~xv, scale="free")+
     scale_fill_gradient2(name="frequency",
                        low = "blue",mid="yellow",
                        high = "red",midpoint = m,
                        limits=c(0,max(freq.matrix$freq)))+
-    labs(x="",y="")
+    labs(x="",y="")+
+    theme_bw()
 
   if(addFreq){
-    base <- base + geom_text(aes(x=xmid,y=ymid,label=round(freq,1)))
+    base <- base + geom_text(data = . %>% dplyr::filter(isPlot),
+                             aes(x=xmid,y=ymid,label=round(freq,1)))
   }
   return(base)
 

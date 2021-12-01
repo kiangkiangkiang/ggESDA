@@ -10,7 +10,6 @@
 #' @importFrom stringr str_split
 #' @ipmortForm tibble rownames_to_column
 #' @ipmortForm tibble column_to_rownames
-#' @ipmortForm tibble
 #' @ipmortForm prodlim row.match
 #' @param data A classical data frame that you want to be converted into
 #' a interval data

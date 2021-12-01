@@ -8,7 +8,8 @@
 #' variables in aes such like (aes(x=x,y=y)).It isn't also
 #' recommended to deal with too many variables because the
 #' big O in calculating full matrix will be too large.
-#' @import rlang ggplot2 grid gridExtra
+#' @import rlang ggplot2 tidyverse
+#' @importFrom dplyr filter
 #' @param data A ggESDA object.It can also be either RSDA object or
 #' classical data frame,which will be automatically convert to ggESDA
 #' data.
@@ -85,13 +86,27 @@ ggInterval_scaMatrix <- function(data = NULL,mapping = aes(NULL),showLegend=TRUE
   plotData <- NULL
   for(i in 1:p){
     for(u in 1:p){
+      if(i != u){
       plotData <- rbind(plotData, data.frame(x1 = iData[[i]]$min,
                                  x2 = iData[[i]]$max,
                                  y1 = iData[[u]]$min,
                                  y2 = iData[[u]]$max,
                                  xv = colnames(iData)[i],
                                  yv = colnames(iData)[u],
-                                 Concepts = myRowNames))
+                                 Concepts = myRowNames,
+                                 isPlot = T,
+                                 textXY = 0))
+      }else{
+        plotData <- rbind(plotData, data.frame(x1 = 0,
+                                               x2 = 0,
+                                               y1 = 0,
+                                               y2 = 0,
+                                               xv = colnames(iData)[i],
+                                               yv = colnames(iData)[u],
+                                               Concepts = "no concepts",
+                                               isPlot = F,
+                                               textXY = (max(iData[[i]]$max) + min(iData[[i]]$min))/2))
+      }
     }
   }
 
@@ -103,7 +118,7 @@ ggInterval_scaMatrix <- function(data = NULL,mapping = aes(NULL),showLegend=TRUE
     usermapping <- mapping
   }
 
-  mymapping <- list(data=plotData,
+  mymapping <- list(data=. %>% dplyr::filter(isPlot),
                     mapping=aes(xmin=x1, xmax=x2, ymin=y1, ymax=y2,
                                  fill=Concepts,alpha=0.5),col="black")
   allmapping <-as.list(structure(as.expression(c(usermapping,mymapping)),class="uneval"))
@@ -116,8 +131,9 @@ ggInterval_scaMatrix <- function(data = NULL,mapping = aes(NULL),showLegend=TRUE
     scale_fill_manual(name="Concept",
                       values=gray.colors(n),
                       labels=myRowNames)+
+    geom_text(data = .%>% dplyr::filter(!isPlot), aes(x = textXY, y = textXY, label = xv),
+              size=12)+
     guides(colour = FALSE, alpha = FALSE)+
     facet_grid(yv~xv, scale="free")+
-    theme(legend.position="bottom")+
     labs(x="",y="")
 }

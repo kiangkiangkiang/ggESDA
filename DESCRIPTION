@@ -15,22 +15,16 @@ Suggests:
     rmarkdown
 Imports:
   RSDA,
-  utils,
-  data.table,
   rlang,
   R6,
   stats,
   dplyr,
   tidyr,
-  grid,
   gridExtra,
   gtools,
   stringr,
-  tibble,
   prodlim,
   ggforce,
-  ggthemes,
-  ggpubr
 License: GPL (>= 2)
 Encoding: UTF-8
 LazyData: true
