@@ -4,7 +4,8 @@
 \alias{ggInterval_PCA}
 \title{Vertice-PCA for interval data}
 \usage{
-ggInterval_PCA(data = NULL,mapping = aes(NULL),plot=TRUE)
+ggInterval_PCA(data = NULL,mapping = aes(NULL),plot=TRUE,
+                      concepts_group=NULL, poly = FALSE)
 }
 \arguments{
 \item{data}{A ggESDA object.It can also be either RSDA object or
@@ -19,6 +20,10 @@ It is the same as the mapping of ggplot2.}
 
 \item{plot}{Boolean variable,Auto plot (if TRUE).It can also plot by
 its inner object}
+
+\item{concepts_group}{color with each group of concept}
+
+\item{poly}{if plot a poly result}
 }
 \value{
 A ggplot object for PC1,PC2,and a interval scores and others.

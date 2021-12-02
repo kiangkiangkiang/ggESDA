@@ -16,6 +16,8 @@
 #' It is the same as the mapping of ggplot2.
 #' @param plot Boolean variable,Auto plot (if TRUE).It can also plot by
 #' its inner object
+#' @param concepts_group color with each group of concept
+#' @param poly if plot a poly result
 #' @return A ggplot object for PC1,PC2,and a interval scores and others.
 #' \itemize{
 #'   \item scores_interval - The interval scores after PCA.
@@ -23,7 +25,8 @@
 #'   PC2.
 #'   \item others - others are the returns values of princomp.
 #' }
-#' @usage ggInterval_PCA(data = NULL,mapping = aes(NULL),plot=TRUE)
+#' @usage ggInterval_PCA(data = NULL,mapping = aes(NULL),plot=TRUE,
+#'                       concepts_group=NULL, poly = FALSE)
 #' @examples
 #' ggInterval_PCA(iris)
 #'
@@ -40,7 +43,8 @@
 #' p$scores_interval
 #'
 #' @export
-ggInterval_PCA<-function(data = NULL,mapping = aes(NULL),plot=TRUE){
+ggInterval_PCA<-function(data = NULL,mapping = aes(NULL),plot=TRUE,
+                         concepts_group=NULL, poly = FALSE){
   #data preparing
   argsNum<-length(mapping)
   args<-lapply(mapping[1:argsNum],FUN=rlang::get_expr)
@@ -55,11 +59,19 @@ ggInterval_PCA<-function(data = NULL,mapping = aes(NULL),plot=TRUE){
   ggSymData <- testData(data)
   iData <- ggSymData$intervalData
   myRowNames <- rownames(iData)
+
   #preparing data
   temp.1<-ggSymData$statisticsDF$min
   temp.2<-ggSymData$statisticsDF$max
   n<-dim(temp.1)[1]
   p<-dim(temp.1)[2]
+  if(!is.null(concepts_group)){
+    if(length(concepts_group) != n){
+      stop(paste0("Length of concepts group must be equal to data (",n,")."))
+    }
+    concepts_group <- as.factor(concepts_group)
+  }
+
 
   #test big o
   if(n>2000){
@@ -80,6 +92,7 @@ ggInterval_PCA<-function(data = NULL,mapping = aes(NULL),plot=TRUE){
   m<-NULL
   for (i in 1:n){
     temp<-t(sapply(1:2^p,FUN=function(x) rbind(NULL,pcaData[i,vertice[x,]])))
+    temp <- cbind(temp, 1:2^p)
     m<-rbind(m,temp)
   }
 
@@ -90,6 +103,27 @@ ggInterval_PCA<-function(data = NULL,mapping = aes(NULL),plot=TRUE){
   #start PCA
   mypca<-stats::princomp(m[,1:p])
   PCscores<-data.frame(mypca$scores,u=m[,p+1])
+
+  #plot Poly PCA
+  #plot Dim.1 and Dim.2 cause no.comp : number of component = 2
+  if(poly){
+    polyList <- build_PCA_poly_data(mypca$scores, m, n, p, no.comp = 2, group = concepts_group)
+    d <- polyList$cpData
+    usermapping <- structure(as.expression(args.noXY),class="uneval") #Aesthetic without x,y
+    mymapping <- list(d,
+                      mapping=aes(x=x1,
+                                  y=y1,
+                                  xend=x2,
+                                  yend=y2,
+                                  col = Concepts_Group))
+
+    allmapping <-as.list(structure(as.expression(c(usermapping,mymapping)),class="uneval"))
+
+
+    base <- ggplot(d, aes(x1, y1)) +
+      do.call(geom_segment, allmapping)
+  }
+
 
   #build PCA interval data
   PCscores_interval <- matrix(0,nrow=n,ncol=2*p)
@@ -114,30 +148,48 @@ ggInterval_PCA<-function(data = NULL,mapping = aes(NULL),plot=TRUE){
   mypca$scores_interval<-tibble::column_to_rownames(mypca$scores_interval, var = "rowname")
   #等等從這裡 可以build rownames 因為現在rownames藏起來了
   #build Aesthetic (mapping)
-  usermapping <- structure(as.expression(args.noXY),class="uneval") #Aesthetic without x,y
-  mymapping <- list(PCscores_interval,
-                    mapping=aes(xmin=PCscores_interval$PC1.min,
-                                xmax=PCscores_interval$PC1.max,
-                                ymin=PCscores_interval$PC2.min,
-                                ymax=PCscores_interval$PC2.max,
-                                fill=grDevices::gray.colors(n),alpha=0.5),col="black")
-  allmapping <-as.list(structure(as.expression(c(usermapping,mymapping)),class="uneval"))
+  if(!poly){
+    usermapping <- structure(as.expression(args.noXY),class="uneval") #Aesthetic without x,y
 
-  #plot
-  pcPlot<-ggplot(PCscores_interval,aes(PCscores_interval$PC1.min,
-                                       PCscores_interval$PC2.min))+
-    do.call(geom_rect,allmapping)+
-    geom_text(label=myRowNames,size=3)+
-    labs(x="PC1",y="PC2")+
-    scale_fill_manual(name="Concept",
-                      values=gray.colors(n),
-                      labels=myRowNames)+
-    guides(colour = FALSE, alpha = FALSE,fill=FALSE)
-  mypca$ggplotPCA <- pcPlot
-  if(plot){
-    plot(pcPlot)
+    if(!is.null(concepts_group)){
+      mymapping <- list(PCscores_interval,
+                        mapping=aes(xmin=PCscores_interval$PC1.min,
+                                    xmax=PCscores_interval$PC1.max,
+                                    ymin=PCscores_interval$PC2.min,
+                                    ymax=PCscores_interval$PC2.max,
+                                    fill=concepts_group, alpha=0.5),col="black")
+    }else{
+      mymapping <- list(PCscores_interval,
+                        mapping=aes(xmin=PCscores_interval$PC1.min,
+                                    xmax=PCscores_interval$PC1.max,
+                                    ymin=PCscores_interval$PC2.min,
+                                    ymax=PCscores_interval$PC2.max,
+                                    fill= grDevices::gray.colors(n), alpha=0.5),col="black")
+    }
+    allmapping <-as.list(structure(as.expression(c(usermapping,mymapping)),class="uneval"))
+
+    #plot
+    base <- ggplot(PCscores_interval,aes(PCscores_interval$PC1.min,
+                                         PCscores_interval$PC2.min))+
+      do.call(geom_rect,allmapping)+
+      geom_text(label=myRowNames,size=3)+
+      guides(colour = FALSE, alpha = FALSE)
+
+    if(is.null(concepts_group)){
+      base <- base + scale_fill_manual(name="Concept",
+                                     values=gray.colors(n),
+                                     labels=myRowNames)
+    }
   }
 
+  if(is.null(concepts_group)){
+    base <- base + guides(fill = F, colour = FALSE, color=F)
+  }
+  base <- base + labs(x="PC1",y="PC2")
+  mypca$ggplotPCA <- base
+  if(plot){
+    plot(base)
+  }
   return(mypca)
 }
 
@@ -168,4 +220,55 @@ adjustToRSDA <- function(data){
 }
 
 
+build_PCA_poly_data <- function(scores, m, n, p, no.comp, group){
+  polyData <- scores[, 1:no.comp]
+  cp <- connectPoint(m[, 1:p], n, p)
+  Ni <- cp[length(cp)]
+  num <- dim(cp)[1]
+  cpData <- NULL
+  if(is.null(group)){
+    group <- rep(1, n)
+  }
+  for(i in 1:num){
+    Hi <- scores[((cp[i,1]-1)*Ni+1): (cp[i,1]*Ni), ]
+    cpData <- rbind(cpData,
+                      data.frame(x1 = Hi[cp[i,2], 1],
+                                 y1 = Hi[cp[i,2], 2],
+                                 x2 = Hi[cp[i,3], 1],
+                                 y2 = Hi[cp[i,3], 2],
+                                 Concepts_Group = group[cp[i,1]]))
+  }
+  cpData$Concepts_Group <- as.factor(cpData$Concepts_Group)
+  polyData <- as.data.frame(polyData)
+  colnames(polyData) <- paste0("PC", 1:no.comp)
+  return(list(polyData = polyData, cpData = cpData))
+}
 
+
+connectPoint <- function(vdata, m, p){
+  Ni <- 2^p
+  tempMatrix <- matrix(0, nrow=m*Ni*p, ncol=3)
+  count <- 0
+  for(k in 1:m){
+    Hi <- vdata[((k-1)*Ni+1): (k*Ni), ]
+    for(i in 1:(Ni-1)){
+      for(j in (i+1):Ni){
+        if(length(which(Hi[i, ]- Hi[j, ]==0)) == (p-1)){
+          count = count + 1
+          tempMatrix[count, 1] <- k
+          tempMatrix[count, 2] <- i
+          tempMatrix[count, 3] <- j
+        }
+
+      }
+    }
+
+  }
+  Cmatrix <- tempMatrix[1:count,]
+  Cmatrix
+  #Cmatrix[k i j],
+  #k=1,..., m;
+  #Hi: i=1,...,Ni;
+  #j: the points that connect to i
+
+}
