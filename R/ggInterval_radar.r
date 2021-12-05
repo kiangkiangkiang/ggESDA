@@ -91,7 +91,6 @@ ggInterval_radar <-function(data=NULL,layerNumber=3,
     type<-"default"
   }
 
-
   #data preprocessing
   numericData <- unlist(lapply(iData[,1:dim(data)[2]] ,FUN = RSDA::is.sym.interval))
 
@@ -99,7 +98,25 @@ ggInterval_radar <-function(data=NULL,layerNumber=3,
   allnP <- dim(rawiData)[2]
   propData <-iData[,!numericData]
   iData <- iData[,numericData]
-  nP <- dim(iData)[2]
+  if("symbolic_tbl" %in% class(iData)){
+    if(dim(iData)[2] == 0){
+      #all data are symbolic modal
+      nP <- 0
+    }else{
+      #normal type , there are some symbolic interval data (len>1)
+      nP <- dim(iData)[2]
+    }
+  }else{
+    #only one symbolic interval data
+    nP <- 1
+    iData <- rawiData[, c(which(numericData), which(!numericData))]
+  }
+
+  #someday i will fix this bug ,maybe
+  if(nP < 2){
+    stop("number of numerical (symbolic interval) data must greater than 2")
+  }
+
 
   #setting quantile argument
   if(type=="quantile"){
@@ -149,7 +166,6 @@ ggInterval_radar <-function(data=NULL,layerNumber=3,
     d<-d[(nP*nL-nP+1):(nP*nL),]
   }
   p<-p+geom_point(data=d,aes(x=d$x,y=d$y))
-
   #get all variables min max data
   allData<-iData[,1:nP]
   if(!is.null(plotPartial)){
@@ -558,9 +574,12 @@ ggInterval_radar <-function(data=NULL,layerNumber=3,
     }
 
     #print(plotList[[1]])
-    p<-gridExtra::marrangeGrob(plotList,ncol=2,nrow=1)
-
-
+    #p<-gridExtra::marrangeGrob(plotList,ncol=2,nrow=1)
+    myRow <- round(sqrt(indNum))
+    myCol <- ceiling(indNum/myRow)
+    p <- gridExtra::marrangeGrob(plotList,
+                   ncol = myCol,
+                   nrow = myRow)
 
   }
 
@@ -727,7 +746,7 @@ plotFun<-function(p,iData,plotMin.temp,plotMax.temp,d,showXYLabs,showLegend,fill
     tmp<-data.frame(x=a*tmp,y=b*tmp,label=paste0(as.character(round((tmp-extendUnit)*100)),"%"))
     base<-base+geom_text(data=tmp,aes(x=x,y=y,label=label))
   }
-  base<-base+theme_bw()
+  base<-base+theme_bw()+guides(alpha = F)
   return(base)
 }
 data2Vec <- function(iData=NULL,data=NULL,transMat=NULL,type=NULL,quantileNum=NULL){

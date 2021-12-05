@@ -3,8 +3,9 @@
 #' @description Visualize the range of the variables of each observations
 #' by using color image.The index image replace margin bar by color,thus
 #' it will be more visible for data.
-#' @import ggplot2
+#' @import ggplot2 ggthemes
 #' @importFrom RSDA is.sym.interval
+#' @importFrom ggpubr ggarrange
 #' @param data A ggESDA object.It can also be either RSDA object or
 #' classical data frame,which will be automatically convert to ggESDA
 #' data.
@@ -71,6 +72,8 @@ ggInterval_indexImage<-function(data = NULL,mapping = aes(NULL),
   #start process
   datasetMin<-min(ggSymData$statisticsDF$min)
   datasetMax<-max(ggSymData$statisticsDF$max)
+  #allDataMean <- mean(unlist(ggSymData$statisticsDF$min, ggSymData$statisticsDF$max))
+
 
   with(data,{
     #add heatmap
@@ -125,6 +128,7 @@ ggInterval_indexImage<-function(data = NULL,mapping = aes(NULL),
       #whether column condition
       if(!column_condition){
         midp<-(datasetMin+datasetMax)/2
+        #midp <- allDataMean
         #midp<-(max(d$y)+min(d$y))/2
         NAME <- "Matrix Condition"
         myColScale <- "scale_color_gradient2(low = 'blue', mid = 'yellow', high = 'red',
@@ -147,7 +151,8 @@ ggInterval_indexImage<-function(data = NULL,mapping = aes(NULL),
           return(base)
         }
       }else{#column control
-        midp<-(max(d$y)+min(d$y))/2
+        #midp<-(max(d$y)+min(d$y))/2
+        midp <- mean(d$y)
         #midp<-(datasetMin+datasetMax)/2
         NAME <- "Column Condition"
         myColScale <- "scale_color_gradient2(low = 'blue', mid = 'yellow', high = 'red',
@@ -194,6 +199,7 @@ ggInterval_indexImage<-function(data = NULL,mapping = aes(NULL),
       #whether column condition
       if(!column_condition){
         midp<-(datasetMin+datasetMax)/2
+        #midp <- allDataMean
         NAME <- "Matrix Condition"
         myColScale<-"scale_color_gradient2(low = 'blue', mid = 'yellow', high = 'red',
                               midpoint = midp,

@@ -138,7 +138,9 @@ classic2sym<-function(data=NULL,groupby = "kmeans",k=5,minData=NULL,maxData=NULL
          }
   )
   #final
-  class(pkg.env$intervalData) <- append(class(pkg.env$intervalData),"symbolic_tbl")
+  if(!("symbolic_tbl" %in% class(data))){
+    class(pkg.env$intervalData) <- append(class(pkg.env$intervalData),"symbolic_tbl")
+  }
   symObj<-ggESDA$new(rawData=pkg.env$rawData,
                        statisticsDF=pkg.env$statisticsDF,
                        intervalData=pkg.env$intervalData,

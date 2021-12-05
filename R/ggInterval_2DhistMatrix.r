@@ -130,7 +130,8 @@ ggInterval_2DhistMatrix<-function(data = NULL,mapping = aes(NULL),
   freq.matrix[,"ymid"] <- (freq.matrix$y1+freq.matrix$y2)/2
   #escape sparse matrix
   if(removeZero){
-    freq.matrix<-freq.matrix[freq.matrix$freq!=0,]
+    freq.matrix <- rbind(freq.matrix[freq.matrix$freq!=0, ],
+                       freq.matrix[!freq.matrix$isPlot, ])
   }
   m <- (max(freq.matrix$freq)+min(freq.matrix$freq))/2
 
