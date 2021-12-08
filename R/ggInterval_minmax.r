@@ -12,7 +12,9 @@
 #' If specified and inherit.aes = TRUE (the default),
 #' it is combined with the default mapping at the top level of
 #' the plot. You must supply mapping if there is no plot mapping.
-#' @param sort if FALSE, it will not be sort by min data,default TRUE.
+#' @param scaleXY default "local", which means limits of x-axis and y-axis
+#' depend on their own variable. "global" means limits of them depend on all
+#' variables that user input.
 #' @return Return a ggplot2 object.
 #' @usage ggInterval_minmax(data = NULL,mapping = aes(NULL),sort=TRUE)
 #' @examples
@@ -30,7 +32,15 @@
 #' ggInterval_minmax(myIris,aes(myIris$Petal.Length))+
 #'    theme_classic()
 #' @export
-ggInterval_minmax <- function(data = NULL,mapping = aes(NULL),sort=TRUE){
+ggInterval_minmax <- function(data = NULL,mapping = aes(NULL), scaleXY = "local"){
+  #@param sort if FALSE, it will not be sort by min data,default TRUE.
+  sort=TRUE
+  if(!(scaleXY %in% c("local", "global"))){
+    warning(paste0("There is no method called scaleXY = ",scaleXY,
+                   " , please set 'global' or 'local'."))
+    scaleXY <- "local"
+  }
+
   #data preparing
   argsNum<-length(mapping)
   args<-lapply(mapping[1:argsNum],FUN=rlang::get_expr)
@@ -69,6 +79,7 @@ ggInterval_minmax <- function(data = NULL,mapping = aes(NULL),sort=TRUE){
       stop("ERROR : Variables in Min-Max Plot can only be numeric.")
     }
 
+
     #build data frame for ggplot
     d<-data.frame(min=iData[[attr]]$min,
                   max=iData[[attr]]$max)
@@ -79,35 +90,48 @@ ggInterval_minmax <- function(data = NULL,mapping = aes(NULL),sort=TRUE){
 
     #build Aesthetic (mapping)
     usermapping <- mapping[-1] #Aesthetic without x,y
-    if(sort){
+    #if(sort){
       mymapping <- list(mapping=aes(x=min,y=max,size=4,col="Max"))
-    }else{
-      mymapping <- list(mapping=aes(x=1:nrow(newd),y=max,size=4,col="Max"))
-    }
+    # }
+    # else{
+    #   mymapping <- list(mapping=aes(x=1:nrow(newd),y=max,size=4,col="Max"))
+    # }
     allmapping <-as.list(structure(as.expression(c(usermapping,mymapping)),class="uneval"))
 
     mymapping2 <- list(mapping=aes(size=4,col="Min"))
     allmapping2 <-as.list(structure(as.expression(c(usermapping,mymapping2)),class="uneval"))
     #plot
-    if(sort){
-      ggplot(newd,aes(x=min,y=min))+
-        do.call(geom_point,allmapping2)+
-        do.call(geom_point,allmapping)+
-        geom_segment(aes(x=min,y=min,xend=min,yend=max))+
-        geom_segment(aes(x=min[1],y=min[1],xend=min[n],yend=min[n]),lty=2)+
-        labs(x="",y=attr,title = "Min-Max Plot")+
-        guides(size=FALSE,fill=FALSE)+
-        scale_x_continuous(breaks=newd$min,labels=rownames(iData))
 
+    #always sort = T
+    #if(sort){
+    if(scaleXY == "local"){
+      min.limits <- min(iData[[attr]]$min)
+      max.limits <- max(iData[[attr]]$max)
     }else{
-      ggplot(newd,aes(x=1:nrow(newd),y=min))+
-        do.call(geom_point,allmapping2)+
-        do.call(geom_point,allmapping)+
-        geom_segment(aes(x=1:nrow(newd),y=min,xend=1:nrow(newd),yend=max))+
-        labs(x="",y=attr,title = "Min-Max Plot")+
-        guides(size=FALSE,fill=FALSE)+
-        scale_x_continuous(breaks=1:nrow(newd),labels=rownames(iData))
+      min.limits <- min(ggSymData$statisticsDF$min)
+      max.limits <- max(ggSymData$statisticsDF$max)
     }
+    base  <- ggplot(newd,aes(x=min,y=min))+
+              do.call(geom_point,allmapping2)+
+              do.call(geom_point,allmapping)+
+              geom_segment(aes(x=min,y=min,xend=min,yend=max))+
+              geom_segment(aes(x=min.limits,y=min.limits,xend=max.limits,yend=max.limits),lty=2)+
+              labs(x="",y="",title = paste0("MM Plot - ", attr))+
+              guides(size=FALSE,fill=FALSE)
+
+    base <- base + scale_x_continuous(limits = c(min.limits, max.limits))+
+      scale_y_continuous(limits = c(min.limits, max.limits))
+    return(base)
+    # }
+    # else{
+    #   ggplot(newd,aes(x=1:nrow(newd),y=min))+
+    #     do.call(geom_point,allmapping2)+
+    #     do.call(geom_point,allmapping)+
+    #     geom_segment(aes(x=1:nrow(newd),y=min,xend=1:nrow(newd),yend=max))+
+    #     labs(x="",y=attr,title = "Min-Max Plot")+
+    #     guides(size=FALSE,fill=FALSE)+
+    #     scale_x_continuous(breaks=1:nrow(newd),labels=rownames(iData))
+    # }
 
   })
 }

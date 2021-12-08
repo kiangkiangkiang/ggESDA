@@ -16,7 +16,9 @@ If specified and inherit.aes = TRUE (the default),
 it is combined with the default mapping at the top level of
 the plot. You must supply mapping if there is no plot mapping.}
 
-\item{sort}{if FALSE, it will not be sort by min data,default TRUE.}
+\item{scaleXY}{default "local", which means limits of x-axis and y-axis
+depend on their own variable. "global" means limits of them depend on all
+variables that user input.}
 }
 \value{
 Return a ggplot2 object.
