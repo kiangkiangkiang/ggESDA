@@ -15,8 +15,10 @@
 #' @param scaleXY default "local", which means limits of x-axis and y-axis
 #' depend on their own variable. "global" means limits of them depend on all
 #' variables that user input.
+#' @param plotAll booleans, if TRUE, plot all variable together
 #' @return Return a ggplot2 object.
-#' @usage ggInterval_minmax(data = NULL,mapping = aes(NULL),sort=TRUE)
+#' @usage ggInterval_minmax(data = NULL,mapping = aes(NULL),
+#'           scaleXY = "local",plotAll=F)
 #' @examples
 #' ggInterval_minmax(mtcars,aes(disp))
 #'
@@ -32,13 +34,17 @@
 #' ggInterval_minmax(myIris,aes(myIris$Petal.Length))+
 #'    theme_classic()
 #' @export
-ggInterval_minmax <- function(data = NULL,mapping = aes(NULL), scaleXY = "local"){
+ggInterval_minmax <- function(data = NULL,mapping = aes(NULL),
+                              scaleXY = "local",plotAll=F){
   #@param sort if FALSE, it will not be sort by min data,default TRUE.
   sort=TRUE
   if(!(scaleXY %in% c("local", "global"))){
     warning(paste0("There is no method called scaleXY = ",scaleXY,
                    " , please set 'global' or 'local'."))
     scaleXY <- "local"
+  }
+  if(plotAll){
+    scaleXY <- "global" #need to fix xy
   }
 
   #data preparing
@@ -50,8 +56,8 @@ ggInterval_minmax <- function(data = NULL,mapping = aes(NULL), scaleXY = "local"
   ggSymData <- testData(data)
   iData <- ggSymData$intervalData
   testXY(iData,this.x,this.y)
-  p<-dim(iData)[2]
-
+  p <- dim(iData)[2]
+  n <- dim(iData)[1]
   #test big o
   if(dim(iData)[1]>3000){
     stop("Out of time limits")
@@ -61,66 +67,104 @@ ggInterval_minmax <- function(data = NULL,mapping = aes(NULL), scaleXY = "local"
 
   #start process
   with(data,{
-    #get attr
-    if(any(unlist(lapply(as.data.frame(data[,1:p]),FUN=identical,x=eval(this.x))))){
-      attr<-which(unlist(lapply(as.data.frame(data[,1:p]),FUN=identical,x=eval(this.x))))
-      attr<-names(attr)
-    }else if(any(unlist(lapply(as.data.frame(data[,1:p]),FUN=identical,x=eval(this.y))))){
-      attr<-which(unlist(lapply(as.data.frame(data[,1:p]),FUN=identical,x=eval(this.y))))
-      attr<-names(attr)
+    if(plotAll){
+      #get numerical data
+      numericData <- unlist(lapply(data.frame(iData[1:dim(iData)[2]]) ,FUN = is.sym.interval))
+      iData <- iData[,which(numericData)]
+      attr <- colnames(iData)
+      d <- NULL
+      #build data frame
+      for(i in 1:length(attr)){
+        #build data frame for ggplot
+        if(scaleXY == "local"){
+          temp <- data.frame(min = iData[[attr[i]]]$min,
+                             max = iData[[attr[i]]]$max,
+                             var = attr[i],
+                             min.limits = min(iData[[attr[i]]]$min),
+                             max.limits = max(iData[[attr[i]]]$max))
+        }else{
+          temp <- data.frame(min = iData[[attr[i]]]$min,
+                             max = iData[[attr[i]]]$max,
+                             var = attr[i],
+                             min.limits = min(ggSymData$statisticsDF$min),
+                             max.limits = max(ggSymData$statisticsDF$max))
+        }
+        d <- rbind(d, temp)
+      }
     }else{
-      stop("ERROR : Cannot find variables in aes(...)")
-    }
-    if(p==1){
-      attr = colnames(data)
-    }
-    #test attribute illegal
-    if(all(!is.numeric(data[[attr]]) , !RSDA::is.sym.interval(data[[attr]]))){
-      stop("ERROR : Variables in Min-Max Plot can only be numeric.")
-    }
+      #get attr
+      if(any(unlist(lapply(as.data.frame(data[,1:p]),FUN=identical,x=eval(this.x))))){
+        attr<-which(unlist(lapply(as.data.frame(data[,1:p]),FUN=identical,x=eval(this.x))))
+        attr<-names(attr)
+      }else if(any(unlist(lapply(as.data.frame(data[,1:p]),FUN=identical,x=eval(this.y))))){
+        attr<-which(unlist(lapply(as.data.frame(data[,1:p]),FUN=identical,x=eval(this.y))))
+        attr<-names(attr)
+      }else{
+        stop("ERROR : Cannot find variables in aes(...)")
+      }
+      if(p==1){
+        attr = colnames(data)
+      }
+      #test attribute illegal
+      if(all(!is.numeric(data[[attr]]) , !RSDA::is.sym.interval(data[[attr]]))){
+        stop("ERROR : Variables in Min-Max Plot can only be numeric.")
+      }
 
 
-    #build data frame for ggplot
-    d<-data.frame(min=iData[[attr]]$min,
-                  max=iData[[attr]]$max)
-    n<-length(iData[[attr]])
-    if(sort){
-      newd<-dplyr::arrange(d,min)
-    }else{newd <- d}
-
-    #build Aesthetic (mapping)
-    usermapping <- mapping[-1] #Aesthetic without x,y
+      #build data frame for ggplot
+      if(scaleXY == "local"){
+        d <- data.frame(min=iData[[attr]]$min,
+                        max=iData[[attr]]$max,
+                        var = attr,
+                        min.limits = min(iData[[attr]]$min),
+                        max.limits = max(iData[[attr]]$max))
+      }else{
+        d <- data.frame(min=iData[[attr]]$min,
+                        max=iData[[attr]]$max,
+                        var = attr,
+                        min.limits = min(ggSymData$statisticsDF$min),
+                        max.limits = max(ggSymData$statisticsDF$max))
+      }
+    }
     #if(sort){
-      mymapping <- list(mapping=aes(x=min,y=max,size=4,col="Max"))
+    newd <- dplyr::arrange(d, min)
+    #}else{newd <- d}
+    #build Aesthetic (mapping)
+    xyLocation <- c(which(names(mapping) == "x"), which(names(mapping) == "y"))
+    if(length(xyLocation) != 0){
+      usermapping <- mapping[-xyLocation] #Aesthetic without x,y
+    }else{
+      usermapping <- mapping
+    }
+    #if(sort){
+    mymapping <- list(mapping=aes(x=min,y=max,size=3,col="Max"))
     # }
     # else{
     #   mymapping <- list(mapping=aes(x=1:nrow(newd),y=max,size=4,col="Max"))
     # }
     allmapping <-as.list(structure(as.expression(c(usermapping,mymapping)),class="uneval"))
 
-    mymapping2 <- list(mapping=aes(size=4,col="Min"))
+    mymapping2 <- list(mapping=aes(size=3,col="Min"))
     allmapping2 <-as.list(structure(as.expression(c(usermapping,mymapping2)),class="uneval"))
     #plot
 
     #always sort = T
     #if(sort){
-    if(scaleXY == "local"){
-      min.limits <- min(iData[[attr]]$min)
-      max.limits <- max(iData[[attr]]$max)
-    }else{
-      min.limits <- min(ggSymData$statisticsDF$min)
-      max.limits <- max(ggSymData$statisticsDF$max)
-    }
-    base  <- ggplot(newd,aes(x=min,y=min))+
+    base  <- ggplot(newd,aes(x=min,y=min, group = var))+
               do.call(geom_point,allmapping2)+
               do.call(geom_point,allmapping)+
               geom_segment(aes(x=min,y=min,xend=min,yend=max))+
               geom_segment(aes(x=min.limits,y=min.limits,xend=max.limits,yend=max.limits),lty=2)+
-              labs(x="",y="",title = paste0("MM Plot - ", attr))+
               guides(size=FALSE,fill=FALSE)
 
-    base <- base + scale_x_continuous(limits = c(min.limits, max.limits))+
-      scale_y_continuous(limits = c(min.limits, max.limits))
+    if(plotAll){
+      base <- base + labs(x="",y="",title = "MM Plot") +
+        facet_grid(. ~ var)
+    }else{
+      base <- base + scale_x_continuous(limits = c(mean(d$min.limits), mean(d$max.limits)))+
+        scale_y_continuous(limits = c(mean(d$min.limits), mean(d$max.limits)))
+      base <- base + labs(x="",y="",title = paste0("MM Plot - ", attr))
+    }
     return(base)
     # }
     # else{

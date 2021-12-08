@@ -16,6 +16,8 @@ If specified and inherit.aes = TRUE (the default),
 it is combined with the default mapping at the top level of
 the plot. You must supply mapping if there is no plot mapping.
 It is the same as the mapping of ggplot2.}
+
+\item{plotAll}{booleans, if TRUE, plot all variable together}
 }
 \value{
 Return a ggplot2 object.
