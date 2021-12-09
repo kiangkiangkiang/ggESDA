@@ -23,7 +23,7 @@ present by column condition (if TRUE) or matrix condition (if FALSE)}
 \item{full_strip}{Boolean variables,which mean the strip present
 in full figure-width (if TRUE) or only in its variable values(if FALSE).}
 
-\item{useHeatmap}{Boolean, which determine if the heatmap type for visualizing
+\item{plotAll}{Boolean, which determine if the heatmap type for visualizing
 full variables is used. default FALSE.}
 }
 \value{

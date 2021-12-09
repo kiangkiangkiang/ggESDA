@@ -4,7 +4,7 @@
 \alias{ggInterval_boxplot}
 \title{A interval Box plot}
 \usage{
-ggInterval_boxplot(data = NULL,mapping = aes(NULL))
+ggInterval_boxplot(data = NULL,mapping = aes(NULL),plotAll=F)
 }
 \arguments{
 \item{data}{A ggESDA object.It can also be either RSDA object or

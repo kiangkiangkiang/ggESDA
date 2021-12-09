@@ -17,7 +17,7 @@
 #' present by column condition (if TRUE) or matrix condition (if FALSE)
 #' @param full_strip Boolean variables,which mean the strip present
 #' in full figure-width (if TRUE) or only in its variable values(if FALSE).
-#' @param useHeatmap Boolean, which determine if the heatmap type for visualizing
+#' @param plotAll Boolean, which determine if the heatmap type for visualizing
 #' full variables is used. default FALSE.
 #' @return Return a ggplot2 object.
 #' @usage ggInterval_indexImage(data = NULL,mapping = aes(NULL),
@@ -41,7 +41,7 @@
 #' @export
 ggInterval_indexImage<-function(data = NULL,mapping = aes(NULL),
                         column_condition=TRUE,
-                        full_strip=FALSE, useHeatmap = FALSE){
+                        full_strip=FALSE, plotAll = FALSE){
 
   #data preparing
   argsNum<-length(mapping)
@@ -52,7 +52,7 @@ ggInterval_indexImage<-function(data = NULL,mapping = aes(NULL),
   ggSymData <- testData(data)
   iData <- ggSymData$intervalData
   myHeatMapNames <- rownames(iData)
-  if(useHeatmap){
+  if(plotAll){
     if(!is.null(this.x) | !is.null(this.y)){
       warning("Using heatmap presentation cannot specify variables.")
     }
@@ -77,13 +77,18 @@ ggInterval_indexImage<-function(data = NULL,mapping = aes(NULL),
 
   with(data,{
     #add heatmap
-    if(useHeatmap){
+    if(plotAll){
       #set adjust ggarrange width scale
-      widthScale <- 10
+      widthScale <- 7
 
       #get numerical data
       numericData <- unlist(lapply(data.frame(iData[1:dim(iData)[2]]) ,FUN = is.sym.interval))
       iData <- iData[,which(numericData)]
+
+      #scale
+      if(column_condition){
+        iData <- scale_sym_table(iData, n, p)$intervalData
+      }
 
       d <- data.frame(NULL)
       for(i in colnames(iData)){
@@ -122,7 +127,7 @@ ggInterval_indexImage<-function(data = NULL,mapping = aes(NULL),
     }
 
     if(!full_strip){
-      if(!useHeatmap){
+      if(!plotAll){
         d <- buildPlotData(a, b, adjustStrip, n, full_strip, datasetMax)
       }
       #whether column condition
@@ -139,7 +144,7 @@ ggInterval_indexImage<-function(data = NULL,mapping = aes(NULL),
         #breaks=c(min(d$y),max(d$y)),
         #labels = c(round(min(d$y)),round(max(d$y))))
 
-        if(useHeatmap){
+        if(plotAll){
           base <- ggplot(d, aes(x = x, xend = xend, y = y, yend = y,color=y)) +
             geom_segment(size = 3) + facet_grid(. ~ group) +
             eval(parse(text=myColScale))+
@@ -162,24 +167,53 @@ ggInterval_indexImage<-function(data = NULL,mapping = aes(NULL),
                               labels = c(round(min(d$y)),round(max(d$y))))"
         #c(round(datasetMin),round(datasetMax)))
 
-        if(useHeatmap){
-          u<-1
-          myp <- NULL
-          for(ele in levels(d$group)){
-            tempData <- dplyr::filter(d, d$group == ele)
-            myp[[u]] <- myplot(tempData, u, NAME, myHeatMapNames, n, ele,full_strip)
-            u<-u+1
-          }
+        if(plotAll){
+          #midp<-(max(d$y)+min(d$y))/2
+          midp <- 0
+          p <- ggplot(d, aes(x = x, xend = xend, y = y, yend = yend, color = y))
 
-          #v <- seq(min(d$y),max(d$y),(max(d$y)-min(d$y))/(1000-1))
-          #adjust grid
-          maxChar <- max(unlist(lapply(myHeatMapNames, nchar)))
-          adjustWidth <- 1 + sqrt(maxChar)/widthScale
-          base <- ggarrange(plotlist=myp, nrow=1,
-                            widths = c(adjustWidth,rep(1, p-1)))
+          p <- p+geom_segment(size = 3)+
+            scale_color_gradient2(low = 'blue', mid = 'yellow', high = 'red',
+                                  midpoint = midp,
+                                  breaks = c(min(d$y),max(d$y)),
+                                  labels = c("min","max"))+
+            scale_x_continuous(breaks=c(1:n),labels = myHeatMapNames)+
+            coord_flip()+
+            guides(fill=F,alpha=F)+
+            facet_grid(. ~ group)+
+            labs(x = "Concepts",y="")+
+            theme(legend.position="bottom",
+                  legend.title = element_blank())+
+            scale_y_continuous(breaks = NULL)
+          return(p)
 
-          v <- seq(1,1000)
-          return(ggarrange(base, buildColLegend(v),nrow=2,heights=c(8,1)))
+          # base <- ggplot(d, aes(x = x, xend = xend, y = y, yend = y,color=y)) +
+          #   geom_segment(size = 3) + facet_grid(. ~ group) +
+          #   eval(parse(text=myColScale))+
+          #   coord_flip()+scale_x_continuous(breaks = 1:n, label=myHeatMapNames)+
+          #   labs(x="Concepts",y="Values")+
+          #   theme(legend.position="bottom",
+          #         legend.title = element_blank())
+          #
+          # return(base)
+
+          # u<-1
+          # myp <- NULL
+          # for(ele in levels(d$group)){
+          #   tempData <- dplyr::filter(d, d$group == ele)
+          #   myp[[u]] <- myplot(tempData, u, NAME, myHeatMapNames, n, ele,full_strip)
+          #   u<-u+1
+          # }
+          #
+          # #v <- seq(min(d$y),max(d$y),(max(d$y)-min(d$y))/(1000-1))
+          # #adjust grid
+          # maxChar <- max(unlist(lapply(myHeatMapNames, nchar)))
+          # adjustWidth <- 1 + sqrt(maxChar)/widthScale
+          # base <- ggarrange(plotlist=myp, nrow=1,
+          #                   widths = c(adjustWidth,rep(1, p-1)))
+          #
+          # v <- seq(1,1000)
+          # return(ggarrange(base, buildColLegend(v),nrow=2,heights=c(8,1)))
         }
       }
 
@@ -192,7 +226,7 @@ ggInterval_indexImage<-function(data = NULL,mapping = aes(NULL),
     else{# if full strip
       #adjust
       #newN<-sort(runif((n)*2,1,n))
-      if(!useHeatmap){
+      if(!plotAll){
         d <- buildPlotData(a, b, adjustStrip, n, full_strip, datasetMax)
       }
 
@@ -207,7 +241,7 @@ ggInterval_indexImage<-function(data = NULL,mapping = aes(NULL),
                               breaks=c(min(d$value),max(d$value)),
                               labels = c(round(min(d$value)),round(max(d$value))))"
 
-        if(useHeatmap){
+        if(plotAll){
           base <- ggplot(d, aes(x = x, xend = xend, y = y, yend = y,color=value)) +
             geom_segment(size = 3) + facet_grid(. ~ group) +
             eval(parse(text=myColScale))+
@@ -227,24 +261,46 @@ ggInterval_indexImage<-function(data = NULL,mapping = aes(NULL),
                               breaks=c(min(d$value),max(d$value)),
                               labels = c(round(min(d$value)),round(max(d$value))))"
 
-        if(useHeatmap){
-          u<-1
-          myp <- NULL
-          for(ele in levels(d$group)){
-            tempData <- dplyr::filter(d, d$group == ele)
-            myp[[u]] <- myplot(tempData, u, NAME, myHeatMapNames, n, ele, full_strip)
-            u<-u+1
-          }
+        if(plotAll){
+          midp <- 0
+          p <- ggplot(d, aes(x = x, xend = xend, y = y, yend = y, color = value))
 
-          #v <- seq(min(d$y),max(d$y),(max(d$y)-min(d$y))/(1000-1))
-          #adjust grid
-          maxChar <- max(unlist(lapply(myHeatMapNames, nchar)))
-          adjustWidth <- 1 + sqrt(maxChar)/widthScale
-          base <- ggarrange(plotlist=myp, nrow=1,
-                            widths = c(adjustWidth, rep(1, p-1)))
+          p <- p+geom_segment(size = 3)+
+            scale_color_gradient2(low = 'blue', mid = 'yellow', high = 'red',
+                                  midpoint = midp,
+                                  breaks = c(min(d$value),max(d$value)),
+                                  labels = c("min","max"))+
+            scale_x_continuous(breaks=c(1:n),labels = myHeatMapNames)+
+            coord_flip()+
+            guides(fill=F,alpha=F)+
+            facet_grid(. ~ group)+
+            labs(x = "Concepts",y="")+
+            theme(legend.position="bottom",
+                  legend.title = element_blank())+
+            scale_y_continuous(breaks = NULL)
+          return(p)
 
-          v <- seq(1,1000)
-          return(ggarrange(base, buildColLegend(v),nrow=2,heights=c(8,1)))
+
+
+
+          # u<-1
+          # myp <- NULL
+          # for(ele in levels(d$group)){
+          #   tempData <- dplyr::filter(d, d$group == ele)
+          #   myp[[u]] <- myplot(tempData, u, NAME, myHeatMapNames, n, ele, full_strip)
+          #   u<-u+1
+          # }
+          #
+          # #v <- seq(min(d$y),max(d$y),(max(d$y)-min(d$y))/(1000-1))
+          # #adjust grid
+          # maxChar <- max(unlist(lapply(myHeatMapNames, nchar)))
+          # adjustWidth <- 1 + sqrt(maxChar)/widthScale
+          # base <- ggarrange(plotlist=myp, nrow=1,
+          #                   widths = c(adjustWidth, rep(1, p-1)))
+          #
+          # v <- seq(1,1000)
+          #
+          # return(ggarrange(base, buildColLegend(v),nrow=2,heights=c(12,1)))
 
         }
 
@@ -305,7 +361,7 @@ buildColLegend <- function(v){
       scale_x_continuous(breaks=c(0,1000),labels = c("min","max"))
 
     temp<-ggplot()+theme_void()
-    temp2<-ggarrange(temp,p2,temp,nrow=1,widths = c(1,1,1))
+    temp2<-ggarrange(temp,p2,temp,nrow=1,widths = c(2,1,2))
     return(temp2)
 }
 
@@ -335,4 +391,13 @@ myplot <- function(tempData, u, NAME, myHeatMapNames, n, ele, full_strip){
 
   return(p)
 }
-
+scale_sym_table <- function(d, n, p){
+  temp1 <- sapply(1:p, FUN = function(x) unlist(data.frame(d[[x]])))
+  temp2 <- apply(temp1, 2, scale)
+  newd <- data.frame(temp2[1:n, ], temp2[(n+1):(n*2), ])
+  myd <- classic2sym(newd, groupby = "customize",
+                     minData = temp2[1:n, ],
+                     maxData = temp2[(n+1):(n*2), ])
+  colnames(myd$intervalData) <- colnames(d)
+  return(myd)
+}

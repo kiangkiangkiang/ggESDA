@@ -4,7 +4,8 @@
 \alias{ggInterval_minmax}
 \title{A min-max plot for interval data}
 \usage{
-ggInterval_minmax(data = NULL,mapping = aes(NULL),sort=TRUE)
+ggInterval_minmax(data = NULL,mapping = aes(NULL),
+          scaleXY = "local",plotAll=F)
 }
 \arguments{
 \item{data}{A ggESDA object.It can also be either RSDA object or
@@ -19,6 +20,8 @@ the plot. You must supply mapping if there is no plot mapping.}
 \item{scaleXY}{default "local", which means limits of x-axis and y-axis
 depend on their own variable. "global" means limits of them depend on all
 variables that user input.}
+
+\item{plotAll}{booleans, if TRUE, plot all variable together}
 }
 \value{
 Return a ggplot2 object.

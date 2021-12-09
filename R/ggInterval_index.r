@@ -36,7 +36,13 @@ ggInterval_index <- function(data = NULL,
   ggSymData <- testData(data)#test if symdata
   iData <- ggSymData$intervalData
   testXY(iData,this.x,this.y)
-  p<-dim(iData)[2]
+  p <- dim(iData)[2]
+  n <- dim(iData)[1]
+  myRowNames <- rownames(iData)
+
+  if(length(this.fill) == n){
+    this.fill <- as.factor(this.fill)
+  }
 
   #test big o
   if(dim(iData)[1]>=3000){
@@ -84,27 +90,29 @@ ggInterval_index <- function(data = NULL,
       mymapping$x <- mid
       mymapping$y <- this.y
       errorBar <- quote(geom_errorbar(aes(xmin=iData[[attr]]$min,xmax=iData[[attr]]$max),width=0.2))
-      crossBar <- quote(geom_crossbar(aes(xmin=iData[[attr]]$min,xmax=iData[[attr]]$max),width=0.2,fill=this.fill))
+      crossBar <- quote(geom_crossbar(aes(xmin=iData[[attr]]$min,xmax=iData[[attr]]$max),width=0.5))
       temp<-paste0("scale_y_continuous(breaks=c(",list(this.y),"))")
-      scale_xy<-eval(parse(text=temp))
+      #temp2 <- paste0("scale_x_continuous(labels = myRowNames)+theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))")
       myLabs <- eval(parse(text=paste0("labs(title='Index Plot',y='Observations',x='",attr,"')")))
     }else{
       mymapping$y <- mid
       mymapping$x <- this.x
       errorBar <- quote(geom_errorbar(aes(ymin=iData[[attr]]$min,ymax=iData[[attr]]$max),width=0.2))
-      crossBar <- quote(geom_crossbar(aes(ymin=iData[[attr]]$min,ymax=iData[[attr]]$max),width=0.2,fill=this.fill))
+      crossBar <- quote(geom_crossbar(aes(ymin=iData[[attr]]$min,ymax=iData[[attr]]$max),width=0.5))
       temp<-paste0("scale_x_continuous(breaks=c(",list(this.x),"))")
-      scale_xy<-eval(parse(text=temp))
+      #temp2 <- paste0("scale_y_continuous(labels = myRowNames)")
       myLabs <- eval(parse(text=paste0("labs(title='Index Plot',x='Observations',y='",attr,"')")))
     }
+    scale_xy<-eval(parse(text=temp))
+
     p<-ggplot(iData,mapping=mymapping)+
       geom_point()+
-      guides(colour = FALSE, alpha = FALSE,fill=FALSE)+
+      guides(alpha = FALSE)+
       scale_xy+myLabs
     if(is.null(this.fill)){
-        p+eval(errorBar)
+        p + eval(errorBar)
     }else{
-        p+eval(crossBar)
+       p + eval(crossBar)
     }
   })
 }

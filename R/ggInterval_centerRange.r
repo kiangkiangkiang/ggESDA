@@ -102,14 +102,8 @@ ggInterval_centerRange<- function(data = NULL,mapping = aes(NULL),plotAll=F){
     #plot
     base <- ggplot(d,aes(center,r,group = var))+
               do.call(geom_point,allmapping)+
-              geom_segment(aes(x=meanC,
-                               y=min(d$minRange),
-                               xend=meanC,
-                               yend=max(d$maxRange)),lty=2)+
-              geom_segment(aes(x=min(d$minCenter),
-                               y=meanR,
-                               xend=max(d$maxCenter),
-                               yend=meanR),lty=2)+
+              geom_vline(aes(xintercept = meanC), lty = 2)+
+              geom_hline(aes(yintercept = meanR), lty = 2)+
               labs(x="center",y="range")+
               guides(size=FALSE)
     if(plotAll){
@@ -118,3 +112,5 @@ ggInterval_centerRange<- function(data = NULL,mapping = aes(NULL),plotAll=F){
     return(base)
   })
 }
+
+
