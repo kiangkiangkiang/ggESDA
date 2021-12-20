@@ -21,7 +21,7 @@
 #' full variables is used. default FALSE.
 #' @return Return a ggplot2 object.
 #' @usage ggInterval_indexImage(data = NULL,mapping = aes(NULL),
-#' column_condition=TRUE,full_strip=FALSE)
+#' column_condition=TRUE,full_strip=FALSE, plotAll = FALSE)
 #' @examples
 #' d<-data.frame(qq=rnorm(1000,0,1))
 #' ggInterval_indexImage(d,aes(qq))
