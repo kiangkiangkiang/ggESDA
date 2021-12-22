@@ -5,7 +5,7 @@
 \title{An index plot presented by color image for interval data.}
 \usage{
 ggInterval_indexImage(data = NULL,mapping = aes(NULL),
-column_condition=TRUE,full_strip=FALSE)
+column_condition=TRUE,full_strip=FALSE, plotAll = FALSE)
 }
 \arguments{
 \item{data}{A ggESDA object.It can also be either RSDA object or

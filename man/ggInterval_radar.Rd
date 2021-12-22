@@ -12,7 +12,8 @@ base_circle=TRUE,
 base_lty=2,
 addText=TRUE,
 type="default",
-quantileNum=4)
+quantileNum=4,
+Drift=0.5)
 }
 \arguments{
 \item{data}{A ggESDA object.It can also be either RSDA object or
@@ -45,6 +46,8 @@ an interval data if the plotPartial is not null.}
 \item{type}{different type of radar,it can be "default","rect","quantile"}
 
 \item{quantileNum}{if type=="quantile" ,it will provide the number of percentage}
+
+\item{Drift}{The drift term, which determines the radar values beginning.}
 }
 \description{
 Using ggplot2 package to make a radar plot with multiple

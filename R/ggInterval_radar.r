@@ -26,6 +26,7 @@
 #' @param addText add value in figure
 #' @param type different type of radar,it can be "default","rect","quantile"
 #' @param quantileNum if type=="quantile" ,it will provide the number of percentage
+#' @param Drift The drift term, which determines the radar values beginning.
 #' @usage ggInterval_radar(data=NULL,layerNumber=3,
 #' inOneFig=TRUE,showLegend=TRUE,showXYLabs=FALSE,
 #' plotPartial=NULL,
@@ -34,7 +35,8 @@
 #' base_lty=2,
 #' addText=TRUE,
 #' type="default",
-#' quantileNum=4)
+#' quantileNum=4,
+#' Drift=0.5)
 #' @examples
 #' mydata<-ggESDA::classic2sym(mtcars,k=4)$intervalData
 #' ggInterval_radar(data=mydata[,c("mpg","disp",'drat')])
@@ -52,9 +54,14 @@ ggInterval_radar <-function(data=NULL,layerNumber=3,
                             base_lty=2,
                             addText=TRUE,
                             type="default",
-                            quantileNum=4){
+                            quantileNum=4,
+                            Drift=0.5){
+  extendUnit <- Drift
+  if(extendUnit < 0 | extendUnit > 1){
+    stop("Drift must between 0 to 1.")
+  }
+
   #extend plot original xyLimits = 1.25, extendUnit=0
-  extendUnit <- 0.5
   xyLimits <- extendUnit+1.25
   #
 
@@ -193,7 +200,11 @@ ggInterval_radar <-function(data=NULL,layerNumber=3,
     }
   }
 
-
+  if(type == "quantile"){
+    maxList<-lapply(1:nP,FUN=function(x) max(iDataList[[x]][, "max"]))
+    minList<-lapply(1:nP,FUN=function(x) min(iDataList[[x]][, "min"]))
+  }
+  minminList<-minList;  maxmaxList<-maxList
   #normalize data to 0,1
   #extend adjust
   normData<-lapply(1:nP ,FUN=function(x){
