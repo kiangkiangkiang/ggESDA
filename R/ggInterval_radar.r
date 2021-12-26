@@ -23,10 +23,12 @@
 #' @param base_lty line type in base figure
 #' @param base_circle boolean, if true, it will generate inner circle.
 #' @param alpha aesthetic alpha of fill color
-#' @param addText add value in figure
+#' @param addText add the value of interval-valued variables in figure
 #' @param type different type of radar,it can be "default","rect","quantile"
 #' @param quantileNum if type=="quantile" ,it will provide the number of percentage
 #' @param Drift The drift term, which determines the radar values beginning.
+#' @param addText_modal add the factor of modal multi-valued variables in figure..
+#' @param addText_modal.p add the value of modal multi-valued variables in figure..
 #' @usage ggInterval_radar(data=NULL,layerNumber=3,
 #' inOneFig=TRUE,showLegend=TRUE,showXYLabs=FALSE,
 #' plotPartial=NULL,
@@ -36,7 +38,9 @@
 #' addText=TRUE,
 #' type="default",
 #' quantileNum=4,
-#' Drift=0.5)
+#' Drift=0.5,
+#' addText_modal=TRUE,
+#' addText_modal.p=FALSE)
 #' @examples
 #' mydata<-ggESDA::classic2sym(mtcars,k=4)$intervalData
 #' ggInterval_radar(data=mydata[,c("mpg","disp",'drat')])
@@ -55,14 +59,17 @@ ggInterval_radar <-function(data=NULL,layerNumber=3,
                             addText=TRUE,
                             type="default",
                             quantileNum=4,
-                            Drift=0.5){
+                            Drift=0.5,
+                            addText_modal=TRUE,
+                            addText_modal.p=FALSE){
   extendUnit <- Drift
   if(extendUnit < 0 | extendUnit > 1){
     stop("Drift must between 0 to 1.")
   }
 
-  #extend plot original xyLimits = 1.25, extendUnit=0
-  xyLimits <- extendUnit+1.25
+  #extend plot original xyLimits = 1.25, extendUnit=0, colnamesDrift = 0.1
+  colnamesDrift <- 0.18
+  xyLimits <- extendUnit + 1.25 + colnamesDrift
   #
 
   fillBetween=TRUE #not fix complete
@@ -464,25 +471,31 @@ ggInterval_radar <-function(data=NULL,layerNumber=3,
 
     }
     #nominal
-    if(allnP!=nP && addText){
+    if(allnP!=nP){
       newPropDf<-as.data.frame(tidyr::separate(propDf,varLevels,into=c("varLevels","gar"),sep=":",convert = F))
       newPropDf<-as.data.frame(dplyr::filter(newPropDf,groupid==levels(newPropDf$groupid)[1]))
-      p<-p+geom_text(data=newPropDf,aes(x=newPropDf$x+textShift,y=newPropDf$y+textShift,label=varLevels),vjust=2.75)
+
+      if(addText_modal){
+        p<-p+geom_text(data=newPropDf,aes(x=newPropDf$x+textShift,y=newPropDf$y+textShift,label=varLevels),vjust=2.15,hjust=0.5)
+      }
       #print(totalRectDf)
-      tempd<-data.frame(NULL)
-      for(i in unique(totalRectDf$varGroup)){
-        temp.varG<-dplyr::filter(totalRectDf,varGroup==i)
-        for(u in levels(temp.varG$obsGroup)){
-          temp.obsG<-dplyr::filter(temp.varG,obsGroup==u)
-          for(k in unique(temp.obsG$varLevels)){
-            temp.varL<-dplyr::filter(temp.obsG,varLevels==k)
-            tempd<-rbind(tempd,data.frame(x=mean(temp.varL$newx),y=mean(temp.varL$newy)))
+
+      if(addText_modal.p){
+        tempd<-data.frame(NULL)
+        for(i in unique(totalRectDf$varGroup)){
+          temp.varG<-dplyr::filter(totalRectDf,varGroup==i)
+          for(u in levels(temp.varG$obsGroup)){
+            temp.obsG<-dplyr::filter(temp.varG,obsGroup==u)
+            for(k in unique(temp.obsG$varLevels)){
+              temp.varL<-dplyr::filter(temp.obsG,varLevels==k)
+              tempd<-rbind(tempd,data.frame(x=mean(temp.varL$newx),y=mean(temp.varL$newy)))
+            }
           }
         }
+        propTextDf<-data.frame(tempd,prop=propDf$prop)
+        #print(propTextDf)
+        p<-p+geom_text(data=propTextDf,aes(x=x+textShift,y=y,label=round(prop,2)))
       }
-      propTextDf<-data.frame(tempd,prop=propDf$prop)
-      #print(propTextDf)
-      p<-p+geom_text(data=propTextDf,aes(x=x+textShift,y=y,label=round(prop,2)))
     }
     # if(allnP!=nP){
     #   p<-p+geom_polygon(data=totalRectDf,aes(x=newx,y=newy,group=group,fill=obsGroup),
@@ -491,7 +504,9 @@ ggInterval_radar <-function(data=NULL,layerNumber=3,
     #     geom_text(data=propDf,aes(x=propDf$x+textShift,y=propDf$y+textShift,label=varLevels),
     #               vjust=2.75)
     # }
-    newD <- shift(d,0.1)
+
+    #colnames shift out of figure 0.1 unit (colnamesDrift)
+    newD <- shift(d, unit = colnamesDrift)
     p<-p+geom_segment(data=d,aes(x=0,y=0,xend=d$x,yend=d$y),lty=base_lty,alpha=0.6)+
       geom_point(data=plotMax,aes(x=0,y=0,alpha=plotMax$Variables))+
       geom_text(data=newD,aes(x=newD$x,y=newD$y,label=c(colnames(rawiData))))
@@ -575,7 +590,7 @@ ggInterval_radar <-function(data=NULL,layerNumber=3,
 
       #print(paste(u,plotMin.temp))
       base<-plotFun(p,iData,plotMin.temp,plotMax.temp,d,showXYLabs,showLegend,fillBetween,base_circle,layerNumber,
-                    textMin.temp,textMax.temp,rawiData,propDf,propDf.temp,allnP,nP,type,cutDf.temp,totalRectDf.temp,addText,textShift,base_lty,alpha,xyLimits,extendUnit)
+                    textMin.temp,textMax.temp,rawiData,propDf,propDf.temp,allnP,nP,type,cutDf.temp,totalRectDf.temp,addText,textShift,base_lty,alpha,xyLimits,extendUnit,addText_modal,addText_modal.p)
 
 
       base<-base+labs(title=paste0("Radar : ",rownames(iData)[u]))+labs(title=paste0("Radar : ",rownames(iData)[u]))+scale_colour_discrete(name = "Group")+
@@ -703,24 +718,28 @@ plotFun<-function(p,iData,plotMin.temp,plotMax.temp,d,showXYLabs,showLegend,fill
   }#end rect
 
   #add nominal text
-  if(allnP!=nP && addText){
+  if(allnP!=nP){
 
     newPropDf<-as.data.frame(tidyr::separate(propDf,varLevels,into=c("varLevels","gar"),sep=":",convert = F))
     newPropDf<-as.data.frame(dplyr::filter(newPropDf,groupid==levels(newPropDf$groupid)[1]))
-    p<-p+geom_text(data=newPropDf,aes(x=newPropDf$x+textShift,y=newPropDf$y+textShift,label=varLevels),vjust=2.75)
+    if(addText_modal){
+      base<-base+geom_text(data=newPropDf,aes(x=newPropDf$x+textShift,y=newPropDf$y+textShift,label=varLevels),vjust=2.75)
+    }
 
     #print(totalRectDf.temp)
-    tempd<-data.frame(NULL)
-    for(i in levels(totalRectDf.temp$varGroup)){
-      temp.varG<-dplyr::filter(totalRectDf.temp,varGroup==i)
-      for(k in unique(temp.varG$varLevels)){
-        temp.varL<-dplyr::filter(temp.varG,varLevels==k)
-        tempd<-rbind(tempd,data.frame(x=mean(temp.varL$newx),y=mean(temp.varL$newy)))
+    if(addText_modal.p){
+      tempd<-data.frame(NULL)
+      for(i in levels(totalRectDf.temp$varGroup)){
+        temp.varG<-dplyr::filter(totalRectDf.temp,varGroup==i)
+        for(k in unique(temp.varG$varLevels)){
+          temp.varL<-dplyr::filter(temp.varG,varLevels==k)
+          tempd<-rbind(tempd,data.frame(x=mean(temp.varL$newx),y=mean(temp.varL$newy)))
+        }
       }
+      propTextDf<-data.frame(tempd,prop=propDf.temp$prop)
+      #print(propTextDf)
+      base<-base+geom_text(data=propTextDf,aes(x=propTextDf$x+textShift,y=propTextDf$y,label=round(propTextDf$prop,2)))
     }
-    propTextDf<-data.frame(tempd,prop=propDf.temp$prop)
-    #print(propTextDf)
-    base<-base+geom_text(data=propTextDf,aes(x=propTextDf$x+textShift,y=propTextDf$y,label=round(propTextDf$prop,2)))
   }
 
   newD <- shift(d,0.1)

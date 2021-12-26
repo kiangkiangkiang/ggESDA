@@ -13,7 +13,9 @@ base_lty=2,
 addText=TRUE,
 type="default",
 quantileNum=4,
-Drift=0.5)
+Drift=0.5,
+addText_modal=TRUE,
+addText_modal.p=FALSE)
 }
 \arguments{
 \item{data}{A ggESDA object.It can also be either RSDA object or
@@ -41,13 +43,17 @@ an interval data if the plotPartial is not null.}
 
 \item{base_lty}{line type in base figure}
 
-\item{addText}{add value in figure}
+\item{addText}{add the value of interval-valued variables in figure}
 
 \item{type}{different type of radar,it can be "default","rect","quantile"}
 
 \item{quantileNum}{if type=="quantile" ,it will provide the number of percentage}
 
 \item{Drift}{The drift term, which determines the radar values beginning.}
+
+\item{addText_modal}{add the factor of modal multi-valued variables in figure..}
+
+\item{addText_modal.p}{add the value of modal multi-valued variables in figure..}
 }
 \description{
 Using ggplot2 package to make a radar plot with multiple
