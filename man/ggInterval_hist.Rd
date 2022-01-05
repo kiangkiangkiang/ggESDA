@@ -4,7 +4,8 @@
 \alias{ggInterval_hist}
 \title{Histogram for symbolic data with equal-bin or unequal-bin.}
 \usage{
-ggInterval_hist(data = NULL,mapping = aes(NULL),method="equal-bin",bins=10)
+ggInterval_hist(data = NULL,mapping = aes(NULL),method="equal-bin",bins=10,
+ plotAll = FALSE)
 }
 \arguments{
 \item{data}{A ggESDA object.It can also be either RSDA object or

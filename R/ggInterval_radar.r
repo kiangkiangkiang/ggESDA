@@ -622,7 +622,7 @@ ggInterval_radar <-function(data=NULL,layerNumber=3,
 
 
 
-plotFun<-function(p,iData,plotMin.temp,plotMax.temp,d,showXYLabs,showLegend,fillBetween,base_circle,layerNumber,textMin.temp,textMax.temp,rawiData,propDf,propDf.temp,allnP,nP,type,cutDf,totalRectDf.temp,addText,textShift,base_lty,alpha,xyLimits,extendUnit){
+plotFun<-function(p,iData,plotMin.temp,plotMax.temp,d,showXYLabs,showLegend,fillBetween,base_circle,layerNumber,textMin.temp,textMax.temp,rawiData,propDf,propDf.temp,allnP,nP,type,cutDf,totalRectDf.temp,addText,textShift,base_lty,alpha,xyLimits,extendUnit,addText_modal,addText_modal.p){
   #if(fillBetween){
 
   if(type=="default"){

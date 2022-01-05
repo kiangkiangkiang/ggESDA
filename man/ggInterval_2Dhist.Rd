@@ -6,7 +6,8 @@
 package.}
 \usage{
 ggInterval_2Dhist(data = NULL,mapping = aes(NULL)
-,xBins = 14,yBins=16)
+,xBins = 14,yBins=16,removeZero = F,
+addFreq = T)
 }
 \arguments{
 \item{data}{A ggESDA object.It can also be either RSDA object or

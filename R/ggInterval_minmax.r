@@ -44,7 +44,10 @@ ggInterval_minmax <- function(data = NULL,mapping = aes(NULL),
     scaleXY <- "local"
   }
   if(plotAll){
-    scaleXY <- "global" #need to fix xy
+    if(scaleXY == "local"){
+      warning("In order to fix axis, scaleXY must be global when plotAll = T.")
+      scaleXY <- "global" #need to fix xy
+    }
   }
 
   #data preparing

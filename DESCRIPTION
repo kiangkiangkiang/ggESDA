@@ -7,26 +7,27 @@ Maintainer: Bo-Syue Jiang <lucky1515699@gmail.com>
 Description: This package implements an extension of ggplot2 and visualizes the symbolic data with multiple plot which can be adjusted by more general and flexible input arguments.It also provides a function to transform the classical data to symbolic data by both clustering algorithm and customized method.
 Depends:
     ggplot2,
-    R (>= 2.10),
+    R (>= 3.5.0),
     tidyverse
 Suggests: 
     testthat (>= 2.1.0),
     knitr,
     rmarkdown
 Imports:
-  RSDA,
-  rlang,
-  R6,
-  stats,
-  dplyr,
-  tidyr,
-  gridExtra,
-  gtools,
-  stringr,
-  prodlim,
-  ggforce,
-  ggpubr,
-  ggthemes
+    RSDA,
+    rlang,
+    R6,
+    stats,
+    dplyr,
+    tidyr,
+    gridExtra,
+    gtools,
+    stringr,
+    prodlim,
+    ggforce,
+    ggpubr,
+    ggthemes,
+    tibble
 License: GPL (>= 2)
 Encoding: UTF-8
 LazyData: true

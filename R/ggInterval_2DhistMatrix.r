@@ -11,7 +11,7 @@
 #' big O in calculating full matrix will be too large.
 #' @import tidyverse rlang ggplot2
 #' @importFrom RSDA is.sym.interval
-#' @importFrom dplyr between filter
+#' @importFrom dplyr between
 #' @param data A ggESDA object.It can also be either RSDA object or
 #' classical data frame,which will be automatically convert to ggESDA
 #' data.
@@ -27,7 +27,8 @@
 #' @param addFreq where add frequency text in each cells.
 #' @return Return a plot with ggplot2 object
 #' @usage ggInterval_2DhistMatrix(data = NULL,mapping = aes(NULL)
-#' ,xBins = 14,yBins=16)
+#' ,xBins = 8,yBins=8,removeZero = F,
+#' addFreq = T)
 #'
 #' @examples
 #' ggInterval_2DhistMatrix(iris,aes(col="black",alpha=0.8))

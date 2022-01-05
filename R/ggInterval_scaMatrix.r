@@ -9,7 +9,8 @@
 #' recommended to deal with too many variables because the
 #' big O in calculating full matrix will be too large.
 #' @import rlang ggplot2 tidyverse
-#' @importFrom dplyr filter
+#' @importFrom grDevices gray.colors
+#' @importFrom grDevices grey.colors
 #' @param data A ggESDA object.It can also be either RSDA object or
 #' classical data frame,which will be automatically convert to ggESDA
 #' data.

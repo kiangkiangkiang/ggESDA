@@ -22,7 +22,8 @@
 #' @param addFreq where add frequency text in each cells.
 #' @return Return a ggplot2 object.
 #' @usage ggInterval_2Dhist(data = NULL,mapping = aes(NULL)
-#' ,xBins = 14,yBins=16)
+#' ,xBins = 14,yBins=16,removeZero = F,
+#' addFreq = T)
 #' @examples
 #' #a classical data input
 #' ggInterval_2Dhist(mtcars,aes(x=disp,y=wt))

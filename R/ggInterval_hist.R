@@ -22,7 +22,8 @@
 #' @param plotAll boolean, whether plot all variables, default FALSE.
 #' will be separate into.
 #' @return Return a ggplot2 object.
-#' @usage ggInterval_hist(data = NULL,mapping = aes(NULL),method="equal-bin",bins=10)
+#' @usage ggInterval_hist(data = NULL,mapping = aes(NULL),method="equal-bin",bins=10,
+#'  plotAll = FALSE)
 #' @examples
 #' ggInterval_hist(mtcars,aes(x=wt))
 #'

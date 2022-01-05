@@ -5,7 +5,8 @@
 \title{2-Dimension histogram matrix}
 \usage{
 ggInterval_2DhistMatrix(data = NULL,mapping = aes(NULL)
-,xBins = 14,yBins=16)
+,xBins = 8,yBins=8,removeZero = F,
+addFreq = T)
 }
 \arguments{
 \item{data}{A ggESDA object.It can also be either RSDA object or

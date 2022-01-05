@@ -58,12 +58,12 @@ dim(myFacedata)
 
 ## Visualization
 
-With the symbolic data generated,you can start to visualize the data by the following functions:
+With the symbolic data generated,you can start to visualize the symbolic data. But now, we are going to do with a real symbolic datasets, face recognition data and Environment data, by the following functions:
 
 ### ggInterval_index() for visualizing the interval of each observations
 
 ```{r ggInterval_index,eval=FALSE}
-ggInterval_index(data=iris_interval,aes(x=1:3,y=Sepal.Length))
+ggInterval_index(facedata, aes(x = AD))
 ```
 ```{r, echo=FALSE}
 include_graphics("images/ggInterval_index.png")
@@ -72,7 +72,17 @@ include_graphics("images/ggInterval_index.png")
 You can also change `fill=` and `col=` to make the plot more visible,and set x or y axis to your variable will rotate the index line in figure.
 
 ```{r ggInterval_index2,eval=FALSE}
-ggInterval_index(data=myFacedata,aes(x=AD,col="red",fill=5))
+m <- mean(facedata$AD)
+Concepts <- as.factor(rep(c("FRA", "HUS", "INC", "ISA", "JPL", "KHA",
+                            "LOT", "PHI", "ROM"), each = 3))
+ggInterval_index(facedata, aes(x = AD, fill = Concepts))+
+  theme_bw() +
+  scale_fill_brewer(palette = "Set2")+
+  geom_segment(x = m, xend = m, y = 0, yend = 27,
+               lty = 2, col = "red", lwd = 1) +
+  geom_text(aes(x = m, y = 28), label = "Mean")+
+  scale_y_continuous(breaks = 1:27,
+                     labels = rownames(facedata))
 ```
 ```{r, echo=FALSE}
 include_graphics("images/ggInterval_index2.png")
@@ -82,19 +92,16 @@ include_graphics("images/ggInterval_index2.png")
 ### ggInterval_minmax() for visualizing the interval of each observations which is sorted by minimal value
 
 ```{r ggInterval_minmax,eval=FALSE}
-ggInterval_minmax(iris_interval,aes(x=Petal.Length))
+
+ggInterval_minmax(facedata, aes(x = AD, size = 3))+
+  scale_color_manual(values = c("darkblue", "darkred")) + 
+  coord_fixed(ratio = 1) 
+  theme_bw()
 ```
 ```{r, echo=FALSE}
 include_graphics("images/ggInterval_minmax.png")
 ```
 
-```{r ggInterval_minmax2,eval=FALSE}
-ggInterval_minmax(myFacedata[16:21,],aes(x=AD))+
-  coord_flip()
-```
-```{r, echo=FALSE}
-include_graphics("images/ggInterval_minmax2.png")
-```
 
 ### ggInterval_boxplot() for visualizing the distribution of the interval data
 
@@ -127,41 +134,39 @@ The histogram of interval data is to calculate the frequency of each interval in
 
 * equal-bin method (default)
 
+* unequal-bin method `method = unequal-bin`
+
+Note : The change of bins in unequal-bin method will be ignore because it will conflict with algorithm .
+
 ```{r ggInterval_hist,eval=FALSE}
-ggInterval_hist(iris_interval,aes(x=Sepal.Width,col="red",fill="green"),bins = 30,method="equal-bin")+
-  coord_flip()
+equal_bin <- ggInterval_hist(facedata, plotAll = T) +
+              theme_bw()
+unequal_bin <- ggInterval_hist(facedata, plotAll = T,
+                               method = "unequal-bin") +
+              theme_bw()
+ggarrange(equal_bin, unequal_bin, ncol = 2)  
 ```
 ```{r, echo=FALSE}
 include_graphics("images/ggInterval_hist.png")
 ```
 
-* inequal-bin method 
 
-Note : The change of bins in this method will be ignore because it will conflict with algorithm .
-
-```{r ggInterval_hist2,eval=FALSE}
-ggInterval_hist(data=myFacedata[10:16,],aes(x=AH),
-                method="inequal-bin")
-```
-```{r, echo=FALSE}
-include_graphics("images/ggInterval_hist2.png")
-```
 
 ### ggInterval_centerRange for visualizing the relation between center and range of the interval of each observations.
 
 ```{r ggInterval_centerRange,eval=FALSE}
-ggInterval_centerRange(iris_interval,aes(x=Sepal.Width))+
-  geom_text(label=rownames(iris_interval),vjust=-0.8)+
-  scale_x_continuous(limits = c(2.6,3.4))+
-  scale_y_continuous(limits = c(1.3,2.2))
+ggInterval_centerRange(iris_interval,aes(x = Sepal.Width)) +
+  geom_text(label = rownames(iris_interval), vjust = -0.8) +
+  scale_x_continuous(limits = c(2.6, 3.4)) +
+  scale_y_continuous(limits = c(1.3, 2.2))
 ```
 ```{r, echo=FALSE}
 include_graphics("images/ggInterval_centerRange.png")
 ```
 
 ```{r ggInterval_centerRange2,eval=FALSE}
-ggInterval_centerRange(myFacedata[11:20,],aes(x=GH))+
-  geom_text(label=rownames(myFacedata)[11:20],vjust=-0.8,size=3)
+ggInterval_centerRange(myFacedata[11:20, ],aes(x = GH))+
+  geom_text(label = rownames(myFacedata)[11:20], vjust = -0.8, size =  3)
 ```
 ```{r, echo=FALSE}
 include_graphics("images/ggInterval_centerRange2.png")
@@ -172,32 +177,21 @@ include_graphics("images/ggInterval_centerRange2.png")
 Because the value is an interval,it will be a nice way that the rectangle represents interval of two variables.
 
 ```{r ggInterval_scatter,eval=FALSE}
-ggInterval_scatter(iris_interval,aes(x=Petal.Length,y=Petal.Width))+
-  scale_x_continuous(limits = c(0.3,7))
+myCol <- rep(RColorBrewer::brewer.pal(9, "Set1"), each = 3)
+ggInterval_scatter(data = facedata, aes(x = AD, y = BC)) +
+  scale_fill_manual(values = myCol, name = "CONCEPTS",
+                    label = rownames(facedata)) +
+  theme_bw()
 ```
 ```{r, echo=FALSE}
 include_graphics("images/ggInterval_scatter.png")
 ```
 
 
-```{r ggInterval_scatter2,eval=FALSE}
-ggInterval_scatter(myFacedata[10:20,],aes(x=AD,y=AH))+
-  guides(fill=F)
-```
-```{r, echo=FALSE}
-include_graphics("images/ggInterval_scatter2.png")
-```
-
 ### ggInterval_scaMatrix for visualizing all variables relations by using scatter plot at a time
 
 ```{r ggInterval_scaMatrix,eval=FALSE}
-ggInterval_scaMatrix(iris_interval[, c(1:3)],
-                     aes(
-                       col = "red",
-                       lty = 2 ,
-                       fill = "blue",
-                       alpha = 0.3
-                     ))
+ggInterval_scaMatrix(facedata)
 ```
 ```{r, echo=FALSE}
 include_graphics("images/ggInterval_scaMatrix.png")
@@ -215,13 +209,12 @@ include_graphics("images/ggInterval_2Dhist.png")
 It can be adjusted by ggplot2 function too.Using `?ggInterval_2Dhist()` will show more detail about it. 
 
 ```{r ggInterval_2Dhist2,eval=FALSE}
-ggInterval_2Dhist(myFacedata, aes(x = AD, y = AH)) +
-  scale_fill_gradient2(
-    low = "green",
-    mid = "grey",
-    high = "red",
-    midpoint = 0.3
-  )
+ggInterval_2Dhist(facedata, aes(x = BC, y = AH, col = "gray50")) +
+  scale_fill_gradient(
+    low = "gray85",
+    high = "red"
+  ) +
+  theme_bw()
 ```
 ```{r, echo=FALSE}
 include_graphics("images/ggInterval_2Dhist2.png")
@@ -232,7 +225,11 @@ include_graphics("images/ggInterval_2Dhist2.png")
 Note : It isn't recommended to deal with too many variables because the time complexity in calculating full matrix will be too large. 
 
 ```{r ggInterval_2DhistMatrix,eval=FALSE}
-ggInterval_2DhistMatrix(iris_interval)
+ggInterval_2DhistMatrix(facedata,
+                        xBins = 10,
+                        yBins = 10,
+                        removeZero = T,
+                        addFreq = F)
 ```
 ```{r, echo=FALSE}
 include_graphics("images/ggInterval_2DhistMatrix.png")
@@ -241,7 +238,8 @@ include_graphics("images/ggInterval_2DhistMatrix.png")
 ### ggInterval_indexImage for visualizing the interval of each observations by using image
 
 ```{r ggInterval_indexImage,eval=FALSE}
-ggInterval_indexImage(iris_interval, aes(x = Sepal.Length))
+ggInterval_indexImage(facedata, aes(x = AD)) +
+  coord_flip()
 
 ```
 ```{r, echo=FALSE}
@@ -249,11 +247,13 @@ include_graphics("images/ggInterval_indexImage.png")
 ```
 
 ```{r ggInterval_indexImage2,eval=FALSE}
-ggInterval_indexImage(myFacedata,
-                      aes(x = AD),
-                      column_condition = TRUE,
-                      full_strip = TRUE) + coord_flip() +
-  theme(axis.text = element_text(size = 5))
+p1 <- ggInterval_indexImage(facedata, plotAll = T, column_condition = T,
+                      full_strip = T)
+
+p2 <- ggInterval_indexImage(facedata, plotAll = T, column_condition = F,
+                      full_strip = T)
+
+ggpubr::ggarrange(p1, p2, ncol = 2)
 
 ```
 ```{r, echo=FALSE}
@@ -283,7 +283,30 @@ include_graphics("images/ggInterval_3Dscatter2.png")
 ### ggInterval_radar for visualizing the interval of multivariates
 
 ```{r ggInterval_radar,eval=FALSE}
-ggInterval_radar(iris_interval,inOneFig = TRUE)
+
+p1 <- ggInterval_radar(Environment, 
+                 plotPartial = 2,
+                 showLegend = F,
+                 base_circle = T,
+                 base_lty = 2,
+                 addText = F) +
+  labs(title = "") +
+  theme_bw() +
+  scale_fill_manual(values = c("gray50")) +
+  scale_color_manual(values = c("gray50")) 
+
+
+p2 <- ggInterval_radar(Environment, 
+                       plotPartial = 7,
+                       showLegend = F,
+                       base_circle = F,
+                       base_lty = 1,
+                       addText = T) +
+  labs(title = "") +
+  theme_bw() +
+  scale_fill_manual(values = c("gray50")) +
+  scale_color_manual(values = c("gray50"))
+ggpubr::ggarrange(p1, p2, ncol = 2)
 ```
 ```{r, echo=FALSE}
 include_graphics("images/ggInterval_radar.png")
@@ -292,20 +315,93 @@ include_graphics("images/ggInterval_radar.png")
 It can also plot partial observations by `plotPartial = `,and the right hand of equation can put the row index of observations you want to see.
 
 ```{r ggInterval_radar2,eval=FALSE}
-ggInterval_radar(myFacedata,layerNumber = 6,plotPartial = c(1:4))
+p1 <- ggInterval_radar(Environment,
+                 plotPartial = c(1, 4),
+                 showLegend = F,
+                 addText = F) +
+  scale_fill_manual(values = c("darkblue", "darkred")) +
+  scale_color_manual(values = c("darkblue", "darkred"))
+
+p2 <- ggInterval_radar(Environment,
+                       plotPartial = c(1, 4),
+                       showLegend = F,
+                       addText = F,
+                       base_circle = F,
+                       base_lty = 1,
+                       type = "rect") +
+  scale_fill_manual(values = c("darkblue", "darkred")) +
+  scale_color_manual(values = c("darkblue", "darkred"))
+ggpubr::ggarrange(p1, p2, ncol = 2)
 ```
 
 ```{r, echo=FALSE}
 include_graphics("images/ggInterval_radar2.png")
 ```
 
+A quantile radar plot : 
+
+```{r ggInterval_radar3,eval=FALSE}
+
+dataSetList <- list(AbaloneIdt = AbaloneIdt, 
+                    BLOOD = BLOOD,
+                    Cardiological = Cardiological,
+                    facedata = facedata,
+                    oils = oils,
+                    mushroom = mushroom,
+                    Environment = Environment)
+myFill <- c("white", "gray10", "gray20",
+            "gray30", "gray40", "gray50",
+            "gray60", "gray70", "white",
+            "white", "white")
+myCol <- myFill; myCol[1] <- "black"
+pList <- NULL
+u <- 1
+for(i in dataSetList){
+  p <- ggInterval_radar(i,
+                        base_circle = F,
+                        base_lty = 1,
+                        type = "quantile",
+                        quantileNum = 10,
+                        showLegend = F,
+                        Drift = 0)+
+    labs(title = names(dataSetList)[u]) +
+    scale_fill_manual(values = rev(myFill)) +
+    scale_color_manual(values = rev(myCol))
+    ggthemes::theme_hc()
+  pList[[u]] <- p
+  u <- u + 1
+}
+
+gridExtra::marrangeGrob(pList, nrow = 2, ncol = 4,
+                        top = "")
+```
+
+```{r, echo=FALSE}
+include_graphics("images/ggInterval_radar3.png")
+```
+
+
 ### ggInterval_PCA for dimension reduction in interval data
 
 * The scatter plot of first two principal component 
 
 ```{r ggInterval_PCA,fig.show='hide'}
-myPCA<-ggInterval_PCA(myFacedata,aes(fill="grey"),plot = FALSE)
-myPCA$ggplotPCA
+
+
+CONCEPT <- rep(c("FRA", "HUS", "INC", "ISA", "JPL", "KHA",
+           "LOT", "PHI", "ROM"), each = 3)
+p <- ggInterval_PCA(facedata, poly = T,
+                    concepts_group = CONCEPT)
+p$ggplotPCA <- p$ggplotPCA + theme(legend.position = "top") + 
+  theme_bw() 
+
+p2 <- ggInterval_PCA(facedata, poly = F,
+                    concepts_group = CONCEPT)
+p2$ggplotPCA <- p2$ggplotPCA + theme(legend.position = "top") +
+  theme_bw()
+
+ggpubr::ggarrange(p$ggplotPCA, p2$ggplotPCA, ncol = 2)
+
 ```
 ```{r, echo=FALSE}
 include_graphics("images/ggInterval_PCA.png")
@@ -314,6 +410,7 @@ include_graphics("images/ggInterval_PCA.png")
 * PCA loading
 
 ```{r pcaLoadings}
+myPCA <- p2
 myPCA$loadings
 ```
 
