@@ -31,27 +31,27 @@ by collecting all vertices in each interval to form a shape of
 cube.Also show the difference between each group.
 }
 \examples{
-p<-ggInterval_3Dscatter(iris,aes(iris$Sepal.Length,iris$Sepal.Width,iris$Petal.Length))
-p
-p+scale_fill_manual(values = c("red","yellow",
-    "green","blue",
-    "black"),
-    labels=c("group1","group2",
-            "group3","group4",
-            "group5"),
-    name="my fill")
+#p<-ggInterval_3Dscatter(iris,aes(iris$Sepal.Length,iris$Sepal.Width,iris$Petal.Length))
+#p
+#p+scale_fill_manual(values = c("red","yellow",
+#     "green","blue",
+#    "black"),
+#     labels=c("group1","group2",
+#            "group3","group4",
+#             "group5"),
+#    name="my fill")
 
 #generate symbolic data
-mySymData<-classic2sym(iris,Species)
-mySymData<-mySymData$intervalData
-p<-ggInterval_3Dscatter(mySymData,aes(Sepal.Length,
-    Sepal.Width,
-    Petal.Length,col="red",lty=2))
-p
-p+scale_fill_manual(values = c("yellow",
-    "green",
-    "black"),
-    labels=rownames(mySymData))
+#mySymData<-classic2sym(iris,Species)
+#mySymData<-mySymData$intervalData
+#p<-ggInterval_3Dscatter(mySymData,aes(Sepal.Length,
+#     Sepal.Width,
+#    Petal.Length,col="red",lty=2))
+#p
+#p+scale_fill_manual(values = c("yellow",
+#     "green",
+#    "black"),
+#     labels=rownames(mySymData))
 
 
 
