@@ -12,6 +12,7 @@
 #' @import tidyverse rlang ggplot2
 #' @importFrom RSDA is.sym.interval
 #' @importFrom dplyr between
+#' @importFrom magrittr %>%
 #' @param data A ggESDA object.It can also be either RSDA object or
 #' classical data frame,which will be automatically convert to ggESDA
 #' data.
@@ -31,10 +32,10 @@
 #' addFreq = T)
 #'
 #' @examples
-#' ggInterval_2DhistMatrix(iris,aes(col="black",alpha=0.8))
+#' #ggInterval_2DhistMatrix(iris,aes(col="black",alpha=0.8))
 #'
-#' mydata<-RSDA::Cardiological
-#' ggInterval_2DhistMatrix(mydata)
+#' #mydata<-RSDA::Cardiological
+#' #ggInterval_2DhistMatrix(mydata)
 #'
 #'
 #'
@@ -43,6 +44,8 @@ ggInterval_2DhistMatrix<-function(data = NULL,mapping = aes(NULL),
                           xBins = 8,yBins=8,removeZero = F,
                           addFreq = T){
   #test big O
+  #globalVariables(".", add = F)
+  . <- NULL
   if(xBins+yBins>100) {
     stop("ERROR : Bins are too large to calculate.Suggest two bins be smaller than 100.")
   }
@@ -122,7 +125,7 @@ ggInterval_2DhistMatrix<-function(data = NULL,mapping = aes(NULL),
   }
 
   for(var in colnames(iData)){
-    temp <- dplyr::filter(freq.matrix, xv == var & isPlot)
+    temp <- dplyr::filter(freq.matrix, freq.matrix$xv == var & freq.matrix$isPlot)
     freq.matrix[!freq.matrix$isPlot & freq.matrix$xv==var, "textXY"] <- (min(temp$x1) + max(temp$x2))/2
 
   }
@@ -138,19 +141,19 @@ ggInterval_2DhistMatrix<-function(data = NULL,mapping = aes(NULL),
 
   #build Aesthetic
   usermapping <- args
-  mymapping <- list(data=. %>% dplyr::filter(isPlot)
-                    ,mapping=aes(xmin=x1, xmax=x2,
-                                 ymin=y1, ymax=y2,
-                                 fill=freq)
+  mymapping <- list(data=.%>% dplyr::filter(.data$isPlot)
+                    ,mapping=aes(xmin=.data$x1, xmax=.data$x2,
+                                 ymin=.data$y1, ymax=.data$y2,
+                                 fill=.data$freq)
                     , alpha=0.5)
   allmapping <-as.list(structure(as.expression(c(usermapping,mymapping)),class="uneval"))
 
   #plot
-  base <- ggplot(data=freq.matrix, aes(x1, y1))+
+  base <- ggplot(data=freq.matrix, aes(.data$x1, .data$y1))+
     do.call(geom_rect,allmapping)+
-    geom_text(data = .%>% dplyr::filter(!isPlot), aes(x = textXY, y = textXY, label = xv),
+    geom_text(data = .%>% dplyr::filter(!.data$isPlot), aes(x = .data$textXY, y = .data$textXY, label = .data$xv),
               size=12)+
-    facet_grid(yv~xv, scale="free")+
+    facet_grid(.data$yv~.data$xv, scales="free")+
     scale_fill_gradient2(name="frequency",
                        low = "blue",mid="yellow",
                        high = "red",midpoint = m,
@@ -159,8 +162,8 @@ ggInterval_2DhistMatrix<-function(data = NULL,mapping = aes(NULL),
     theme_bw()
 
   if(addFreq){
-    base <- base + geom_text(data = . %>% dplyr::filter(isPlot),
-                             aes(x=xmid,y=ymid,label=round(freq,1)))
+    base <- base + geom_text(data = .%>% dplyr::filter(.data$isPlot),
+                             aes(x=.data$xmid,y=.data$ymid,label=round(.data$freq,1)))
   }
   return(base)
 

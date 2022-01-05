@@ -62,6 +62,9 @@ ggInterval_radar <-function(data=NULL,layerNumber=3,
                             Drift=0.5,
                             addText_modal=TRUE,
                             addText_modal.p=FALSE){
+  #globalVariables("varLevels", add = F)
+  #utils::globalVariables(c("varLevels"), add=FALSE)
+  varLevels <- NULL
   extendUnit <- Drift
   if(extendUnit < 0 | extendUnit > 1){
     stop("Drift must between 0 to 1.")
@@ -311,12 +314,12 @@ ggInterval_radar <-function(data=NULL,layerNumber=3,
       heiList[[i]]<-0
     }
     for(ele in levels(propDf$groupid)){
-      propDf.ele <- dplyr::filter(propDf,groupid==ele)
+      propDf.ele <- dplyr::filter(propDf,propDf$groupid==ele)
       varG <-1
       tempRectDf <- data.frame(NULL)
       for(i in unique(as.factor(propDf$varName))){
         rectDf <- data.frame(NULL)
-        propDf.temp <- dplyr::filter(propDf.ele,varName==i)
+        propDf.temp <- dplyr::filter(propDf.ele,propDf.ele$varName==i)
         varL <- 1
         heiVec <- NULL
         for(u in 1:dim(propDf.temp)[1]){
@@ -378,8 +381,8 @@ ggInterval_radar <-function(data=NULL,layerNumber=3,
       #if(fillBetween){
       myPolyData<-data.frame(NULL)
       for(i in levels(as.factor(plotMin$group))){
-        plotMin.temp <- dplyr::filter(plotMin,group==i)
-        plotMax.temp <- dplyr::filter(plotMax,group==i)
+        plotMin.temp <- dplyr::filter(plotMin,plotMin$group==i)
+        plotMax.temp <- dplyr::filter(plotMax,plotMin$group==i)
         myPathData<-data.frame(x1=plotMin.temp$cos,y1=plotMin.temp$sin,
                                x2=plotMax.temp$cos,y2=plotMax.temp$sin)
         if(allnP==nP){
@@ -390,8 +393,11 @@ ggInterval_radar <-function(data=NULL,layerNumber=3,
           # print(levels(as.factor(propDf$varName)))
           # print(propDf)
           for(u in unique(as.factor(propDf$varName))){
-            propDf.temp <- dplyr::filter(propDf,varName==u) %>%
-              dplyr::filter(groupid==i)
+            # propDf.temp <- dplyr::filter(propDf,propDf$varName==u) %>%
+            #   dplyr::filter(groupid==i)
+
+            propDf.temp <- dplyr::filter(propDf,propDf$varName==u)
+            propDf.temp <- dplyr::filter(propDf.temp,propDf.temp$groupid==i)
             tmp<-propDf.temp[propDf.temp$prop==max(propDf.temp$prop),]
             tmp<-tmp[1,]
             tmp2<-rbind(tmp2,plotMin.temp[1,])
@@ -421,7 +427,7 @@ ggInterval_radar <-function(data=NULL,layerNumber=3,
         tempPolyDf <- myPolyData[,c(1,2,3,5)]
         colnames(tempRectDf)<-colnames(tempPolyDf)
         polyDf<-as.data.frame(rbind(tempPolyDf,tempRectDf))
-        p<-p+geom_polygon(data=polyDf,aes(x=cos,y=sin,group=group,fill=obsGroup,col=obsGroup),
+        p<-p+geom_polygon(data=polyDf,aes(x=polyDf$cos,y=polyDf$sin,group=polyDf$group,fill=polyDf$obsGroup,col=polyDf$obsGroup),
                           alpha=alpha)+
           geom_point(data=plotMin,aes(x=plotMin$cos,y=plotMin$sin))+
           geom_point(data=plotMax,aes(x=plotMax$cos,y=plotMax$sin))
@@ -438,6 +444,7 @@ ggInterval_radar <-function(data=NULL,layerNumber=3,
         }
 
       }
+
     }
     #else{ #this is else for if(fillbetween)
     else if(type=="rect"){
@@ -445,7 +452,7 @@ ggInterval_radar <-function(data=NULL,layerNumber=3,
       rectPolyData<-data.frame(NULL)
       gId <- 1
       for(g in levels(as.factor(cutDf[[1]]$obsGroup))){
-        cutDf.temp<-lapply(1:4,FUN = function(x){as.data.frame(dplyr::filter(cutDf[[x]],obsGroup==g))})
+        cutDf.temp<-lapply(1:4,FUN = function(x){as.data.frame(dplyr::filter(cutDf[[x]],cutDf[[x]]$obsGroup==g))})
         #print(cutDf.temp)
         for(i in 1:nP){
           tmpDf<-data.frame(x=c(cutDf.temp[[1]]$x2[i],cutDf.temp[[2]]$x2[i],cutDf.temp[[4]]$x2[i],cutDf.temp[[3]]$x2[i]),
@@ -465,38 +472,39 @@ ggInterval_radar <-function(data=NULL,layerNumber=3,
         levels(tempRectDf$obsGroup) <- levels(rectPolyData$obsGroup)
         rectPolyData<-as.data.frame(rbind(tempRectDf,rectPolyData))
       }
-      p<-p+geom_polygon(data=rectPolyData,aes(x=x,y=y,group=varGroup,
-                                              fill=obsGroup,col=obsGroup),alpha=alpha)
+      p<-p+geom_polygon(data=rectPolyData,aes(x=.data$x,y=.data$y,group=.data$varGroup,
+                                              fill=.data$obsGroup,col=.data$obsGroup),alpha=alpha)
 
 
     }
     #nominal
     if(allnP!=nP){
       newPropDf<-as.data.frame(tidyr::separate(propDf,varLevels,into=c("varLevels","gar"),sep=":",convert = F))
-      newPropDf<-as.data.frame(dplyr::filter(newPropDf,groupid==levels(newPropDf$groupid)[1]))
+      newPropDf<-as.data.frame(dplyr::filter(newPropDf,newPropDf$groupid==levels(newPropDf$groupid)[1]))
 
       if(addText_modal){
-        p<-p+geom_text(data=newPropDf,aes(x=newPropDf$x+textShift,y=newPropDf$y+textShift,label=varLevels),vjust=2.15,hjust=0.5)
+        p<-p+geom_text(data=newPropDf,aes(x=newPropDf$x+textShift,y=newPropDf$y+textShift,label=newPropDf$varLevels),vjust=2.15,hjust=0.5)
       }
       #print(totalRectDf)
 
       if(addText_modal.p){
         tempd<-data.frame(NULL)
         for(i in unique(totalRectDf$varGroup)){
-          temp.varG<-dplyr::filter(totalRectDf,varGroup==i)
+          temp.varG<-dplyr::filter(totalRectDf,totalRectDf$varGroup==i)
           for(u in levels(temp.varG$obsGroup)){
-            temp.obsG<-dplyr::filter(temp.varG,obsGroup==u)
+            temp.obsG<-dplyr::filter(temp.varG,temp.varG$obsGroup==u)
             for(k in unique(temp.obsG$varLevels)){
-              temp.varL<-dplyr::filter(temp.obsG,varLevels==k)
+              temp.varL<-dplyr::filter(temp.obsG,temp.obsG$varLevels==k)
               tempd<-rbind(tempd,data.frame(x=mean(temp.varL$newx),y=mean(temp.varL$newy)))
             }
           }
         }
         propTextDf<-data.frame(tempd,prop=propDf$prop)
         #print(propTextDf)
-        p<-p+geom_text(data=propTextDf,aes(x=x+textShift,y=y,label=round(prop,2)))
+        p<-p+geom_text(data=propTextDf,aes(x=propTextDf$x+textShift,y=propTextDf$y,label=round(propTextDf$prop,2)))
       }
     }
+    #print("5")
     # if(allnP!=nP){
     #   p<-p+geom_polygon(data=totalRectDf,aes(x=newx,y=newy,group=group,fill=obsGroup),
     #                     col="black",
@@ -557,7 +565,7 @@ ggInterval_radar <-function(data=NULL,layerNumber=3,
       #tmp<-seq(0,1,1/layerNumber)[-1]
       #end adjust
       tmp<-data.frame(x=a*tmp,y=b*tmp,label=paste0(as.character(round((tmp-extendUnit)*100)),"%"))
-      p<-p+geom_text(data=tmp,aes(x=x,y=y,label=label))
+      p<-p+geom_text(data=tmp,aes(x=tmp$x,y=tmp$y,label=tmp$label))
     }
   }else{
     plotList <- NULL
@@ -580,7 +588,7 @@ ggInterval_radar <-function(data=NULL,layerNumber=3,
         cutDf.temp<-list(NULL)
         for(k in 1:4){
           cutDf[[k]]$obsGroup <- as.factor(cutDf[[k]]$obsGroup)
-          cutDf.temp[[k]]<-dplyr::filter(cutDf[[k]],obsGroup==levels(cutDf[[k]]$obsGroup)[u])
+          cutDf.temp[[k]]<-dplyr::filter(cutDf[[k]],cutDf[[k]]$obsGroup==levels(cutDf[[k]]$obsGroup)[u])
         }
       }else{
         cutDf.temp<-0
@@ -624,7 +632,7 @@ ggInterval_radar <-function(data=NULL,layerNumber=3,
 
 plotFun<-function(p,iData,plotMin.temp,plotMax.temp,d,showXYLabs,showLegend,fillBetween,base_circle,layerNumber,textMin.temp,textMax.temp,rawiData,propDf,propDf.temp,allnP,nP,type,cutDf,totalRectDf.temp,addText,textShift,base_lty,alpha,xyLimits,extendUnit,addText_modal,addText_modal.p){
   #if(fillBetween){
-
+  varLevels <- NULL
   if(type=="default"){
     myPolyData<-data.frame(NULL)
     myPathData<-data.frame(x1=plotMin.temp$cos,y1=plotMin.temp$sin,
@@ -638,7 +646,7 @@ plotFun<-function(p,iData,plotMin.temp,plotMax.temp,d,showXYLabs,showLegend,fill
       # print(levels(as.factor(propDf$varName)))
       # print(propDf)
       for(u in unique(as.factor(propDf.temp$varName))){
-        propDf.temp2 <- dplyr::filter(propDf.temp,varName==u)
+        propDf.temp2 <- dplyr::filter(propDf.temp,propDf.temp$varName==u)
         tmp<-propDf.temp2[propDf.temp2$prop==max(propDf.temp2$prop),]
         tmp<-tmp[1,]
         tmp2<-rbind(tmp2,plotMin.temp[1,])
@@ -691,7 +699,7 @@ plotFun<-function(p,iData,plotMin.temp,plotMax.temp,d,showXYLabs,showLegend,fill
     rectPolyData<-data.frame(NULL)
     gId <- 1
     for(g in levels(as.factor(cutDf[[1]]$obsGroup))){
-      cutDf.temp<-lapply(1:4,FUN = function(x){as.data.frame(dplyr::filter(cutDf[[x]],obsGroup==g))})
+      cutDf.temp<-lapply(1:4,FUN = function(x){as.data.frame(dplyr::filter(cutDf[[x]],cutDf[[x]]$obsGroup==g))})
       #print(cutDf.temp)
       for(i in 1:nP){
         tmpDf<-data.frame(x=c(cutDf.temp[[1]]$x2[i],cutDf.temp[[2]]$x2[i],cutDf.temp[[4]]$x2[i],cutDf.temp[[3]]$x2[i]),
@@ -712,8 +720,8 @@ plotFun<-function(p,iData,plotMin.temp,plotMax.temp,d,showXYLabs,showLegend,fill
       levels(tempRectDf$obsGroup) <- levels(rectPolyData$obsGroup)
       rectPolyData<-as.data.frame(rbind(tempRectDf,rectPolyData))
     }
-    base<-p+geom_polygon(data=rectPolyData,aes(x=x,y=y,group=varGroup,
-                                               fill=obsGroup,col=obsGroup),alpha=alpha)
+    base<-p+geom_polygon(data=rectPolyData,aes(x=.data$x,y=.data$y,group=.data$varGroup,
+                                               fill=.data$obsGroup,col=.data$obsGroup),alpha=alpha)
 
   }#end rect
 
@@ -721,18 +729,18 @@ plotFun<-function(p,iData,plotMin.temp,plotMax.temp,d,showXYLabs,showLegend,fill
   if(allnP!=nP){
 
     newPropDf<-as.data.frame(tidyr::separate(propDf,varLevels,into=c("varLevels","gar"),sep=":",convert = F))
-    newPropDf<-as.data.frame(dplyr::filter(newPropDf,groupid==levels(newPropDf$groupid)[1]))
+    newPropDf<-as.data.frame(dplyr::filter(newPropDf,newPropDf$groupid==levels(newPropDf$groupid)[1]))
     if(addText_modal){
-      base<-base+geom_text(data=newPropDf,aes(x=newPropDf$x+textShift,y=newPropDf$y+textShift,label=varLevels),vjust=2.75)
+      base<-base+geom_text(data=newPropDf,aes(x=newPropDf$x+textShift,y=newPropDf$y+textShift,label=newPropDf$varLevels),vjust=2.75)
     }
 
     #print(totalRectDf.temp)
     if(addText_modal.p){
       tempd<-data.frame(NULL)
       for(i in levels(totalRectDf.temp$varGroup)){
-        temp.varG<-dplyr::filter(totalRectDf.temp,varGroup==i)
+        temp.varG<-dplyr::filter(totalRectDf.temp,totalRectDf.temp$varGroup==i)
         for(k in unique(temp.varG$varLevels)){
-          temp.varL<-dplyr::filter(temp.varG,varLevels==k)
+          temp.varL<-dplyr::filter(temp.varG,temp.varG$varLevels==k)
           tempd<-rbind(tempd,data.frame(x=mean(temp.varL$newx),y=mean(temp.varL$newy)))
         }
       }
@@ -774,7 +782,7 @@ plotFun<-function(p,iData,plotMin.temp,plotMax.temp,d,showXYLabs,showLegend,fill
     #tmp<-seq(0,1,1/layerNumber)[-1]
     #end adjust
     tmp<-data.frame(x=a*tmp,y=b*tmp,label=paste0(as.character(round((tmp-extendUnit)*100)),"%"))
-    base<-base+geom_text(data=tmp,aes(x=x,y=y,label=label))
+    base<-base+geom_text(data=tmp,aes(x=tmp$x,y=tmp$y,label=tmp$label))
   }
   base<-base+theme_bw()+guides(alpha = F)
   return(base)

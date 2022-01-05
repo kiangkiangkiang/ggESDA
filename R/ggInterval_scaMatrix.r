@@ -43,6 +43,7 @@
 #' @export
 ggInterval_scaMatrix <- function(data = NULL,mapping = aes(NULL),showLegend=TRUE){
   #data preparing
+  . <- NULL
   argsNum<-length(mapping)
   args<-lapply(mapping[1:argsNum],FUN=rlang::get_expr)
   this.x <- args$x ; this.y <- args$y
@@ -119,22 +120,22 @@ ggInterval_scaMatrix <- function(data = NULL,mapping = aes(NULL),showLegend=TRUE
     usermapping <- mapping
   }
 
-  mymapping <- list(data=. %>% dplyr::filter(isPlot),
-                    mapping=aes(xmin=x1, xmax=x2, ymin=y1, ymax=y2,
-                                 fill=Concepts,alpha=0.5),col="black")
+  mymapping <- list(data=. %>% dplyr::filter(.data$isPlot),
+                    mapping=aes(xmin=.data$x1, xmax=.data$x2, ymin=.data$y1, ymax=.data$y2,
+                                 fill=.data$Concepts,alpha=0.5),col="black")
   allmapping <-as.list(structure(as.expression(c(usermapping,mymapping)),class="uneval"))
 
 
 
   #start plot
-  ggplot(data=plotData, aes(x1,y1))+
+  ggplot(data=plotData, aes(.data$x1,.data$y1))+
     do.call(geom_rect,allmapping)+
     scale_fill_manual(name="Concept",
                       values=gray.colors(n),
                       labels=myRowNames)+
-    geom_text(data = .%>% dplyr::filter(!isPlot), aes(x = textXY, y = textXY, label = xv),
+    geom_text(data = .%>% dplyr::filter(!.data$isPlot), aes(x = .data$textXY, y = .data$textXY, label = .data$xv),
               size=12)+
     guides(colour = FALSE, alpha = FALSE)+
-    facet_grid(yv~xv, scale="free")+
+    facet_grid(.data$yv~.data$xv, scales="free")+
     labs(x="",y="")
 }

@@ -43,10 +43,10 @@ recommended to deal with too many variables because the
 big O in calculating full matrix will be too large.
 }
 \examples{
-ggInterval_2DhistMatrix(iris,aes(col="black",alpha=0.8))
+#ggInterval_2DhistMatrix(iris,aes(col="black",alpha=0.8))
 
-mydata<-RSDA::Cardiological
-ggInterval_2DhistMatrix(mydata)
+#mydata<-RSDA::Cardiological
+#ggInterval_2DhistMatrix(mydata)
 
 
 

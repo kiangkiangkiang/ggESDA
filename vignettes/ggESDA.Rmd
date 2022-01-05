@@ -109,7 +109,8 @@ The width of rectangle in boxplot is not meaningful.Instead,it is
 used for showing the difference of each quantile,either is the fill color.
 
 ```{r ggInterval_boxplot,eval=FALSE}
-ggInterval_boxplot(iris_interval,aes(x=Petal.Length))
+ggInterval_boxplot(facedata, plotAll = T) +
+  theme_bw()
 ```
 ```{r, echo=FALSE}
 include_graphics("images/ggInterval_boxplot.png")

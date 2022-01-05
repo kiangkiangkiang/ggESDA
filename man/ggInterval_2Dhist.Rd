@@ -39,30 +39,30 @@ the frequency of observation interval in each bin.
 }
 \examples{
 #a classical data input
-ggInterval_2Dhist(mtcars,aes(x=disp,y=wt))
-ggInterval_2Dhist(iris,aes(x=iris$Sepal.Length,y=iris[,3]),xBins=30)
-ggInterval_2Dhist(mtcars,aes(disp,wt),xBins=23,yBins=35)
+#ggInterval_2Dhist(mtcars,aes(x=disp,y=wt))
+#ggInterval_2Dhist(iris,aes(x=iris$Sepal.Length,y=iris[,3]),xBins=30)
+#ggInterval_2Dhist(mtcars,aes(disp,wt),xBins=23,yBins=35)
 
 #you can add and aesthetic like colour and alpha
-p<-ggInterval_2Dhist(mtcars,aes(x=disp,y=wt,col="black",alpha=0.8))
-p
+#p<-ggInterval_2Dhist(mtcars,aes(x=disp,y=wt,col="black",alpha=0.8))
+#p
 #adjust fill manual you like
-p+scale_fill_gradient2(low = "green",mid="grey",high = "red",
-    midpoint = (max(p$data$freq)+min(p$data$freq))/2)
+#p+scale_fill_gradient2(low = "green",mid="grey",high = "red",
+#     midpoint = (max(p$data$freq)+min(p$data$freq))/2)
 
 #a symbolic data input (ex.RSDA dataset:Cardiological)
 #it can also be produce by classic2sym
-mydata<-RSDA::Cardiological #generate symbolic data
-ggInterval_2Dhist(mydata,aes(Pulse,Syst))
-p<-ggInterval_2Dhist(mydata,aes(Pulse,Syst,col="red",lty=2))
-p
-p+theme_classic()+labs(title="My 2d plot")
-p+scale_x_continuous(breaks=c(50,60,80,100),
-    labels=c("aa","bb","cc","dd"))+geom_point(aes(x=60,y=150),pch=16,size=3)
+#mydata<-RSDA::Cardiological #generate symbolic data
+#ggInterval_2Dhist(mydata,aes(Pulse,Syst))
+#p<-ggInterval_2Dhist(mydata,aes(Pulse,Syst,col="red",lty=2))
+#p
+#p+theme_classic()+labs(title="My 2d plot")
+#p+scale_x_continuous(breaks=c(50,60,80,100),
+#     labels=c("aa","bb","cc","dd"))+geom_point(aes(x=60,y=150),pch=16,size=3)
 
 #mark a particular interval
-p+geom_rect(data=p$data,aes(xmin=p$data[10,"x1"],xmax=p$data[10,"x2"],
-    ymin=p$data[10,"y1"],ymax=p$data[10,"y2"]),fill="red")
+#p+geom_rect(data=p$data,aes(xmin=p$data[10,"x1"],xmax=p$data[10,"x2"],
+#     ymin=p$data[10,"y1"],ymax=p$data[10,"y2"]),fill="red")
 
 
 }

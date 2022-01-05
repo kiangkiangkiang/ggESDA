@@ -344,26 +344,26 @@ buildPlotData <- function(a, b, adjustStrip, n, full_strip, datasetMax){
 }
 
 
-buildColLegend <- function(v){
-    newd<-data.frame(x = rep(1:1000),
-                     xend = rep(1:1000),
-                     y = rep(1, 1000),
-                     yend = rep(2, 1000),
-                     val = v)
-    p2 <- ggplot(newd,aes(x=x,xend=xend,y=y,yend=yend,col=val))+
-      geom_segment()+
-      scale_color_gradient2(low = 'blue', mid = 'yellow', high = 'red',
-                            midpoint = (min(newd$val)+max(newd$val))/2,
-                            name = 'Value',
-                            breaks=c(min(newd$val),max(newd$val)),
-                            labels = c(round(min(newd$val)),round(max(newd$val))))+
-      guides(color=F,y=F)+theme_tufte()+labs(y=NULL,x=NULL)+
-      scale_x_continuous(breaks=c(0,1000),labels = c("min","max"))
-
-    temp<-ggplot()+theme_void()
-    temp2<-ggarrange(temp,p2,temp,nrow=1,widths = c(2,1,2))
-    return(temp2)
-}
+# buildColLegend <- function(v){
+#     newd<-data.frame(x = rep(1:1000),
+#                      xend = rep(1:1000),
+#                      y = rep(1, 1000),
+#                      yend = rep(2, 1000),
+#                      val = v)
+#     p2 <- ggplot(newd,aes(x=x,xend=xend,y=y,yend=yend,col=val))+
+#       geom_segment()+
+#       scale_color_gradient2(low = 'blue', mid = 'yellow', high = 'red',
+#                             midpoint = (min(newd$val)+max(newd$val))/2,
+#                             name = 'Value',
+#                             breaks=c(min(newd$val),max(newd$val)),
+#                             labels = c(round(min(newd$val)),round(max(newd$val))))+
+#       guides(color=F,y=F)+theme_tufte()+labs(y=NULL,x=NULL)+
+#       scale_x_continuous(breaks=c(0,1000),labels = c("min","max"))
+#
+#     temp<-ggplot()+theme_void()
+#     temp2<-ggarrange(temp,p2,temp,nrow=1,widths = c(2,1,2))
+#     return(temp2)
+# }
 
 
 myplot <- function(tempData, u, NAME, myHeatMapNames, n, ele, full_strip){
@@ -371,10 +371,10 @@ myplot <- function(tempData, u, NAME, myHeatMapNames, n, ele, full_strip){
 
   if(full_strip){
     midp<-(max(tempData$value)+min(tempData$value))/2
-    p <- ggplot(tempData, aes(x = x, xend = xend, y = y, yend = y, color = value))
+    p <- ggplot(tempData, aes(x = tempData$x, xend = tempData$xend, y = tempData$y, yend = tempData$y, color = tempData$value))
   }else{
     midp<-(max(tempData$y)+min(tempData$y))/2
-    p <- ggplot(tempData, aes(x = x, xend = xend, y = y, yend = yend, color = y))
+    p <- ggplot(tempData, aes(x = tempData$x, xend = tempData$xend, y = tempData$y, yend = tempData$yend, color = tempData$y))
   }
   p<-p+geom_segment(size = 3)+
     scale_color_gradient2(low = 'blue', mid = 'yellow', high = 'red',

@@ -111,16 +111,16 @@ ggInterval_PCA<-function(data = NULL,mapping = aes(NULL),plot=TRUE,
     d <- polyList$cpData
     usermapping <- structure(as.expression(args.noXY),class="uneval") #Aesthetic without x,y
     mymapping <- list(d,
-                      mapping=aes(x=x1,
-                                  y=y1,
-                                  xend=x2,
-                                  yend=y2,
-                                  col = Concepts_Group))
+                      mapping=aes(x=.data$x1,
+                                  y=.data$y1,
+                                  xend=.data$x2,
+                                  yend=.data$y2,
+                                  col = .data$Concepts_Group))
 
     allmapping <-as.list(structure(as.expression(c(usermapping,mymapping)),class="uneval"))
 
 
-    base <- ggplot(d, aes(x1, y1)) +
+    base <- ggplot(d, aes(.data$x1, .data$y1)) +
       do.call(geom_segment, allmapping)
   }
 
