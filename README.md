@@ -154,7 +154,7 @@ ggpubr::ggarrange(p1, p2, ncol = 2)
 
 One of the most well-known multivariate visualization techniques is radar plot, or called start plot. We fill the interval area by color mapping, and compare CONCEPTs, surely you can arrange it.
 
-In `ggInterval_radar`, you can add any annotations in figure, including a circle for classify the normalize data position, a real value for the interval or a propotion for modal multi-valued variables.
+In `ggInterval_radar`, you can add any annotations in figure, including a circle for classify the normalize data position, a real value for the interval or a propotion for modal multi-valued variables. There is the most important options `plotPartial`, which define which observations you want to plot. For example, `ggInterval_radar(data = facedata, plotPartial = c(1, 3))`. It means we want to plot the observations whose position of row is at 1 and 3. Remark: A radar plot will visualize all variables you on your input data in one time. If you only want to show the partial variables, just clarify in your input data, ex `data = facedata[, 1:3]`. However, the data you input must have full observations in order to normalize, so an obvious ERROR for input options in data is a `data = facedata[1:5, ]`, which only contains the first five data not a full. Unless you want to make them be your population.
 
 <img src = "vignettes/images/ggInterval_radar.png" width = "75%"></img>
 
