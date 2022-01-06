@@ -8,19 +8,19 @@ ggInterval_indexImage(data = NULL,mapping = aes(NULL),
 column_condition=TRUE,full_strip=FALSE, plotAll = FALSE)
 }
 \arguments{
-\item{data}{A ggESDA object.It can also be either RSDA object or
+\item{data}{A ggESDA object. It can also be either RSDA object or
 classical data frame,which will be automatically convert to ggESDA
 data.}
 
 \item{mapping}{Set of aesthetic mappings created by aes() or aes_().
-If specified and inherit.aes = TRUE (the default),
+If specified and inherit. aes = TRUE (the default),
 it is combined with the default mapping at the top level of
 the plot. You must supply mapping if there is no plot mapping.}
 
-\item{column_condition}{Boolean variables,which mean the color
+\item{column_condition}{Boolean variables, which mean the color
 present by column condition (if TRUE) or matrix condition (if FALSE)}
 
-\item{full_strip}{Boolean variables,which mean the strip present
+\item{full_strip}{Boolean variables, which mean the strip present
 in full figure-width (if TRUE) or only in its variable values(if FALSE).}
 
 \item{plotAll}{Boolean, which determine if the heatmap type for visualizing

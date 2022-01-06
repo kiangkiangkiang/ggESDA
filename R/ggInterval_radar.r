@@ -7,7 +7,7 @@
 #' @importFrom gridExtra marrangeGrob
 #' @importFrom RSDA is.sym.interval
 #' @importFrom tidyr separate
-#' @param data A ggESDA object.It can also be either RSDA object or
+#' @param data A ggESDA object. It can also be either RSDA object or
 #' classical data frame(not recommended),which will be automatically convert to ggESDA
 #' data.
 #' @param layerNumber number of layer of a concentric circle,usually
@@ -17,7 +17,7 @@
 #' @param showLegend whether show the legend.
 #' @param showXYLabs whether show the x,y axis labels.
 #' @param plotPartial a numeric vector,which is the row index from
-#' the data.if it is not null,it will extract the row user deciding
+#' the data.if it is not null, it will extract the row user deciding
 #' to draw a radar plot from original data.Notes : the data must be
 #' an interval data if the plotPartial is not null.
 #' @param base_lty line type in base figure
@@ -25,7 +25,7 @@
 #' @param alpha aesthetic alpha of fill color
 #' @param addText add the value of interval-valued variables in figure
 #' @param type different type of radar,it can be "default","rect","quantile"
-#' @param quantileNum if type=="quantile" ,it will provide the number of percentage
+#' @param quantileNum if type == "quantile", it will provide the number of percentage
 #' @param Drift The drift term, which determines the radar values beginning.
 #' @param addText_modal add the factor of modal multi-valued variables in figure..
 #' @param addText_modal.p add the value of modal multi-valued variables in figure..

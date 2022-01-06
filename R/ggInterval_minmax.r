@@ -9,7 +9,7 @@
 #' classical data frame,which will be automatically convert to ggESDA
 #' data.
 #' @param mapping Set of aesthetic mappings created by aes() or aes_().
-#' If specified and inherit.aes = TRUE (the default),
+#' If specified and inherit. aes = TRUE (the default),
 #' it is combined with the default mapping at the top level of
 #' the plot. You must supply mapping if there is no plot mapping.
 #' @param scaleXY default "local", which means limits of x-axis and y-axis

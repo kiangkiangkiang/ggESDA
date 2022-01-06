@@ -5,15 +5,15 @@
 \title{Vertice-PCA for interval data}
 \usage{
 ggInterval_PCA(data = NULL,mapping = aes(NULL),plot=TRUE,
-                      concepts_group=NULL, poly = FALSE)
+                      concepts_group=NULL, poly = FALSE, adjust = TRUE)
 }
 \arguments{
-\item{data}{A ggESDA object.It can also be either RSDA object or
-classical data frame,which will be automatically convert to ggESDA
+\item{data}{A ggESDA object. It can also be either RSDA object or
+classical data frame, which will be automatically convert to ggESDA
 data.}
 
 \item{mapping}{Set of aesthetic mappings created by aes() or aes_().
-If specified and inherit.aes = TRUE (the default),
+If specified and inherit. aes = TRUE (the default),
 it is combined with the default mapping at the top level of
 the plot. You must supply mapping if there is no plot mapping.
 It is the same as the mapping of ggplot2.}
@@ -24,6 +24,8 @@ its inner object}
 \item{concepts_group}{color with each group of concept}
 
 \item{poly}{if plot a poly result}
+
+\item{adjust}{adjust sign of the principal component}
 }
 \value{
 A ggplot object for PC1,PC2,and a interval scores and others.
@@ -37,7 +39,7 @@ A ggplot object for PC1,PC2,and a interval scores and others.
 \description{
 ggInterval_PCA performs a principal components
 analysis on the given numeric interval data and returns the
-results like princomp , ggplot object and a interval scores.
+results like princomp, ggplot object and a interval scores.
 }
 \examples{
 ggInterval_PCA(iris)

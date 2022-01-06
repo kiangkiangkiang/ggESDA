@@ -1,18 +1,18 @@
 #' @name RSDA2sym
 #' @title RSDA object to symbolic object for ggplot
-#' @description  It  will be a good way to unify all symbolic data
+#' @description  It will be a good way to unify all symbolic data
 #' object in R that collects all useful symbolic analysis tools
-#' such like RSDA into the same class for management.In this way,
+#' such like RSDA into the same class for management. In this way,
 #' user who wants to do some study in symbolic data will be more
 #' convenient for searching packages.Thus,RSDA2sym collecting RSDA
 #' object into ggESDA object will do for plot(ggplot) and
 #' RSDA's analysis.
 #' @import stats
-#' @param data an interval data ,which may transfrom by RSDA::classic.to.sym
+#' @param data an interval data, which may transfrom by RSDA::classic.to.sym
 #' .Note:data is a necessary parameter,and must have symbolic_tbl class.
-#' @param rawData rawData,which can be transformed to interval data,
+#' @param rawData rawData, which can be transformed to interval data,
 #' must be a data frame and match to data.
-#' @return Return an object of class "ggESDA",which
+#' @return Return an object of class "ggESDA", which
 #' have a interval data and others as follows.
 #' \itemize{
 #'   \item intervalData - The Interval data after converting also known

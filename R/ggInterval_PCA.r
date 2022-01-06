@@ -2,15 +2,15 @@
 #' @title Vertice-PCA for interval data
 #' @description ggInterval_PCA performs a principal components
 #' analysis on the given numeric interval data and returns the
-#' results like princomp , ggplot object and a interval scores.
+#' results like princomp, ggplot object and a interval scores.
 #' @import rlang ggplot2 stats
 #' @importFrom RSDA is.sym.interval
 #' @importFrom gtools odd
-#' @param data A ggESDA object.It can also be either RSDA object or
-#' classical data frame,which will be automatically convert to ggESDA
+#' @param data A ggESDA object. It can also be either RSDA object or
+#' classical data frame, which will be automatically convert to ggESDA
 #' data.
 #' @param mapping  Set of aesthetic mappings created by aes() or aes_().
-#' If specified and inherit.aes = TRUE (the default),
+#' If specified and inherit. aes = TRUE (the default),
 #' it is combined with the default mapping at the top level of
 #' the plot. You must supply mapping if there is no plot mapping.
 #' It is the same as the mapping of ggplot2.
@@ -18,6 +18,7 @@
 #' its inner object
 #' @param concepts_group color with each group of concept
 #' @param poly if plot a poly result
+#' @param adjust adjust sign of the principal component
 #' @return A ggplot object for PC1,PC2,and a interval scores and others.
 #' \itemize{
 #'   \item scores_interval - The interval scores after PCA.
@@ -26,7 +27,7 @@
 #'   \item others - others are the returns values of princomp.
 #' }
 #' @usage ggInterval_PCA(data = NULL,mapping = aes(NULL),plot=TRUE,
-#'                       concepts_group=NULL, poly = FALSE)
+#'                       concepts_group=NULL, poly = FALSE, adjust = TRUE)
 #' @examples
 #' ggInterval_PCA(iris)
 #'
@@ -44,7 +45,7 @@
 #'
 #' @export
 ggInterval_PCA<-function(data = NULL,mapping = aes(NULL),plot=TRUE,
-                         concepts_group=NULL, poly = FALSE){
+                         concepts_group=NULL, poly = FALSE, adjust = TRUE){
   #data preparing
   argsNum<-length(mapping)
   args<-lapply(mapping[1:argsNum],FUN=rlang::get_expr)
@@ -102,6 +103,11 @@ ggInterval_PCA<-function(data = NULL,mapping = aes(NULL),plot=TRUE,
 
   #start PCA
   mypca<-stats::princomp(m[,1:p])
+  if(adjust){
+    mypca$scores[, 1] <- mypca$scores[, 1] * -1
+    mypca$scores[, 3] <- mypca$scores[, 3] * -1
+  }
+
   PCscores<-data.frame(mypca$scores,u=m[,p+1])
 
   #plot Poly PCA
@@ -146,6 +152,7 @@ ggInterval_PCA<-function(data = NULL,mapping = aes(NULL),plot=TRUE,
   mypca$scores_interval<-adjustToRSDA(PCscores_interval)
   mypca$scores_interval[,"rowname"]<-rownames(iData)
   mypca$scores_interval<-tibble::column_to_rownames(mypca$scores_interval, var = "rowname")
+  class(mypca$scores_interval) <- c(class(mypca$scores_interval), "symbolic_tbl")
   #等等從這裡 可以build rownames 因為現在rownames藏起來了
   #build Aesthetic (mapping)
   if(!poly){

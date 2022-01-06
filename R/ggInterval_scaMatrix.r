@@ -2,20 +2,20 @@
 #' @title scatter plot for all variable by interval data.
 #' @description  Visualize the all continuous variable distribution
 #' by rectangle for both x-axis and y-axis with a matrix grid.
-#' Note:this function will automatically
+#' Note: this function will automatically
 #' filter out the discrete variables,and plot all continuous in
 #' input data,so it can not be necessary that give the particularly
-#' variables in aes such like (aes(x=x,y=y)).It isn't also
+#' variables in aes such like (aes(x = x, y = y)). It isn't also
 #' recommended to deal with too many variables because the
 #' big O in calculating full matrix will be too large.
 #' @import rlang ggplot2 tidyverse
 #' @importFrom grDevices gray.colors
 #' @importFrom grDevices grey.colors
-#' @param data A ggESDA object.It can also be either RSDA object or
+#' @param data A ggESDA object. It can also be either RSDA object or
 #' classical data frame,which will be automatically convert to ggESDA
 #' data.
 #' @param mapping Set of aesthetic mappings created by aes() or aes_().
-#' If specified and inherit.aes = TRUE (the default),
+#' If specified and inherit. aes = TRUE (the default),
 #' it is combined with the default mapping at the top level of
 #' the plot. You must supply mapping if there is no plot mapping.
 #' @param showLegend whether show the legend.

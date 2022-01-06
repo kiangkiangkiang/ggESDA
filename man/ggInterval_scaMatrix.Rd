@@ -7,12 +7,12 @@
 ggInterval_scaMatrix(data = NULL,mapping = aes(NULL),showLegend=TRUE)
 }
 \arguments{
-\item{data}{A ggESDA object.It can also be either RSDA object or
+\item{data}{A ggESDA object. It can also be either RSDA object or
 classical data frame,which will be automatically convert to ggESDA
 data.}
 
 \item{mapping}{Set of aesthetic mappings created by aes() or aes_().
-If specified and inherit.aes = TRUE (the default),
+If specified and inherit. aes = TRUE (the default),
 it is combined with the default mapping at the top level of
 the plot. You must supply mapping if there is no plot mapping.}
 
@@ -25,10 +25,10 @@ of a marrangeGrob object.
 \description{
 Visualize the all continuous variable distribution
 by rectangle for both x-axis and y-axis with a matrix grid.
-Note:this function will automatically
+Note: this function will automatically
 filter out the discrete variables,and plot all continuous in
 input data,so it can not be necessary that give the particularly
-variables in aes such like (aes(x=x,y=y)).It isn't also
+variables in aes such like (aes(x = x, y = y)). It isn't also
 recommended to deal with too many variables because the
 big O in calculating full matrix will be too large.
 }

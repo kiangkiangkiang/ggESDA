@@ -10,11 +10,11 @@ classic2sym(data=NULL,groupby = "kmeans",k=5,minData=NULL,maxData=NULL)
 \item{data}{A classical data frame that you want to be converted into
 a interval data}
 
-\item{groupby}{A way to aggregate.It can be either a clustering method
+\item{groupby}{A way to aggregate. It can be either a clustering method
 or a variable name which exist in input data (necessary factor type)
-.Default "kmeans".}
+. Default "kmeans".}
 
-\item{k}{A number of group,which is used by clustering.Default k=5.}
+\item{k}{A number of group,which is used by clustering. Default k = 5.}
 
 \item{minData}{if choose groupby parameter as 'customize',user need to define
 which data is min data or max data.}
@@ -36,8 +36,8 @@ have a interval data and others as follows.
 }
 }
 \description{
-A function for converting a classical data,which may
-present as a data frame or a matrix with one entry one value,into
+A function for converting a classical data, which may
+present as a data frame or a matrix with one entry one value, into
 a symbolic data,which is shown as a interval or a set in an entry.
 Object after converting is ggESDA class containing interval
 data and raw data(if it exist) and typically statistics.

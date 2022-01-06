@@ -13,16 +13,16 @@ classical data frame,which will be automatically convert to ggESDA
 data.}
 
 \item{mapping}{Set of aesthetic mappings created by aes() or aes_().
-If specified and inherit.aes = TRUE (the default),
+If specified and inherit. aes = TRUE (the default),
 it is combined with the default mapping at the top level of
 the plot. You must supply mapping if there is no plot mapping.
 It is the same as the mapping of ggplot2.}
 
 \item{method}{It can be equal-bin(default) or unequal-bin.Enqual-bin means
 the width in histogram is equal,which represent all intervals divided
-have the same range.unequal-bin means the range of intervals are not
-the same,and it can be more general on data.Thus,the bins of unequal-bin
-method depends on the data,and the argument "bins" will be unused.}
+have the same range. unequal-bin means the range of intervals are not
+the same,and it can be more general on data. Thus, the bins of unequal-bin
+method depends on the data, and the argument "bins" will be unused.}
 
 \item{bins}{x axis bins,which mean how many partials the variable}
 

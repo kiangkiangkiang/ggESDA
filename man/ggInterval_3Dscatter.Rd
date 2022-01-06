@@ -7,20 +7,20 @@
 ggInterval_3Dscatter(data = NULL,mapping = aes(NULL),scale=FALSE)
 }
 \arguments{
-\item{data}{A ggSDA object.It can also be either RSDA object or
-classical data frame,which will be automatically convert to ggSDA
+\item{data}{A ggSDA object. It can also be either RSDA object or
+classical data frame, which will be automatically convert to ggSDA
 data.}
 
 \item{mapping}{Set of aesthetic mappings created by aes() or aes_().
-If specified and inherit.aes = TRUE (the default),
+If specified and inherit. aes = TRUE (the default),
 it is combined with the default mapping at the top level of
 the plot. You must supply mapping if there is no plot mapping.
 It is the same as the mapping of ggplot2.}
 
-\item{scale}{A boolean variable,TRUE,standardlize data.FALSE,not standardlize.
+\item{scale}{A boolean variable,TRUE, standardlize data. FALSE, not standardlize.
 If variance is too large(or small) or the difference between
 two variables are too large,it will be distortion or unseeable,which may
-happen in different units or others.So,a standardlize way is necessary.}
+happen in different units or others. So, a standardlize way is necessary.}
 }
 \value{
 Return a ggplot2 object (It will still be 2-Dimension).

@@ -1,15 +1,15 @@
 #' @name ggInterval_scatter
 #' @title scatter plot for two continuous interval data
-#' @description   Visualize the twwo continuous variable distribution
+#' @description Visualize the twwo continuous variable distribution
 #' by rectangle and each of its width and heigth represents a
 #' interval of the data.
 #' @import rlang ggplot2
 #' @importFrom RSDA is.sym.interval
 #' @param data A ggESDA object.It can also be either RSDA object or
-#' classical data frame,which will be automatically convert to ggESDA
+#' classical data frame, which will be automatically convert to ggESDA
 #' data.
 #' @param mapping Set of aesthetic mappings created by aes() or aes_().
-#' If specified and inherit.aes = TRUE (the default),
+#' If specified and inherit. aes = TRUE (the default),
 #' it is combined with the default mapping at the top level of
 #' the plot. You must supply mapping if there is no plot mapping.
 #' @return Return a ggplot2 object.

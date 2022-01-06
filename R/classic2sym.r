@@ -1,7 +1,7 @@
 #' @name classic2sym
 #' @title Convert classical data frame into a symbolic data.
-#' @description  A function for converting a classical data,which may
-#' present as a data frame or a matrix with one entry one value,into
+#' @description  A function for converting a classical data, which may
+#' present as a data frame or a matrix with one entry one value, into
 #' a symbolic data,which is shown as a interval or a set in an entry.
 #' Object after converting is ggESDA class containing interval
 #' data and raw data(if it exist) and typically statistics.
@@ -13,10 +13,10 @@
 #' @ipmortForm prodlim row.match
 #' @param data A classical data frame that you want to be converted into
 #' a interval data
-#' @param groupby A way to aggregate.It can be either a clustering method
+#' @param groupby A way to aggregate. It can be either a clustering method
 #' or a variable name which exist in input data (necessary factor type)
-#' .Default "kmeans".
-#' @param k A number of group,which is used by clustering.Default k=5.
+#' . Default "kmeans".
+#' @param k A number of group,which is used by clustering. Default k = 5.
 #' @param minData if choose groupby parameter as 'customize',user need to define
 #' which data is min data or max data.
 #' @param maxData if choose groupby parameter as 'customize',user need to define

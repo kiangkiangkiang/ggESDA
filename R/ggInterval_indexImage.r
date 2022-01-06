@@ -6,16 +6,16 @@
 #' @import ggplot2 ggthemes
 #' @importFrom RSDA is.sym.interval
 #' @importFrom ggpubr ggarrange
-#' @param data A ggESDA object.It can also be either RSDA object or
+#' @param data A ggESDA object. It can also be either RSDA object or
 #' classical data frame,which will be automatically convert to ggESDA
 #' data.
 #' @param mapping  Set of aesthetic mappings created by aes() or aes_().
-#' If specified and inherit.aes = TRUE (the default),
+#' If specified and inherit. aes = TRUE (the default),
 #' it is combined with the default mapping at the top level of
 #' the plot. You must supply mapping if there is no plot mapping.
-#' @param column_condition Boolean variables,which mean the color
+#' @param column_condition Boolean variables, which mean the color
 #' present by column condition (if TRUE) or matrix condition (if FALSE)
-#' @param full_strip Boolean variables,which mean the strip present
+#' @param full_strip Boolean variables, which mean the strip present
 #' in full figure-width (if TRUE) or only in its variable values(if FALSE).
 #' @param plotAll Boolean, which determine if the heatmap type for visualizing
 #' full variables is used. default FALSE.

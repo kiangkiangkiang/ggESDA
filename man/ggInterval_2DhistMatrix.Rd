@@ -9,12 +9,12 @@ ggInterval_2DhistMatrix(data = NULL,mapping = aes(NULL)
 addFreq = T)
 }
 \arguments{
-\item{data}{A ggESDA object.It can also be either RSDA object or
-classical data frame,which will be automatically convert to ggESDA
+\item{data}{A ggESDA object. It can also be either RSDA object or
+classical data frame, which will be automatically convert to ggESDA
 data.}
 
 \item{mapping}{Set of aesthetic mappings created by aes() or aes_().
-If specified and inherit.aes = TRUE (the default),
+If specified and inherit. aes = TRUE (the default),
 it is combined with the default mapping at the top level of
 the plot. You must supply mapping if there is no plot mapping.
 It is the same as the mapping of ggplot2.}
@@ -35,10 +35,10 @@ Return a plot with ggplot2 object
 Visualize the all continuous variable distribution
 by dividing both the x axis and y axis into bins,and calculating
 the frequency of observation interval in each bin.Eventually
-show it by a matrix plot.Note:this function will automatically
+show it by a matrix plot. Note: this function will automatically
 filter out the discrete variables,and plot all continuous in
-input data,so it can not be necessary that give the particularly
-variables in aes such like (aes(x=x,y=y)).It isn't also
+input data, so it can not be necessary that give the particularly
+variables in aes such like (aes(x = x,y = y)). It isn't also
 recommended to deal with too many variables because the
 big O in calculating full matrix will be too large.
 }

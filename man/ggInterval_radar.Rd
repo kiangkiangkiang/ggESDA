@@ -18,7 +18,7 @@ addText_modal=TRUE,
 addText_modal.p=FALSE)
 }
 \arguments{
-\item{data}{A ggESDA object.It can also be either RSDA object or
+\item{data}{A ggESDA object. It can also be either RSDA object or
 classical data frame(not recommended),which will be automatically convert to ggESDA
 data.}
 
@@ -33,7 +33,7 @@ it will generate a new windows containing distinct observations.}
 \item{showXYLabs}{whether show the x,y axis labels.}
 
 \item{plotPartial}{a numeric vector,which is the row index from
-the data.if it is not null,it will extract the row user deciding
+the data.if it is not null, it will extract the row user deciding
 to draw a radar plot from original data.Notes : the data must be
 an interval data if the plotPartial is not null.}
 
@@ -47,7 +47,7 @@ an interval data if the plotPartial is not null.}
 
 \item{type}{different type of radar,it can be "default","rect","quantile"}
 
-\item{quantileNum}{if type=="quantile" ,it will provide the number of percentage}
+\item{quantileNum}{if type == "quantile", it will provide the number of percentage}
 
 \item{Drift}{The drift term, which determines the radar values beginning.}
 
