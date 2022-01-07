@@ -14,7 +14,7 @@
 #' the plot. You must supply mapping if there is no plot mapping.
 #' It is the same as the mapping of ggplot2.
 #' @param method It can be equal-bin(default) or unequal-bin.Enqual-bin means
-#' the width in histogram is equal,which represent all intervals divided
+#' the width in histogram is equal, which represent all intervals divided
 #' have the same range. unequal-bin means the range of intervals are not
 #' the same,and it can be more general on data. Thus, the bins of unequal-bin
 #' method depends on the data, and the argument "bins" will be unused.

@@ -5,7 +5,7 @@
 \title{A min-max plot for interval data}
 \usage{
 ggInterval_minmax(data = NULL,mapping = aes(NULL),
-          scaleXY = "local",plotAll=F)
+          scaleXY = "local",plotAll=FALSE)
 }
 \arguments{
 \item{data}{A ggESDA object.It can also be either RSDA object or

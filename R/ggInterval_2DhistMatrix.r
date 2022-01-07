@@ -6,7 +6,7 @@
 #' show it by a matrix plot. Note: this function will automatically
 #' filter out the discrete variables,and plot all continuous in
 #' input data, so it can not be necessary that give the particularly
-#' variables in aes such like (aes(x = x,y = y)). It isn't also
+#' variables in aes such like (aes(x = x, y = y)). It isn't also
 #' recommended to deal with too many variables because the
 #' big O in calculating full matrix will be too large.
 #' @import tidyverse rlang ggplot2
@@ -23,26 +23,21 @@
 #' It is the same as the mapping of ggplot2.
 #' @param xBins x axis bins,which mean how many bins
 #' x variable will be separate into
-#' @param yBins y axis bins.It is the same as xBins
+#' @param yBins y axis bins. It is the same as xBins
 #' @param removeZero whether remove data whose frequency is equal to zero
 #' @param addFreq where add frequency text in each cells.
 #' @return Return a plot with ggplot2 object
 #' @usage ggInterval_2DhistMatrix(data = NULL,mapping = aes(NULL)
-#' ,xBins = 8,yBins=8,removeZero = F,
-#' addFreq = T)
+#' ,xBins = 8,yBins=8,removeZero = FALSE,
+#' addFreq = TRUE)
 #'
 #' @examples
-#' #ggInterval_2DhistMatrix(iris,aes(col="black",alpha=0.8))
-#'
-#' #mydata<-RSDA::Cardiological
-#' #ggInterval_2DhistMatrix(mydata)
-#'
-#'
+#' ggInterval_2DhistMatrix(oils, xBins = 5, yBins = 5)
 #'
 #' @export
 ggInterval_2DhistMatrix<-function(data = NULL,mapping = aes(NULL),
-                          xBins = 8,yBins=8,removeZero = F,
-                          addFreq = T){
+                          xBins = 8,yBins=8,removeZero = FALSE,
+                          addFreq = TRUE){
   #test big O
   #globalVariables(".", add = F)
   . <- NULL

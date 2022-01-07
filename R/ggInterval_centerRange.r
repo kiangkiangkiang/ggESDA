@@ -13,14 +13,14 @@
 #' It is the same as the mapping of ggplot2.
 #' @param plotAll booleans, if TRUE, plot all variable together
 #' @return Return a ggplot2 object.
-#' @usage ggInterval_centerRange(data = NULL,mapping = aes(NULL),plotAll=F)
+#' @usage ggInterval_centerRange(data = NULL,mapping = aes(NULL),plotAll=FALSE)
 #' @examples
 #' ggInterval_centerRange(iris,aes(iris$Sepal.Length))
 #'
 #' mydata<-RSDA::facedata
 #' ggInterval_centerRange(mydata,aes(AD,col="blue",pch=2))
 #' @export
-ggInterval_centerRange<- function(data = NULL,mapping = aes(NULL),plotAll=F){
+ggInterval_centerRange<- function(data = NULL,mapping = aes(NULL),plotAll=FALSE){
   #data preparing
   argsNum<-length(mapping)
   args<-lapply(mapping[1:argsNum],FUN=rlang::get_expr)

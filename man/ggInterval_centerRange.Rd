@@ -4,7 +4,7 @@
 \alias{ggInterval_centerRange}
 \title{Figure with x-axis = center y-axis = range}
 \usage{
-ggInterval_centerRange(data = NULL,mapping = aes(NULL),plotAll=F)
+ggInterval_centerRange(data = NULL,mapping = aes(NULL),plotAll=FALSE)
 }
 \arguments{
 \item{data}{A ggESDA object. It can also be either RSDA object or

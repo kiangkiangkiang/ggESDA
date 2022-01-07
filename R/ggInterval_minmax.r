@@ -18,7 +18,7 @@
 #' @param plotAll booleans, if TRUE, plot all variable together
 #' @return Return a ggplot2 object.
 #' @usage ggInterval_minmax(data = NULL,mapping = aes(NULL),
-#'           scaleXY = "local",plotAll=F)
+#'           scaleXY = "local",plotAll=FALSE)
 #' @examples
 #' ggInterval_minmax(mtcars,aes(disp))
 #'
@@ -35,7 +35,7 @@
 #'    theme_classic()
 #' @export
 ggInterval_minmax <- function(data = NULL,mapping = aes(NULL),
-                              scaleXY = "local",plotAll=F){
+                              scaleXY = "local",plotAll=FALSE){
   #@param sort if FALSE, it will not be sort by min data,default TRUE.
   sort=TRUE
   if(!(scaleXY %in% c("local", "global"))){

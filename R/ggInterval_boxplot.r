@@ -14,7 +14,7 @@
 #' It is the same as the mapping of ggplot2.
 #' @param plotAll booleans, if TRUE, plot all variable together
 #' @return Return a ggplot2 object.
-#' @usage ggInterval_boxplot(data = NULL,mapping = aes(NULL),plotAll=F)
+#' @usage ggInterval_boxplot(data = NULL,mapping = aes(NULL),plotAll=FALSE)
 #' @examples
 #' p<-ggInterval_boxplot(iris,aes(iris$Petal.Length))
 #' p
@@ -31,7 +31,7 @@
 #' ggInterval_boxplot(myMtcars,aes(disp))
 #'
 #' @export
-ggInterval_boxplot<-function(data = NULL,mapping = aes(NULL),plotAll=F){
+ggInterval_boxplot<-function(data = NULL,mapping = aes(NULL),plotAll=FALSE){
   argsNum<-length(mapping)
   args<-lapply(mapping[1:argsNum],FUN=rlang::get_expr)
   this.x <- args$x ; this.y <- args$y
