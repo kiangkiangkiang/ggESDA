@@ -98,18 +98,18 @@ ggInterval_3Dscatter <-function(data = NULL,mapping = aes(NULL),scale=FALSE){
       annotate(geom="text",x=m2-sx/2,y=m2-sy/2,label=attr3)
   })
 }
-point3Dto2D <- function(data){
+point3Dto2D <- function(data = NULL){
   data <- as.data.frame(data)
   z<-data[,3]
   z<-round(((z^2)/2)^(0.5),6)
-  data[,4]<-data.frame(newx=z+data[,1])
-  data[,5]<-data.frame(newy=z+data[,2])
+  data[,"newx"]<-data.frame(z+data[,1])
+  data[,"newy"]<-data.frame(z+data[,2])
   return(data)
 }
 buildPolyGroup <- function(newPoint,g=NULL){
   #Sort data
   vertice<-as.factor(get_vertice(3))
-  temp<-as.factor(newPoint)
+  temp<-newPoint
   levels(vertice) <- as.character(newPoint)
   newPoints<-matrix(as.numeric(as.character(vertice)),nrow=8,ncol=3)
 
@@ -138,11 +138,12 @@ buildPolyGroup <- function(newPoint,g=NULL){
   group<-group[group!=0]
   d<-cbind(d,group)
   d$group <- as.factor(d$group)
-  d[,"cluster"] <- as.factor(g)
+  d[,"cluster"] <- g
+  d$cluster <- as.factor(d$cluster)
   return(d)
 }
 
-scaleInterval<-function(data){
+scaleInterval<-function(data = NULL){
   if(dim(data)[2]>3){
     stop("ERROR : input data must be 3 attributes (x,y,z)")
   }
