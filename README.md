@@ -6,6 +6,14 @@ Symbolic data analysis (SDA) is an extension of standard data analysis where sym
 
 ## Package installation
 
+### CRAN
+
+`install.packages("ggESDA")`
+
+or 
+
+### github
+
 `devtools::install_github("kiangkiangkiang/ggESDA")`
 
 ## Creating
