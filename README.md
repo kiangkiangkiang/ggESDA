@@ -8,6 +8,8 @@ Symbolic data analysis (SDA) is an extension of standard data analysis where sym
 
 ### CRAN
 
+The <b>ggESDA</b> package is avaliable on <a href="https://cran.r-project.org/web/packages/ggESDA/index.html">CRAN</a>. The Reference manual and Vignettes can be found there.
+
 `install.packages("ggESDA")`
 
 or 
@@ -15,6 +17,8 @@ or
 ### github
 
 `devtools::install_github("kiangkiangkiang/ggESDA")`
+
+After installation, the following steps will illustrate how to use the package. More details (code) about it can be found on <a href="https://cran.r-project.org/web/packages/ggESDA/vignettes/ggESDA.html">vignettes</a>.
 
 ## Creating
 
