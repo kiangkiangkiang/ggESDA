@@ -4,7 +4,8 @@
 \alias{classic2sym}
 \title{Convert classical data frame into a symbolic data.}
 \usage{
-classic2sym(data=NULL,groupby = "kmeans",k=5,minData=NULL,maxData=NULL)
+classic2sym(data=NULL,groupby = "kmeans",k=5,minData=NULL,maxData=NULL,
+modalData = NULL)
 }
 \arguments{
 \item{data}{A classical data frame that you want to be converted into
@@ -21,6 +22,14 @@ which data is min data or max data.}
 
 \item{maxData}{if choose groupby parameter as 'customize',user need to define
 which data is min data or max data.}
+
+\item{modalData}{list, each cell of list contain a set of column index of its
+modal multi-valued data of the input data. the value of it is a proportion
+presentation, and sum of each row in these column must be equal to 1.
+ex 0,1,0  or  0.2,0.3,0.5. the input type of modalData for example is
+modalData[[1]] = c(2, 3), modalData[[2]] = c(7:10), that 2, 3, 7, 8, 9, 10
+columns are modal type of the data. Note: the option is only valid when
+groupby == "customize".}
 }
 \value{
 classic2sym returns an object of class "ggESDA",which
@@ -59,6 +68,31 @@ y3<-runif(10, 31, 60)
 d<-data.frame(min1=x1,max1=y1,min2=x2,max2=y2,min3=x3,max3=y3)
 classic2sym(d,groupby="customize",minData=d[,c(1,3,5)],maxData=d[,c(2,4,6)])
 classic2sym(d,groupby="customize",minData=d$min1,maxData=d$min2)
+
+
+#example for build modal data
+#for the first modal data proportion
+a1 <- runif(10, 0,0.4) \%>\% round(digits = 1)
+a2 <- runif(10, 0,0.4) \%>\% round(digits = 1)
+
+#for the second modal data proportion
+b1 <- runif(10, 0,0.4) \%>\% round(digits = 1)
+b2 <- runif(10, 0,0.4) \%>\% round(digits = 1)
+
+#for interval-valued data
+c1 <- runif(10, 10, 20) \%>\% round(digits = 0)
+c2 <- runif(10, -50, -10) \%>\% round(digits = 0)
+
+#build simulated data
+d <- data.frame(a1 = a1, a2 = a2, a3 = 1-(a1+a2),
+                c1 = c1, c2 = c2,
+                b1 = b1, b2 = b2, b3 = 1-(b1+b2))
+
+#transformation
+classic2sym(d, groupby = "customize",
+            minData = d$c2,
+            maxData = d$c1,
+            modalData = list(1:3, 6:8))#two modal data
 
 #extract the data
 symObj<-classic2sym(iris)
