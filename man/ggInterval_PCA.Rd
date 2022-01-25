@@ -44,7 +44,7 @@ results like princomp, ggplot object and a interval scores.
 \examples{
 ggInterval_PCA(iris)
 
-mydata2<-RSDA::Cardiological
+mydata2<-ggESDA::Cardiological
 ggInterval_PCA(mydata2,aes(col="red",alpha=0.2))
 
 d<-mapply(c(10,20,40,80,160),c(20,40,80,160,320),FUN=runif,n=1000)

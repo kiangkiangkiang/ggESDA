@@ -34,7 +34,7 @@ p+scale_fill_manual(values = c("red","yellow",
     labels=c("0\%","25\%","50\%","75\%","100\%"),
     name="quantile")
 
-mydata<-RSDA::facedata
+mydata<-ggESDA::facedata
 ggInterval_boxplot(mydata,aes(AD,col="black",alpha=0.5))
 
 myMtcars<-classic2sym(mtcars)

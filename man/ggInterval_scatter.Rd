@@ -44,7 +44,7 @@ p+scale_fill_manual(labels=rownames(myIris),
                    name="Group")
 
 
-mydata <- RSDA::facedata
+mydata <- ggESDA::facedata
 p<-ggInterval_scatter(mydata[1:10,],aes(AD,BC,alpha=0.2))
 p+scale_fill_manual(labels=rownames(mydata)[1:10],
                    values=rainbow(10),

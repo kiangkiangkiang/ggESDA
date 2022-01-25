@@ -26,7 +26,7 @@
 #' @usage RSDA2sym(data=NULL,rawData=NULL)
 #'
 #' @examples
-#' r<-RSDA::Cardiological
+#' r<-ggESDA::Cardiological
 #' mySym<-RSDA2sym(r)
 #' mySym$intervalData
 #'

@@ -28,6 +28,6 @@ Visualize the relation between center and range.
 \examples{
 ggInterval_centerRange(iris,aes(iris$Sepal.Length))
 
-mydata<-RSDA::facedata
+mydata<-ggESDA::facedata
 ggInterval_centerRange(mydata,aes(AD,col="blue",pch=2))
 }

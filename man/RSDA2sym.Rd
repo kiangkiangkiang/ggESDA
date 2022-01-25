@@ -36,7 +36,7 @@ object into ggESDA object will do for plot(ggplot) and
 RSDA's analysis.
 }
 \examples{
-r<-RSDA::Cardiological
+r<-ggESDA::Cardiological
 mySym<-RSDA2sym(r)
 mySym$intervalData
 

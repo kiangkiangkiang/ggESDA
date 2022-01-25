@@ -45,16 +45,16 @@ data and raw data(if it exist) and typically statistics.
 \examples{
 #classical data to symbolic data
 classic2sym(iris)
-classic2sym(mtcars,groupby = "kmeans",k=10)
-classic2sym(iris, groupby = "hclust",k=7)
-classic2sym(iris,groupby=Species)
+classic2sym(mtcars, groupby = "kmeans", k = 10)
+classic2sym(iris, groupby = "hclust", k = 7)
+classic2sym(iris, groupby = Species)
 
-x1<-runif(10,-30,-10)
-y1<-runif(10,-10,30)
-x2<-runif(10,-5,5)
-y2<-runif(10,10,50)
-x3<-runif(10,-50,30)
-y3<-runif(10,31,60)
+x1<-runif(10, -30, -10)
+y1<-runif(10, -10, 30)
+x2<-runif(10, -5, 5)
+y2<-runif(10, 10, 50)
+x3<-runif(10, -50, 30)
+y3<-runif(10, 31, 60)
 
 d<-data.frame(min1=x1,max1=y1,min2=x2,max2=y2,min3=x3,max3=y3)
 classic2sym(d,groupby="customize",minData=d[,c(1,3,5)],maxData=d[,c(2,4,6)])

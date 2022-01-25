@@ -48,6 +48,6 @@ myIris <- classic2sym(iris,groupby = Species)$intervalData
 ggInterval_scaMatrix(myIris[,1:3])
 
 
-mydata <- RSDA::Cardiological
+mydata <- ggESDA::Cardiological
 ggInterval_scaMatrix(mydata[,1:3],aes(fill="black",alpha=0.2))
 }

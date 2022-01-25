@@ -33,7 +33,7 @@ ggInterval_index(iris,aes(x=iris$Sepal.Length))
 ggInterval_index(mtcars,aes(y=disp,col="red",fill="grey"))
 
 #symbolic data
-mydata <- RSDA::facedata
+mydata <- ggESDA::facedata
 ggInterval_index(mydata,aes(x=3:13,y=AD))
 
 }

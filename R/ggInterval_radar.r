@@ -42,13 +42,30 @@
 #' addText_modal=TRUE,
 #' addText_modal.p=FALSE)
 #' @examples
-#' mydata<-ggESDA::classic2sym(mtcars,k=4)$intervalData
-#' ggInterval_radar(data=mydata[,c("mpg","disp",'drat')])
-#' ggInterval_radar(data=mydata[,c("mpg","disp",'drat')],inOneFig = TRUE,plotPartial = c(2,3))
+#' # must specify plotPartial to some certain rows you want to plot
+#' Environment.n <- Environment[, 5:17]
+#' ggInterval_radar(Environment.n,
+#'                 plotPartial = 2,
+#'                 showLegend = F,
+#'                 base_circle = T,
+#'                 base_lty = 2,
+#'                 addText = F
+#') +
+#'  labs(title = "") +
+#'  scale_fill_manual(values = c("gray50")) +
+#'  scale_color_manual(values = c("red"))
 #'
+#' ggInterval_radar(Environment,
+#'                 plotPartial = 2,
+#'                 showLegend = F,
+#'                 base_circle = F,
+#'                 base_lty = 1,
+#'                 addText = T
+#') +
+#'  labs(title = "") +
+#'  scale_fill_manual(values = c("gray50")) +
+#'  scale_color_manual(values = c("gray50"))
 #'
-#' mydata<-ggESDA::classic2sym(iris,groupby = Species)$intervalData
-#' ggInterval_radar(mydata,inOneFig = TRUE)+geom_text(aes(x=0.6,0.6),label="Add anything you want")
 #' @export
 ggInterval_radar <-function(data=NULL,layerNumber=3,
                             inOneFig=TRUE,showLegend=TRUE,showXYLabs=FALSE,

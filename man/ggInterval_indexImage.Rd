@@ -38,7 +38,7 @@ it will be more visible for data.
 d<-data.frame(qq=rnorm(1000,0,1))
 ggInterval_indexImage(d,aes(qq))
 
-mydata<-RSDA::facedata
+mydata<-ggESDA::facedata
 p<-ggInterval_indexImage(mydata,aes(AD),full_strip=TRUE,column_condition = TRUE)
 #Recommend to add coord_flip() to make the plot more visible
 p+coord_flip()

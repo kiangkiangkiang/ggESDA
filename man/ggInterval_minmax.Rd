@@ -33,7 +33,7 @@ by marking minimal and maximal point.
 \examples{
 ggInterval_minmax(mtcars,aes(disp))
 
-mydata2<-RSDA::Cardiological
+mydata2<-ggESDA::Cardiological
 ggInterval_minmax(mydata2,aes(mydata2$Pulse,size=3))
 
 d<-mapply(c(10,20,40,80,160),c(20,40,80,160,320),FUN=runif,n=1000)
