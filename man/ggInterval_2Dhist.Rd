@@ -10,7 +10,7 @@ ggInterval_2Dhist(data = NULL,mapping = aes(NULL)
 addFreq = TRUE)
 }
 \arguments{
-\item{data}{A ggESDA object.It can also be either RSDA object or
+\item{data}{A ggESDA object. It can also be either RSDA object or
 classical data frame,which will be automatically convert to ggESDA
 data.}
 
