@@ -8,7 +8,7 @@ ggInterval_minmax(data = NULL,mapping = aes(NULL),
           scaleXY = "local",plotAll=FALSE)
 }
 \arguments{
-\item{data}{A ggESDA object.It can also be either RSDA object or
+\item{data}{A ggESDA object. It can also be either RSDA object or
 classical data frame,which will be automatically convert to ggESDA
 data.}
 
