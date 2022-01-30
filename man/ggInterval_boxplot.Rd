@@ -8,7 +8,7 @@ ggInterval_boxplot(data = NULL,mapping = aes(NULL),plotAll=FALSE)
 }
 \arguments{
 \item{data}{A ggESDA object. It can also be either RSDA object or
-classical data frame,which will be automatically convert to ggESDA
+classical data frame, which will be automatically convert to ggESDA
 data.}
 
 \item{mapping}{Set of aesthetic mappings created by aes() or aes_().

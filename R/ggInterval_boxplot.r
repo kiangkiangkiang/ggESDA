@@ -5,7 +5,7 @@
 #' @import rlang ggplot2
 #' @importFrom RSDA is.sym.interval
 #' @param data A ggESDA object. It can also be either RSDA object or
-#' classical data frame,which will be automatically convert to ggESDA
+#' classical data frame, which will be automatically convert to ggESDA
 #' data.
 #' @param mapping Set of aesthetic mappings created by aes() or aes_().
 #' If specified and inherit. aes = TRUE (the default),
