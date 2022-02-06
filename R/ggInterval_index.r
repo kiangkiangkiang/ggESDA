@@ -38,11 +38,34 @@ ggInterval_index <- function(data = NULL,
   testXY(iData,this.x,this.y)
   p <- dim(iData)[2]
   n <- dim(iData)[1]
+  n.groups <- 1
+
+  #adjust
+  this.fill <- eval(this.fill)
+
+  if(!is.null(this.fill)){
+    if(length(this.fill) == n | length(this.fill) == 1){
+      #yes
+
+      this.fill <- as.factor(this.fill)
+      #test concepts_group illegal
+      if(length(unique(table(this.fill))) != 1){
+        stop("Each group of concepts must be equal length.")
+      }
+
+      if(length(this.fill) == n){
+        n.concepts <- unique(table(this.fill))
+        n.groups <- length(table(this.fill))
+      }
+    }else{
+      #no
+
+      stop(paste0("Length of fill must be equal to data (",n,") or 1."))
+    }
+
+  }
   myRowNames <- rownames(iData)
 
-  if(length(this.fill) == n){
-    this.fill <- as.factor(this.fill)
-  }
 
   #test big o
   if(dim(iData)[1]>=3000){
@@ -56,22 +79,40 @@ ggInterval_index <- function(data = NULL,
   #args.noXY<-args[-temp]
   with(data,{
     #autogenerate variable pretent user forget
-    if(is.null(this.x)){
-      this.x <- 1:dim(iData)[1]
-    }else if(is.null(this.y)){
-      this.y <- 1:dim(iData)[1]
+    if(!is.null(this.fill) & length(this.fill) == n){
+      if(is.null(this.x)){
+        this.x <- rep(1:n.concepts, n.groups)
+      }else if(is.null(this.y)){
+        this.y <- rep(1:n.concepts, n.groups)
+      }
+    }else{
+      if(is.null(this.x)){
+        this.x <- 1:dim(iData)[1]
+      }else if(is.null(this.y)){
+        this.y <- 1:dim(iData)[1]
+      }
     }
 
     if(any(unlist(lapply(as.data.frame(data[,1:p]),FUN=identical,x=eval(this.x))))){
       attr<-which(unlist(lapply(as.data.frame(data[,1:p]),FUN=identical,x=eval(this.x))))
       attr<-names(attr)
       #adjust data number from user set
-      iData <- iData[eval(this.y),]
+      if(!is.null(this.fill) & length(this.fill) == n){
+        #not change
+        iData <- iData
+      }else{
+        iData <- iData[eval(this.y),]
+      }
     }else if(any(unlist(lapply(as.data.frame(data[,1:p]),FUN=identical,x=eval(this.y))))){
       attr<-which(unlist(lapply(as.data.frame(data[,1:p]),FUN=identical,x=eval(this.y))))
       attr<-names(attr)
       isPlotX<-FALSE
-      iData <- iData[eval(this.x),]
+      if(!is.null(this.fill) & length(this.fill) == n){
+        #not change
+        iData <- iData
+      }else{
+        iData <- iData[eval(this.x),]
+      }
     }else{
       stop("ERROR : Cannot find variables in aes(...)")
     }
@@ -89,16 +130,26 @@ ggInterval_index <- function(data = NULL,
     if(isPlotX){
       mymapping$x <- mid
       mymapping$y <- this.y
-      errorBar <- quote(geom_errorbar(aes(xmin=iData[[attr]]$min,xmax=iData[[attr]]$max),width=0.2))
-      crossBar <- quote(geom_crossbar(aes(xmin=iData[[attr]]$min,xmax=iData[[attr]]$max),width=0.5))
+      if(!is.null(this.fill) & length(this.fill) == n){
+        errorBar <- quote(geom_errorbar(aes(xmin=iData[[attr]]$min,xmax=iData[[attr]]$max, fill = this.fill),width=0.2))
+        crossBar <- quote(geom_crossbar(aes(xmin=iData[[attr]]$min,xmax=iData[[attr]]$max, fill = this.fill),width=0.5))
+     }else{
+       errorBar <- quote(geom_errorbar(aes(xmin=iData[[attr]]$min,xmax=iData[[attr]]$max),width=0.2))
+       crossBar <- quote(geom_crossbar(aes(xmin=iData[[attr]]$min,xmax=iData[[attr]]$max),width=0.5))
+      }
       temp<-paste0("scale_y_continuous(breaks=c(",list(this.y),"))")
       #temp2 <- paste0("scale_x_continuous(labels = myRowNames)+theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))")
       myLabs <- eval(parse(text=paste0("labs(title='Index Plot',y='Observations',x='",attr,"')")))
     }else{
       mymapping$y <- mid
       mymapping$x <- this.x
-      errorBar <- quote(geom_errorbar(aes(ymin=iData[[attr]]$min,ymax=iData[[attr]]$max),width=0.2))
-      crossBar <- quote(geom_crossbar(aes(ymin=iData[[attr]]$min,ymax=iData[[attr]]$max),width=0.5))
+      if(!is.null(this.fill) & length(this.fill) == n){
+        errorBar <- quote(geom_errorbar(aes(ymin=iData[[attr]]$min,ymax=iData[[attr]]$max, fill = this.fill),width=0.2))
+        crossBar <- quote(geom_crossbar(aes(ymin=iData[[attr]]$min,ymax=iData[[attr]]$max, fill = this.fill),width=0.5))
+      }else{
+        errorBar <- quote(geom_errorbar(aes(ymin=iData[[attr]]$min,ymax=iData[[attr]]$max),width=0.2))
+        crossBar <- quote(geom_crossbar(aes(ymin=iData[[attr]]$min,ymax=iData[[attr]]$max),width=0.5))
+      }
       temp<-paste0("scale_x_continuous(breaks=c(",list(this.x),"))")
       #temp2 <- paste0("scale_y_continuous(labels = myRowNames)")
       myLabs <- eval(parse(text=paste0("labs(title='Index Plot',x='Observations',y='",attr,"')")))
