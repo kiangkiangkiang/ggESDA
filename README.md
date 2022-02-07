@@ -206,7 +206,7 @@ ggpubr::ggarrange(p$ggplotPCA, p2$ggplotPCA, ncol = 2)
 
 ### Time series interval-valued data
 
-In practice, we can use the technique to visualize financial data, such as stocks data. We get the stocks price of [[AAPL]](https://finance.yahoo.com/quote/AAPL), [[MSFT]](https://finance.yahoo.com/quote/MSFT) and [[IBM]](https://finance.yahoo.com/quote/IBM) from 2021-01-04 to 2021-12-31. Use the function `gInterval_index`, and we can easily present the daily low and high price. 
+In practice, we can use the technique to visualize financial data, such as stocks data. We get the stocks price of [AAPL](https://finance.yahoo.com/quote/AAPL), [MSFT](https://finance.yahoo.com/quote/MSFT) and [IBM](https://finance.yahoo.com/quote/IBM) from 2021-01-04 to 2021-12-31. Use the function `ggInterval_index`, and we can easily present the daily low and high price. 
 
 Note: you must specify the **classification variable**, whose length is equal to the data you input, in **fill** when you want to classify. The **classification variable** may not be in your input data frame as the following code (`Company` variable is out of the input data `d.i`). Each length of the classification factor must be equal as well.
 
