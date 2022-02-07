@@ -204,6 +204,52 @@ ggpubr::ggarrange(p$ggplotPCA, p2$ggplotPCA, ncol = 2)
 <img src = "vignettes/images/ggInterval_PCA.png" width = "75%"></img>
 
 
+### Time series interval-valued data
+
+In practice, we can use the technique to visualize financial data, such as stocks data. We get the stocks price of [[AAPL]](https://finance.yahoo.com/quote/AAPL), [[MSFT]](https://finance.yahoo.com/quote/MSFT) and [[IBM]](https://finance.yahoo.com/quote/IBM) from 2021-01-04 to 2021-12-31. Use the function `gInterval_index`, and we can easily present the daily low and high price. 
+
+Note: you must specify the **classification variable**, whose length is equal to the data you input, in **fill** when you want to classify. The **classification variable** may not be in your input data frame as the following code (`Company` variable is out of the input data `d.i`). Each length of the classification factor must be equal as well.
+
+```{r ts,eval=FALSE}
+library(data.table)
+library(ggthemes)
+
+# Read data (from 2021-01-04 to 2021-12-31)
+ibm <- fread("https://query1.finance.yahoo.com/v7/finance/download/IBM?period1=1609459200&period2=1640995200&interval=1d&events=history&includeAdjustedClose=true")
+msft <- fread("https://query1.finance.yahoo.com/v7/finance/download/MSFT?period1=1609459200&period2=1640995200&interval=1d&events=history&includeAdjustedClose=true")
+aapl <- fread("https://query1.finance.yahoo.com/v7/finance/download/AAPL?period1=1609459200&period2=1640995200&interval=1d&events=history&includeAdjustedClose=true")
+
+# Get half year (1~6 months) for demo : 124 records
+d1 <- data.frame(min = ibm[1:124, "Low"],
+                 max = ibm[1:124, "High"])
+d2 <- data.frame(min = msft[1:124, "Low"],
+                 max = msft[1:124, "High"])
+d3 <- data.frame(min = aapl[1:124, "Low"],
+                 max = aapl[1:124, "High"])
+                 
+# Combine three company and transform to symbolic data
+d <- rbind(d1, d2, d3)
+d.i <- classic2sym(d, groupby = "customize",
+            minData = d$min,
+            maxData = d$max)$intervalData
+            
+# Make classification variable
+Company <-  rep(c("IBM", "MSFT", "AAPL"), each = 124)
+
+# plot full data and classify by Company (fill)
+gInterval_index(d.i, aes(y = V1, fill = Company)) +
+     scale_x_continuous(breaks = seq(1, 124, 10),
+                        labels = c(ibm[seq(1, 124, 10), 1])$Date)+
+  labs(x = "", y = "Stocks Price (US)", title = "Time Series Interval-valued data") +
+  scale_fill_manual(values = c("green", "red", "blue")) +
+  theme_economist_white(gray_bg = FALSE) +
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))
+
+```
+
+<img src = "vignettes/images/timeSeries.png" width = "75%"></img>
+
+
 
 ## References
 <p id="ref1">
