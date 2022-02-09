@@ -9,13 +9,13 @@ Description: Implements an extension of 'ggplot2' and visualizes the symbolic da
 Depends:
     ggplot2,
     R (>= 3.5.0),
-    tidyverse
+    tidyverse,
+    RSDA
 Suggests: 
     testthat (>= 2.1.0),
     knitr,
     rmarkdown
 Imports:
-    RSDA,
     rlang,
     R6,
     dplyr,
