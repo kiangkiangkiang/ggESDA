@@ -34,6 +34,7 @@ ggInterval_index <- function(data = NULL,
   argsNum<-length(mapping)
   args<-lapply(mapping[1:argsNum],FUN = rlang::get_expr)
   this.x <- args$x ; this.y <- args$y ; this.fill <- args$fill
+  this.group <- args$group
 
   ggSymData <- testData(data)#test if symdata
   iData <- ggSymData$intervalData
@@ -51,20 +52,21 @@ ggInterval_index <- function(data = NULL,
 
   #adjust
   this.fill <- eval(this.fill)
+  this.group <- eval(this.group)
 
-  if(!is.null(this.fill)){
-    if(length(this.fill) == n | length(this.fill) == 1){
+  if(!is.null(this.group)){
+    if(length(this.group) == n | length(this.group) == 1){
       #yes
 
-      this.fill <- as.factor(this.fill)
+      this.group <- as.factor(this.group)
       #test concepts_group illegal
-      if(length(unique(table(this.fill))) != 1){
+      if(length(unique(table(this.group))) != 1){
         stop("Each group of concepts must be equal length.")
       }
 
-      if(length(this.fill) == n){
-        n.concepts <- unique(table(this.fill))
-        n.groups <- length(table(this.fill))
+      if(length(this.group) == n){
+        n.concepts <- unique(table(this.group))
+        n.groups <- length(table(this.group))
       }
     }else{
       #no
@@ -73,6 +75,7 @@ ggInterval_index <- function(data = NULL,
     }
 
   }
+
   myRowNames <- rownames(iData)
 
 
@@ -100,14 +103,14 @@ ggInterval_index <- function(data = NULL,
           myy = 1:n,
           min = iData[[i]]$min,
           max = iData[[i]]$max,
-          this.group = i)
+          g = i)
         d <- rbind(d, temp)
       }
-      d$this.group <- as.factor(d$this.group)
+      d$g <- as.factor(d$g)
 
     }else{
       #autogenerate variable pretent user forget
-      if(!is.null(this.fill) & length(this.fill) == n){
+      if(!is.null(this.group) & length(this.group) == n){
         if(is.null(this.x)){
           this.x <- rep(1:n.concepts, n.groups)
         }else if(is.null(this.y)){
@@ -162,19 +165,18 @@ ggInterval_index <- function(data = NULL,
       mymapping$x <- d$myx
       mymapping$y <- d$myy
       mymapping$fill <- this.fill
-      print(d)
-      print(this.fill)
       p <- plotAllFun(d, mymapping, this.fill)
       return(p + scale_y_continuous(breaks = c(1:n),
                                     labels = myRowNames))
     }
 
+
     if(isPlotX){
       mymapping$x <- mid
       mymapping$y <- this.y
-      if(!is.null(this.fill) & length(this.fill) == n){
-        errorBar <- quote(geom_errorbar(aes(xmin=iData[[attr]]$min,xmax=iData[[attr]]$max, fill = this.fill),width=0.2))
-        crossBar <- quote(geom_crossbar(aes(xmin=iData[[attr]]$min,xmax=iData[[attr]]$max, fill = this.fill),width=0.5))
+      if(!is.null(this.group) & length(this.group) == n){
+        errorBar <- quote(geom_errorbar(aes(xmin=iData[[attr]]$min,xmax=iData[[attr]]$max, fill = this.group),width=0.2))
+        crossBar <- quote(geom_crossbar(aes(xmin=iData[[attr]]$min,xmax=iData[[attr]]$max, fill = this.group),width=0.5))
      }else{
        errorBar <- quote(geom_errorbar(aes(xmin=iData[[attr]]$min,xmax=iData[[attr]]$max),width=0.2))
        crossBar <- quote(geom_crossbar(aes(xmin=iData[[attr]]$min,xmax=iData[[attr]]$max),width=0.5))
@@ -185,9 +187,9 @@ ggInterval_index <- function(data = NULL,
     }else{
       mymapping$y <- mid
       mymapping$x <- this.x
-      if(!is.null(this.fill) & length(this.fill) == n){
-        errorBar <- quote(geom_errorbar(aes(ymin=iData[[attr]]$min,ymax=iData[[attr]]$max, fill = this.fill),width=0.2))
-        crossBar <- quote(geom_crossbar(aes(ymin=iData[[attr]]$min,ymax=iData[[attr]]$max, fill = this.fill),width=0.5))
+      if(!is.null(this.group) & length(this.group) == n){
+        errorBar <- quote(geom_errorbar(aes(ymin=iData[[attr]]$min,ymax=iData[[attr]]$max, fill = this.group),width=0.2))
+        crossBar <- quote(geom_crossbar(aes(ymin=iData[[attr]]$min,ymax=iData[[attr]]$max, fill = this.group),width=0.5))
       }else{
         errorBar <- quote(geom_errorbar(aes(ymin=iData[[attr]]$min,ymax=iData[[attr]]$max),width=0.2))
         crossBar <- quote(geom_crossbar(aes(ymin=iData[[attr]]$min,ymax=iData[[attr]]$max),width=0.5))
@@ -198,14 +200,16 @@ ggInterval_index <- function(data = NULL,
     }
     scale_xy<-eval(parse(text=temp))
 
+    mymapping$fill <- this.fill
+    mymapping$group <- this.group
     p<-ggplot(iData,mapping=mymapping)+
       geom_point()+
       guides(alpha = FALSE)+
       scale_xy+myLabs
-    if(is.null(this.fill)){
-        p + eval(errorBar)
+    if(!is.null(this.fill) | !is.null(this.group)){
+      p + eval(crossBar)
     }else{
-       p + eval(crossBar)
+      p + eval(errorBar)
     }
   })
 }
@@ -215,7 +219,7 @@ plotAllFun <- function(d = NULL, mymapping = NULL, this.fill = NULL){
     guides(alpha = FALSE) +
     geom_crossbar(aes(xmin = d$min,
                       xmax = d$max), width = 0.5)+
-    facet_grid(. ~ this.group)
+    facet_grid(. ~ g)
 }
 
 
