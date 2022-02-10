@@ -103,7 +103,7 @@ ggInterval_index <- function(data = NULL,
           myy = 1:n,
           min = iData[[i]]$min,
           max = iData[[i]]$max,
-          g = i)
+          g = colnames(iData)[[i]])
         d <- rbind(d, temp)
       }
       d$g <- as.factor(d$g)
@@ -219,7 +219,7 @@ plotAllFun <- function(d = NULL, mymapping = NULL, this.fill = NULL){
     guides(alpha = FALSE) +
     geom_crossbar(aes(xmin = d$min,
                       xmax = d$max), width = 0.5)+
-    facet_grid(. ~ g)
+    facet_grid(. ~ g, scales = "free")
 }
 
 
