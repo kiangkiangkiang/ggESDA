@@ -237,7 +237,7 @@ d.i <- classic2sym(d, groupby = "customize",
 Company <-  rep(c("IBM", "MSFT", "AAPL"), each = 124)
 
 # plot full data and classify by Company (fill)
-ggInterval_index(d.i, aes(y = V1, fill = Company)) +
+ggInterval_index(d.i, aes(y = V1, fill = Company, group = Company)) +
      scale_x_continuous(breaks = seq(1, 124, 10),
                         labels = c(ibm[seq(1, 124, 10), 1])$Date)+
   labs(x = "", y = "Stocks Price (US)", title = "Time Series Interval-valued data") +
