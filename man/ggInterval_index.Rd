@@ -4,7 +4,8 @@
 \alias{ggInterval_index}
 \title{Plot the range of each observations}
 \usage{
-ggInterval_index(data = NULL,mapping = aes(NULL))
+ggInterval_index(data = NULL,mapping = aes(NULL),
+plotAll = FALSE)
 }
 \arguments{
 \item{data}{A ggESDA object. It can also be either RSDA object or
