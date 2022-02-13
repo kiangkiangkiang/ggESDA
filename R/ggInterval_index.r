@@ -165,7 +165,7 @@ ggInterval_index <- function(data = NULL,
       mymapping$x <- d$myx
       mymapping$y <- d$myy
       mymapping$fill <- this.fill
-      p <- plotAllFun(d, mymapping, this.fill)
+      p <- plotAllFun(d, mymapping, this.fill, this.group)
       return(p + scale_y_continuous(breaks = c(1:n),
                                     labels = myRowNames))
     }
@@ -214,12 +214,21 @@ ggInterval_index <- function(data = NULL,
   })
 }
 
-plotAllFun <- function(d = NULL, mymapping = NULL, this.fill = NULL){
-  ggplot(data = d, mapping = mymapping) +
-    guides(alpha = FALSE) +
-    geom_crossbar(aes(xmin = d$min,
-                      xmax = d$max), width = 0.5)+
-    facet_grid(. ~ g, scales = "free")
+plotAllFun <- function(d = NULL, mymapping = NULL, this.fill = NULL,
+                       this.group = NULL){
+  if(!is.null(this.fill) | !is.null(this.group)){
+    ggplot(data = d, mapping = mymapping) +
+      guides(alpha = FALSE) +
+      geom_crossbar(aes(xmin = d$min,
+                        xmax = d$max), width = 0.5)+
+      facet_grid(. ~ g, scales = "free")
+  }else{
+    ggplot(data = d, mapping = mymapping) +
+      guides(alpha = FALSE) +
+      geom_errorbar(aes(xmin = d$min,
+                        xmax = d$max), width = 0.2)+
+      facet_grid(. ~ g, scales = "free")
+  }
 }
 
 

@@ -5,7 +5,7 @@
 \title{Histogram for symbolic data with equal-bin or unequal-bin.}
 \usage{
 ggInterval_hist(data = NULL,mapping = aes(NULL),method="equal-bin",bins=10,
- plotAll = FALSE)
+ plotAll = FALSE, position = "stack", alpha = NULL)
 }
 \arguments{
 \item{data}{A ggESDA object.It can also be either RSDA object or
@@ -28,6 +28,10 @@ method depends on the data, and the argument "bins" will be unused.}
 
 \item{plotAll}{boolean, whether plot all variables, default FALSE.
 will be separate into.}
+
+\item{position}{"stack" or "identity"}
+
+\item{alpha}{fill alpha}
 }
 \value{
 Return a ggplot2 object.

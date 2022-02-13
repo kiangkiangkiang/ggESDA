@@ -21,9 +21,11 @@
 #' @param bins x axis bins,which mean how many partials the variable
 #' @param plotAll boolean, whether plot all variables, default FALSE.
 #' will be separate into.
+#' @param position "stack" or "identity"
+#' @param alpha fill alpha
 #' @return Return a ggplot2 object.
 #' @usage ggInterval_hist(data = NULL,mapping = aes(NULL),method="equal-bin",bins=10,
-#'  plotAll = FALSE)
+#'  plotAll = FALSE, position = "stack", alpha = NULL)
 #' @examples
 #' ggInterval_hist(mtcars,aes(x=wt))
 #'
@@ -39,11 +41,13 @@
 #'
 #' @export
 ggInterval_hist<-function(data = NULL,mapping = aes(NULL),method="equal-bin",bins=10,
-                          plotAll = FALSE){
+                          plotAll = FALSE, position = "identity",
+                          alpha = 0.5){
   #data preparing
   argsNum<-length(mapping)
   args<-lapply(mapping[1:argsNum],FUN=rlang::get_expr)
-  this.x <- args$x ; this.y <- args$y
+  this.x <- args$x ; this.y <- args$y ;this.fill <- args$fill
+  this.group <- args$group
 
   #test data illegal
   ggSymData <- testData(data)
@@ -58,11 +62,33 @@ ggInterval_hist<-function(data = NULL,mapping = aes(NULL),method="equal-bin",bin
   p<-dim(iData)[2]
   n<-dim(iData)[1]
 
+
   #test figure clearly
   if(method=="equal-bin" & bins>200 & bins<=1000){
     warning("Bins are too large that will lead the figure to be fuzzy.")
   }else if(method=="equal-bin" & bins>1000){
     stop("Bins are too large that will lead the figure to be fuzzy.")
+  }
+
+  # group for hist adjust
+  this.fill <- eval(this.fill)
+  this.group <- eval(this.group)
+  isGroup <- FALSE
+  myGroup <- 1 # no group (initial)
+  fill.group <- rep(1, n) # no group(initial)
+  if(length(this.group) == n | length(this.fill) == n){
+    if(method == "equal-bin"){
+      isGroup <- TRUE
+      if(length(this.fill ) == n){
+        myGroup <- unique(this.fill)
+        fill.group <- this.fill
+      }else{
+        myGroup <- unique(this.group)
+        fill.group <- this.group
+      }
+    }else{
+      warning("Ignore group of concepts, since the method is not support for group.")
+    }
   }
 
 
@@ -77,9 +103,16 @@ ggInterval_hist<-function(data = NULL,mapping = aes(NULL),method="equal-bin",bin
       iData <- iData[,which(numericData)]
       attr <- colnames(iData)
 
+      #adjust for group
       for(i in 1:length(attr)){
-        mmd[i, "minimal"]<-min(iData[[i]]$min)
-        mmd[i, "maximal"]<-max(iData[[i]]$max)
+        for(g in myGroup){
+          select.row <- which(fill.group == g)
+          temp <- data.frame(minimal = min(iData[select.row, i][[1]]$min),
+                             maximal = max(iData[select.row, i][[1]]$max),
+                             fill.group = g,
+                             this.attr = i)
+          mmd <- rbind(mmd, temp)
+        }
       }
     }else{
 
@@ -101,11 +134,18 @@ ggInterval_hist<-function(data = NULL,mapping = aes(NULL),method="equal-bin",bin
       if(all(!is.numeric(data[[attr]]) , !RSDA::is.sym.interval(data[[attr]]))){
         stop("ERROR : Variables in histogram can only be numeric.")
       }
-      mmd[1, "minimal"]<-min(iData[[attr]]$min)
-      mmd[1, "maximal"]<-max(iData[[attr]]$max)
 
+      for(g in myGroup){
+        select.row <- which(fill.group == g)
+        temp <- data.frame(minimal = min(iData[select.row, attr][[1]]$min),
+                           maximal = max(iData[select.row, attr][[1]]$max),
+                           fill.group = g,
+                           this.attr = 1)
+        mmd <- rbind(mmd, temp)
+      }
     }#end plotAll
 
+    #unequal-bin cannot grouping
     if(method=="unequal-bin"){
 
       plotData <- NULL ; intervalDf = NULL
@@ -166,7 +206,7 @@ ggInterval_hist<-function(data = NULL,mapping = aes(NULL),method="equal-bin",bin
       }else{
         usermapping <- mapping
       }
-      mymapping <- list(mapping=aes(xmin=x1, xmax=x2, ymin=y1, ymax=y2),fill="grey",col="black")
+      mymapping <- list(mapping=aes(xmin=x1, xmax=x2, ymin=y1, ymax=y2),fill="grey",col="black", alpha = alpha)
       allmapping <-as.list(structure(as.expression(c(usermapping,mymapping)),class="uneval"))
 
       #plot
@@ -186,18 +226,26 @@ ggInterval_hist<-function(data = NULL,mapping = aes(NULL),method="equal-bin",bin
 
     }else if(method=="equal-bin"){
       myhist <- NULL ; intervalDf <- NULL
-      for(i in 1:nrow(mmd)){
-        #seperate the attribute into bins
-        dist<-(mmd[i, "maximal"]-mmd[i, "minimal"])/bins
-        interval<-seq(mmd[i, "minimal"],mmd[i, "maximal"],dist)
 
+      #adjust for groups
+      #mmd : ith row : the ith variable's minimal and maximal
+      for(i in 1:nrow(mmd)){
+        #adjust for group
+        select.row <- which(mmd[i, "fill.group"] == fill.group)
+        work.attr <- mmd[i, "this.attr"]
+        mmd.temp <- dplyr::filter(mmd, this.attr == work.attr)
+        #seperate the attribute into bins
+        dist<-(max(mmd.temp[, "maximal"])-min(mmd.temp[, "minimal"]))/bins
+        interval<-seq(min(mmd.temp[, "minimal"]),max(mmd.temp[, "maximal"]),dist)
 
         #calculate frequency
         f <- NULL
-        f <- matrix(nrow=length(iData[[attr[i]]]),ncol=bins)
-        for (obs in 1:length(iData[[attr[i]]])){
-          a<-iData[[attr[i]]][obs]$min
-          b<-iData[[attr[i]]][obs]$max
+
+        f <- matrix(nrow=nrow(iData[select.row, attr[work.attr]]),ncol=bins)
+
+        for (obs in 1:nrow(iData[select.row, attr[work.attr]])){
+          a<-iData[select.row, attr[work.attr]][[1]][obs]$min
+          b<-iData[select.row, attr[work.attr]][[1]][obs]$max
           for(area in 1:bins){
             headIn<-a %>% between(interval[area],interval[area+1])
             tailIn<-b %>% between(interval[area],interval[area+1])
@@ -223,18 +271,21 @@ ggInterval_hist<-function(data = NULL,mapping = aes(NULL),method="equal-bin",bin
         myhist<-rbind(myhist,
                       data.frame(interval=interval[1:bins],
                            frequency=apply(f,2,FUN=sum),
-                           group = factor(attr[i])))
+                           group = factor(attr[work.attr]),
+                           myFill = mmd[i, "fill.group"]))
 
       }
       myhist <- cbind(myhist, intervalDf)
+      myhist$myFill <- as.factor(myhist$myFill)
+
       intervalDf <- intervalDf[order(intervalDf$start), ]
       temp <- paste(intervalDf$start, intervalDf$end, sep = ":")
       #temp<-mapply(intervalDf$start,intervalDf$end,FUN=function(x,y) paste(interval[x],interval[y],sep = ":"))
       nameList <- paste0("[",temp,"]")
 
-
-      myhist$frequency <- myhist$frequency/n
-
+      if(!isGroup){
+        myhist$frequency <- myhist$frequency/n
+      }
 
       #build Aesthetic (mapping)
       #
@@ -244,29 +295,83 @@ ggInterval_hist<-function(data = NULL,mapping = aes(NULL),method="equal-bin",bin
       }else{
         usermapping <- mapping
       }
+
+
       mymapping <- list(stat="identity",
-                        mapping=aes(alpha=0.5,fill=gray.colors(bins*length(attr))),col="black")
+                          mapping=aes(alpha=alpha,fill=gray.colors(bins*length(attr))),col="black")
+
+
       allmapping <-as.list(structure(as.expression(c(usermapping,mymapping)),class="uneval"))
 
 
       #plot
       if(plotAll){
-        mymapping <- list(mapping=aes(xmin=start, xmax=end, ymin=0, ymax=frequency),fill="grey",col="black")
-        allmapping <-as.list(structure(as.expression(c(usermapping,mymapping)),class="uneval"))
-        base <- ggplot(data=myhist)+
-          do.call(geom_rect,allmapping) +
-          facet_grid(group ~ .) +
-          labs(x = "", y="frequency") +
-          scale_x_continuous(n.breaks = 8)
-
+        if(isGroup){
+          if(position == "identity"){
+            base <- ggplot(data = myhist, aes(fill = myhist$myFill)) +
+              geom_rect(mapping = aes(xmin = start, xmax = end,
+                                      ymin = 0, ymax = frequency), col = "black", alpha = alpha) +
+              theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
+              labs(x = "", fill = "Group", y = "Frequency")+
+              scale_x_continuous(n.breaks = 8)+
+              guides(colour = FALSE, alpha = FALSE) +
+              facet_grid(group ~ .)
+          }else if(position == "stack"){
+            myhist <- stackFreq(myhist, myGroup)
+            base <- ggplot(data = myhist, aes(fill = myhist$myFill)) +
+              geom_rect(mapping = aes(xmin = start, xmax = end,
+                                      ymin = ystart, ymax = yend), col = "black", alpha = alpha) +
+              theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
+              labs(x = "", fill = "Group", y = "Frequency")+
+              scale_x_continuous(n.breaks = 8)+
+              guides(colour = FALSE, alpha = FALSE) +
+              facet_grid(group ~ .)
+          }else{
+            stop("The position is not implemented.")
+          }
+        }else{
+            mymapping <- list(mapping=aes(xmin=start, xmax=end, ymin=0, ymax=frequency),fill="grey",col="black")
+            allmapping <-as.list(structure(as.expression(c(usermapping,mymapping)),class="uneval"))
+            base <- ggplot(data=myhist)+
+              do.call(geom_rect,allmapping) +
+              facet_grid(group ~ .) +
+              labs(x = "", y="frequency") +
+              scale_x_continuous(n.breaks = 8)
+          }
       }else{
-        base <- ggplot(data=myhist, aes(x=factor(interval),y=frequency))+
-          do.call(geom_histogram,allmapping)+
-          scale_fill_manual(values=rep("black",bins*length(attr)))+
-          guides(colour = FALSE, alpha = FALSE,fill=FALSE)+
-          theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
-          labs(x=attr)+
-          scale_x_discrete(labels = nameList)
+        if(isGroup){
+          if(position == "identity"){
+            base <- ggplot(data = myhist, aes(fill = myhist$myFill)) +
+              geom_rect(mapping = aes(xmin = start, xmax = end,
+                            ymin = 0, ymax = frequency), col = "black", alpha = alpha) +
+              theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
+              labs(x = attr, fill = "Group", y = "Frequency")+
+              scale_x_continuous(breaks = (myhist[myhist$myFill == myGroup[1], "start"] + myhist[myhist$myFill == myGroup[1], "end"])/2,
+                                 labels = unique(nameList))+
+              guides(colour = FALSE, alpha = FALSE)
+          }else if(position == "stack"){
+            myhist <- stackFreq(myhist, myGroup)
+            base <- ggplot(data = myhist, aes(fill = myhist$myFill)) +
+              geom_rect(mapping = aes(xmin = start, xmax = end,
+                                      ymin = ystart, ymax = yend), col = "black", alpha = alpha) +
+              theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
+              labs(x = attr, fill = "Group", y = "Frequency")+
+              scale_x_continuous(breaks = (myhist[myhist$myFill == myGroup[1], "start"] + myhist[myhist$myFill == myGroup[1], "end"])/2,
+                                 labels = unique(nameList))+
+              guides(colour = FALSE, alpha = FALSE)
+          }else{
+            stop("The position is not implemented.")
+          }
+
+        }else{
+          base <- ggplot(data=myhist, aes(x=factor(interval),y=frequency))+
+            do.call(geom_histogram,allmapping)+
+            theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
+            labs(x=attr)+
+            scale_x_discrete(labels = nameList)+
+            scale_fill_manual(values=rep("black",bins*length(attr)))+
+            guides(colour = FALSE, alpha = FALSE,fill=FALSE)
+        }
       }
       return(base)
 
@@ -277,6 +382,23 @@ ggInterval_hist<-function(data = NULL,mapping = aes(NULL),method="equal-bin",bin
 }
 
 
+stackFreq <- function(data = NULL, myGroup = NULL){
+  n <- dim(data)[1]/length(unique(data$group))/length(myGroup)
+  final <- NULL
+  for(var in unique(data$group)){
+    work.data <- dplyr::filter(data, data$group == var)
+    times <- n
+    temp <- 0
+    for(i in (length(myGroup)-1):1){
+      temp <- temp + c(rep(0, times),
+                       work.data[1:(i * n), "frequency"])
+      times <- times + n
+    }
+    final <- c(final, temp)
+  }
 
-
+  data[,"ystart"] <- final
+  data[,"yend"] <- final + data$frequency
+  return(data)
+}
 
