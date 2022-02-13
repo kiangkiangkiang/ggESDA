@@ -2,7 +2,7 @@
 
 Symbolic data analysis (SDA) is an extension of standard data analysis where symbolic data tables are used as input and symbolic objects are made output as a result. The data units are called symbolic since they are more complex than standard ones, as they not only contain values or categories, but also include internal variation and structure.<a href="#ref1">[1]</a><a href="#ref2">[2]</a>
 
-<b>ggESDA</b> is an extension of ggplot2 for visualizing the symbolic data based on exploratory data analysis (EDA). The package contains many useful graphic techniques functions. Furthermore, the users can also transform the classical data into the symbolic data by the function in this package, which is one of the most important processing in SDA. For the details of the package study, you can see in <a href="https://github.com/kiangkiangkiang/RESEARCH/blob/master/ggESDA_Jiang%26Wu_20210915.pdf">Jiang (2022)</a>.
+<b>ggESDA</b> is an extension of ggplot2 for visualizing the symbolic data based on exploratory data analysis (EDA). The package contains many useful graphic techniques functions. Furthermore, the users can also transform the classical data into the symbolic data by the function in this package, which is one of the most important processing in SDA. For the details of the package study, you can see in <a href="https://github.com/kiangkiangkiang/RESEARCH/blob/master/ggESDA_Jiang&Wu.pdf">Jiang and Wu(2022)</a>.
 
 ## Package installation
 
@@ -99,7 +99,7 @@ The side-by-side boxplot clearly shows the difference of variables' distribution
 
 ### ggInterval_hist() for visualizing the distribution of the interval data
 
-For interval-valued data, not only equidistant-bin histogram but the Non-equidistant-bin histogram will exhibit the distribution. Use the option `method`, and set by `equal-bin` or `unequal-bin`. See the details <a href="https://github.com/kiangkiangkiang/RESEARCH/blob/master/ggESDA_Jiang%26Wu_20210915.pdf">Jiang (2022)</a>.
+For interval-valued data, not only equidistant-bin histogram but the Non-equidistant-bin histogram will exhibit the distribution. Use the option `method`, and set by `equal-bin` or `unequal-bin`. See the details <a href="https://github.com/kiangkiangkiang/RESEARCH/blob/master/ggESDA_Jiang&Wu.pdf">Jiang and Wu(2022)</a>.
 
 ```{r ggInterval_hist,eval=FALSE}
 equal_bin <- ggInterval_hist(facedata, plotAll = T) +
@@ -149,7 +149,7 @@ ggInterval_2DhistMatrix(facedata,
 
 ### ggInterval_indexImage for visualizing the interval of each observations by using image
 
-A heatmap type presentation for the interval by the option `plotAll` and `full_strip`. There will be two distinct type, column condition and matrix condition.  See the details <a href="https://github.com/kiangkiangkiang/RESEARCH/blob/master/ggESDA_Jiang%26Wu_20210915.pdf">Jiang (2022)</a>.
+A heatmap type presentation for the interval by the option `plotAll` and `full_strip`. There will be two distinct type, column condition and matrix condition.  See the details <a href="https://github.com/kiangkiangkiang/RESEARCH/blob/master/ggESDA_Jiang&Wu.pdf">Jiang and Wu(2022)</a>.
 
 ```{r ggInterval_indexImage2,eval=FALSE}
 p1 <- ggInterval_indexImage(facedata, plotAll = T, column_condition = T,
@@ -183,7 +183,7 @@ In the field of interval-valued data, the quantile is usually for analysis. We c
 
 ### ggInterval_PCA for dimension reduction in interval data
 
-Two kinds of dimension reduction,  see the details <a href="https://github.com/kiangkiangkiang/RESEARCH/blob/master/ggESDA_Jiang%26Wu_20210915.pdf">Jiang (2022)</a>, show in following:
+Two kinds of dimension reduction,  see the details <a href="https://github.com/kiangkiangkiang/RESEARCH/blob/master/ggESDA_Jiang&Wu.pdf">Jiang and Wu(2022)</a>, show in following:
 
 ```{r ggInterval_radar2,eval=FALSE}
 CONCEPT <- rep(c("FRA", "HUS", "INC", "ISA", "JPL", "KHA",
