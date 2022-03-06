@@ -13,6 +13,7 @@
 #' it is combined with the default mapping at the top level of
 #' the plot. You must supply mapping if there is no plot mapping.
 #' It is the same as the mapping of ggplot2.
+#' @param plotAll plot all variables
 #' @return Return a ggplot2 object.
 #' @usage ggInterval_index(data = NULL,mapping = aes(NULL),
 #' plotAll = FALSE)
