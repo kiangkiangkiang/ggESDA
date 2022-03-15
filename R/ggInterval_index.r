@@ -170,6 +170,8 @@ ggInterval_index <- function(data = NULL,
       return(p + scale_y_continuous(breaks = c(1:n),
                                     labels = myRowNames))
     }
+    #deal with facets
+    #iData <- addFactor(rawData = data, iData = iData)
 
 
     if(isPlotX){

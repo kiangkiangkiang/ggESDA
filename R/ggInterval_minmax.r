@@ -153,6 +153,12 @@ ggInterval_minmax <- function(data = NULL,mapping = aes(NULL),
 
     #always sort = T
     #if(sort){
+    #add facets
+    if(!plotAll){
+      newd <- addFactor(rawData = data, iData = newd)
+    }
+
+
     base  <- ggplot(newd,aes(x=min,y=min, group = var))+
               do.call(geom_point,allmapping2)+
               do.call(geom_point,allmapping)+

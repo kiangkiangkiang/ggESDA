@@ -71,3 +71,24 @@ testXY <- function(iData,this.x,this.y){
     }
   })
 }
+
+
+addFactor <- function(rawData, iData){
+  tryCatch({
+      test <- unlist(lapply(rawData, is.factor))
+      if(any(test)){
+         factorIndex <- which(test)
+         if(dim(rawData)[1] == dim(iData)[1]){
+           #OK
+           for(i in factorIndex){
+             iData <- dplyr::bind_cols(iData, tmp = rawData[[i]])
+             colnames(iData)[dim(iData)[2]] <- colnames(rawData)[i]
+           }
+         }
+      }
+      return(iData)
+  },error = function(err) {
+      return(iData)
+  })
+}
+

@@ -42,6 +42,7 @@
 #' @export
 ggInterval_scatter <- function(data = NULL,mapping = aes(NULL)){
   #data preparing
+  . <- NULL
   argsNum<-length(mapping)
   args<-lapply(mapping[1:argsNum],FUN=rlang::get_expr)
   this.x <- args$x ; this.y <- args$y
@@ -91,20 +92,21 @@ ggInterval_scatter <- function(data = NULL,mapping = aes(NULL)){
     }else{
       usermapping <- mapping
     }
-    mymapping <- list(data=d,
-                      mapping=aes(xmin=x1, xmax=x2, ymin=y1, ymax=y2,
-                                  fill=gray.colors(n),alpha=0.5),col="black")
+    #add facets
+    d <- addFactor(rawData = data, iData = d)
+
+
+    mymapping <- list(mapping=aes(xmin=x1, xmax=x2, ymin=y1, ymax=y2,alpha=0.5,fill = gray.colors(n), col = gray.colors(n)))
     allmapping <-as.list(structure(as.expression(c(usermapping,mymapping)),class="uneval"))
 
 
+
+
     #start plot
-    ggplot(data=d,aes(x1,y1))+
+    ggplot(data=d,aes(x = x1, y = y1))+
       do.call(geom_rect,allmapping)+
       geom_text(label=myRowNames)+
-      scale_fill_manual(name="Concept",
-                        values=gray.colors(n),
-                        labels=myRowNames)+
-      guides(colour = FALSE, alpha = FALSE)+
+      guides(colour = FALSE, alpha = FALSE, fill = FALSE)+
       labs(x=attr1,y=attr2)
   })
 }

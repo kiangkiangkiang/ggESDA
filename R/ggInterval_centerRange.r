@@ -99,6 +99,11 @@ ggInterval_centerRange<- function(data = NULL,mapping = aes(NULL),plotAll=FALSE)
     mymapping <- list(mapping=aes(size=4))
     allmapping <-as.list(structure(as.expression(c(usermapping,mymapping)),class="uneval"))
 
+    #add facets
+    if(!plotAll){
+      d <- addFactor(rawData = data, iData = d)
+    }
+
     #plot
     base <- ggplot(d,aes(center,r,group = var))+
               do.call(geom_point,allmapping)+
