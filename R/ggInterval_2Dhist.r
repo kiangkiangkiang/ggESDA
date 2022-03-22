@@ -82,8 +82,15 @@ ggInterval_2Dhist<- function(data = NULL,mapping = aes(NULL),
     maxX<-max(iData[[attr1]]$max)
     minY<-min(iData[[attr2]]$min)
     maxY<-max(iData[[attr2]]$max)
+
     recX <- seq(minX,maxX,(maxX-minX)/xBins)
     recY <- seq(minY,maxY,(maxY-minY)/yBins)
+
+    # start for test(test ch3 fig4.1)
+    # recX <- c(90, 110, 130, 150, 170, 190, 210)
+    # recY <- c(45, 65, 80, 95, 125)
+    # end for test
+
 
     freq.Rectangle <- matrix(0,nrow=xBins,ncol=yBins)
 

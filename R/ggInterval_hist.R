@@ -238,6 +238,8 @@ ggInterval_hist<-function(data = NULL,mapping = aes(NULL),method="equal-bin",bin
         dist<-(max(mmd.temp[, "maximal"])-min(mmd.temp[, "minimal"]))/bins
         interval<-seq(min(mmd.temp[, "minimal"]),max(mmd.temp[, "maximal"]),dist)
 
+        #test for ch3, p.84, figure3.3
+        #interval <- c(0, 4, 7, 10, 13, 16, 19)
         #calculate frequency
         f <- NULL
 
@@ -283,9 +285,9 @@ ggInterval_hist<-function(data = NULL,mapping = aes(NULL),method="equal-bin",bin
       #temp<-mapply(intervalDf$start,intervalDf$end,FUN=function(x,y) paste(interval[x],interval[y],sep = ":"))
       nameList <- paste0("[",temp,"]")
 
-      if(!isGroup){
-        myhist$frequency <- myhist$frequency/n
-      }
+      # if(!isGroup){
+      #   myhist$frequency <- myhist$frequency/n
+      # }
 
       #build Aesthetic (mapping)
       #

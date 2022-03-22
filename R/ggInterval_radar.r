@@ -90,6 +90,7 @@ ggInterval_radar <-function(data=NULL,layerNumber=3,
   #extend plot original xyLimits = 1.25, extendUnit=0, colnamesDrift = 0.1
   colnamesDrift <- 0.18
   xyLimits <- extendUnit + 1.25 + colnamesDrift
+  textShift<-0.065
   #
 
   fillBetween=TRUE #not fix complete
@@ -147,9 +148,9 @@ ggInterval_radar <-function(data=NULL,layerNumber=3,
   }
 
   #someday i will fix this bug ,maybe
-  if(nP < 2){
-    stop("number of numerical (symbolic interval) data must greater than 2")
-  }
+  # if(nP < 2){
+  #   stop("number of numerical (symbolic interval) data must greater than 2")
+  # }
 
 
   #setting quantile argument
@@ -183,6 +184,7 @@ ggInterval_radar <-function(data=NULL,layerNumber=3,
 
   #setting original plot
   #p<-generateCircle(nL)+coord_fixed(ratio = 1)
+
   if(base_circle){
     p<-generateCircle(nL+1,extendUnit)+coord_fixed(ratio = 1)
   }else{
@@ -201,96 +203,102 @@ ggInterval_radar <-function(data=NULL,layerNumber=3,
   }
   p<-p+geom_point(data=d,aes(x=d$x,y=d$y))
   #get all variables min max data
-  allData<-iData[,1:nP]
-  if(!is.null(plotPartial)){
-    iData<-iData[plotPartial,1:nP]
-  }
-  dataList<-lapply(1:nP,FUN=function(x) data.frame(allData[[x]]))
-  iDataList<-lapply(1:nP,FUN=function(x) data.frame(iData[[x]]))
-  maxList<-lapply(1:nP,FUN=function(x) max(dataList[[x]]))
-  minList<-lapply(1:nP,FUN=function(x) min(dataList[[x]]))
-  minminList<-minList;  maxmaxList<-maxList
+  if(nP != 0){
+    allData<-iData[,1:nP]
 
-  #quantile #this will over write iDataList
-  if(type=="quantile"){
-    indNum<-quantileNum+1
-    figQuaNum<-quantileNum+3
-    sepQua<-seq(0,1,1/figQuaNum)
-    for(i in 1:nP){
-      datatmp<-c(iDataList[[i]]$min,iDataList[[i]]$max)
-      #extend adjust
-      datatmp<-round(quantile(datatmp,sepQua),2)[-(figQuaNum+1)][-1] + extendUnit
-      #end adjust
-      tempMin<-datatmp[1:indNum]
-      tempMax<-datatmp[2:(figQuaNum-1)]
-      iDataList[[i]]<-data.frame(min=tempMin,max=tempMax)
+
+    if(!is.null(plotPartial)){
+      iData<-iData[plotPartial,1:nP]
     }
-  }
+    dataList<-lapply(1:nP,FUN=function(x) data.frame(allData[[x]]))
+    iDataList<-lapply(1:nP,FUN=function(x) data.frame(iData[[x]]))
+    maxList<-lapply(1:nP,FUN=function(x) max(dataList[[x]]))
+    minList<-lapply(1:nP,FUN=function(x) min(dataList[[x]]))
+    minminList<-minList;  maxmaxList<-maxList
 
-  if(type == "quantile"){
-    maxList<-lapply(1:nP,FUN=function(x) max(iDataList[[x]][, "max"]))
-    minList<-lapply(1:nP,FUN=function(x) min(iDataList[[x]][, "min"]))
-  }
-  minminList<-minList;  maxmaxList<-maxList
-  #normalize data to 0,1
-  #extend adjust
-  normData<-lapply(1:nP ,FUN=function(x){
-    sapply(iDataList[[x]],FUN=function(elem) {
-      ( (elem-minList[[x]])/(maxList[[x]]-minList[[x]]) ) + extendUnit
+    #quantile #this will over write iDataList
+    if(type=="quantile"){
+      indNum<-quantileNum+1
+      figQuaNum<-quantileNum+3
+      sepQua<-seq(0,1,1/figQuaNum)
+      for(i in 1:nP){
+        datatmp<-c(iDataList[[i]]$min,iDataList[[i]]$max)
+        #extend adjust
+        datatmp<-round(quantile(datatmp,sepQua),2)[-(figQuaNum+1)][-1] + extendUnit
+        #end adjust
+        tempMin<-datatmp[1:indNum]
+        tempMax<-datatmp[2:(figQuaNum-1)]
+        iDataList[[i]]<-data.frame(min=tempMin,max=tempMax)
+      }
+    }
+
+    if(type == "quantile"){
+      maxList<-lapply(1:nP,FUN=function(x) max(iDataList[[x]][, "max"]))
+      minList<-lapply(1:nP,FUN=function(x) min(iDataList[[x]][, "min"]))
+      minminList<-minList;  maxmaxList<-maxList
+    }
+
+    #normalize data to 0,1
+    #extend adjust
+    normData<-lapply(1:nP ,FUN=function(x){
+      sapply(iDataList[[x]],FUN=function(elem) {
+        ( (elem-minList[[x]])/(maxList[[x]]-minList[[x]]) ) + extendUnit
+      })
     })
-  })
-  #end adjust
-
-
-  #rescale dataframe to input form which data2Vec need
-  minDF<-sapply(1:nP,FUN=function(x) matrix(normData[[x]],ncol=2)[,1])
-  maxDF<-sapply(1:nP,FUN=function(x) matrix(normData[[x]],ncol=2)[,2])
-
-  minDF<-matrix(minDF,ncol=nP)
-  maxDF<-matrix(maxDF,ncol=nP)
-  transMatrix<-d[1:nP,c(3,4)]
 
 
 
-  #convert data to match radar axis scale
-  if(type=="quantile"){
-    setRowNameDf <- iDataList[[1]]
-  }else{
-    setRowNameDf<-iData
-  }
-  plotMin<-data2Vec(iData=setRowNameDf,data=minDF,transMat = transMatrix,type,quantileNum)
-  plotMax<-data2Vec(iData=setRowNameDf,data=maxDF,transMat = transMatrix,type,quantileNum)
+
+    #rescale dataframe to input form which data2Vec need
+    minDF<-sapply(1:nP,FUN=function(x) matrix(normData[[x]],ncol=2)[,1])
+    maxDF<-sapply(1:nP,FUN=function(x) matrix(normData[[x]],ncol=2)[,2])
+
+    minDF<-matrix(minDF,ncol=nP)
+    maxDF<-matrix(maxDF,ncol=nP)
+    transMatrix<-d[1:nP,c(3,4)]
 
 
-  #making labels
-  temp<-lapply(1:nP,FUN=function(x) paste(iDataList[[x]][,1],iDataList[[x]][,2],sep=":"))
-  temp<-lapply(1:nP,FUN=function(x) paste0("[",temp[[x]],"]"))
-  temp<-matrix(unlist(temp),ncol=indNum,byrow=T)
-  groupId<-rep(c(1:indNum),each=nP)
-  myLabel=paste(groupId,paste(colnames(iData),temp),sep=" : ")
 
-
-  #new a labels variable
-  plotMin<-data.frame(plotMin,Variables=myLabel)
-  plotMax<-data.frame(plotMax,Variables=myLabel)
-
-  #make text in plot
-  # minList<-unlist(lapply(1:nP,FUN=function(x) iDataList[[x]][,1]))
-  # maxList<-unlist(lapply(1:nP,FUN=function(x) iDataList[[x]][,2]))
-  #
-  newDf <- data.frame(NULL)
-  for(i in 1:indNum){
-    for(u in 1:nP){
-      newDf<-rbind(newDf,iDataList[[u]][i,])
+    #convert data to match radar axis scale
+    if(type=="quantile"){
+      setRowNameDf <- iDataList[[1]]
+    }else{
+      setRowNameDf<-iData
     }
-  }
+    plotMin<-data2Vec(iData=setRowNameDf,data=minDF,transMat = transMatrix,type,quantileNum)
+    plotMax<-data2Vec(iData=setRowNameDf,data=maxDF,transMat = transMatrix,type,quantileNum)
 
-  textMin<-as.data.frame(cbind(plotMin,min=newDf$min))
-  textMax<-as.data.frame(cbind(plotMax,max=newDf$max))
-  textShift<-0.065
-  textMin$cos<-textMin$cos+textShift;textMin$sin<-textMin$sin+textShift
-  textMax$cos<-textMax$cos+textShift;textMax$sin<-textMax$sin+textShift
 
+    #making labels
+    temp<-lapply(1:nP,FUN=function(x) paste(iDataList[[x]][,1],iDataList[[x]][,2],sep=":"))
+    temp<-lapply(1:nP,FUN=function(x) paste0("[",temp[[x]],"]"))
+    temp<-matrix(unlist(temp),ncol=indNum,byrow=T)
+    groupId<-rep(c(1:indNum),each=nP)
+    myLabel=paste(groupId,paste(colnames(iData),temp),sep=" : ")
+
+
+    #new a labels variable
+    plotMin<-data.frame(plotMin,Variables=myLabel)
+    plotMax<-data.frame(plotMax,Variables=myLabel)
+
+    #make text in plot
+    # minList<-unlist(lapply(1:nP,FUN=function(x) iDataList[[x]][,1]))
+    # maxList<-unlist(lapply(1:nP,FUN=function(x) iDataList[[x]][,2]))
+    #
+    newDf <- data.frame(NULL)
+    for(i in 1:indNum){
+      for(u in 1:nP){
+        newDf<-rbind(newDf,iDataList[[u]][i,])
+      }
+    }
+
+    textMin<-as.data.frame(cbind(plotMin,min=newDf$min))
+    textMax<-as.data.frame(cbind(plotMax,max=newDf$max))
+    textMin$cos<-textMin$cos+textShift;textMin$sin<-textMin$sin+textShift
+    textMax$cos<-textMax$cos+textShift;textMax$sin<-textMax$sin+textShift
+
+    plotMin$group<-as.factor(plotMin$group)
+  }#end if np != 0
 
   #calculate nominal variable (point)
   if(allnP!=nP){
@@ -379,17 +387,21 @@ ggInterval_radar <-function(data=NULL,layerNumber=3,
       #print(lastRect)
     }# first for
 
-    plotMin$group<-as.factor(plotMin$group)
+
     #totalRectDf<-as.data.frame(totalRectDf)
     totalRectDf$varLevels <- as.factor(totalRectDf$varLevels)
     totalRectDf$varGroup <- as.factor(totalRectDf$varGroup)
     totalRectDf$obsGroup <- as.factor(totalRectDf$obsGroup)
-    levels(propDf$groupid)<-levels(plotMin$group)
+    if(nP != 0){
+      levels(propDf$groupid)<-levels(plotMin$group)
+    }
   }
 
   #generate cut line for type==rect && build nominal rect
   if(type=="rect"){
-    cutDf<-c(getCutDf(plotMin,transMatrix,nP,indNum),getCutDf(plotMax,transMatrix,nP,indNum))
+    if(nP != 0){
+      cutDf<-c(getCutDf(plotMin,transMatrix,nP,indNum),getCutDf(plotMax,transMatrix,nP,indNum))
+    }
   }
 
   #plot
@@ -397,57 +409,72 @@ ggInterval_radar <-function(data=NULL,layerNumber=3,
     if(type=="default"||type=="quantile"){
       #if(fillBetween){
       myPolyData<-data.frame(NULL)
-      for(i in levels(as.factor(plotMin$group))){
-        plotMin.temp <- dplyr::filter(plotMin,plotMin$group==i)
-        plotMax.temp <- dplyr::filter(plotMax,plotMin$group==i)
-        myPathData<-data.frame(x1=plotMin.temp$cos,y1=plotMin.temp$sin,
-                               x2=plotMax.temp$cos,y2=plotMax.temp$sin)
-        if(allnP==nP){
-          newTemp<-rbind(plotMin.temp,plotMin.temp[1,],plotMax.temp,plotMax.temp[1,])
-          myPolyData<-rbind(myPolyData,newTemp)
-        }else{ #add nominal
-          tmp2<-NULL;j<-1
-          # print(levels(as.factor(propDf$varName)))
-          # print(propDf)
-          for(u in unique(as.factor(propDf$varName))){
-            # propDf.temp <- dplyr::filter(propDf,propDf$varName==u) %>%
-            #   dplyr::filter(groupid==i)
+      if(nP != 0){
+        for(i in levels(as.factor(plotMin$group))){
+          plotMin.temp <- dplyr::filter(plotMin,plotMin$group==i)
+          plotMax.temp <- dplyr::filter(plotMax,plotMin$group==i)
+          myPathData<-data.frame(x1=plotMin.temp$cos,y1=plotMin.temp$sin,
+                                 x2=plotMax.temp$cos,y2=plotMax.temp$sin)
+          if(allnP==nP){
+            newTemp<-rbind(plotMin.temp,plotMin.temp[1,],plotMax.temp,plotMax.temp[1,])
+            myPolyData<-rbind(myPolyData,newTemp)
+          }else{ #add nominal
+            tmp2<-NULL;j<-1
+            # print(levels(as.factor(propDf$varName)))
+            # print(propDf)
+            for(u in unique(as.factor(propDf$varName))){
+              # propDf.temp <- dplyr::filter(propDf,propDf$varName==u) %>%
+              #   dplyr::filter(groupid==i)
 
-            propDf.temp <- dplyr::filter(propDf,propDf$varName==u)
-            propDf.temp <- dplyr::filter(propDf.temp,propDf.temp$groupid==i)
-            tmp<-propDf.temp[propDf.temp$prop==max(propDf.temp$prop),]
-            tmp<-tmp[1,]
-            tmp2<-rbind(tmp2,plotMin.temp[1,])
-            tmp2[j,c("cos","sin")]<-c(tmp$x,tmp$y)
-            myPathData<-rbind(myPathData,data.frame(x1=tmp$x,y1=tmp$y,x2=tmp$x,y2=tmp$y))
-            j<-j+1
+              propDf.temp <- dplyr::filter(propDf,propDf$varName==u)
+              propDf.temp <- dplyr::filter(propDf.temp,propDf.temp$groupid==i)
+              tmp<-propDf.temp[propDf.temp$prop==max(propDf.temp$prop),]
+              tmp<-tmp[1,]
+              tmp2<-rbind(tmp2,plotMin.temp[1,])
+              tmp2[j,c("cos","sin")]<-c(tmp$x,tmp$y)
+              myPathData<-rbind(myPathData,data.frame(x1=tmp$x,y1=tmp$y,x2=tmp$x,y2=tmp$y))
+              j<-j+1
+            }
+            #propDf.temp <- dplyr::filter(propDf,groupid==i)
+            #tmp<-propDf[propDf.temp$prop==max(propDf.temp$prop),]
+            #tmp<-tmp[1,] #還沒想到一次連兩個點的方法 先只取第一個
+            #tmp2<-plotMin.temp[1,]
+            #tmp2[,c("cos","sin")]<-c(tmp$x,tmp$y)
+            #myPathData<-rbind(myPathData,data.frame(x1=tmp$x,y1=tmp$y,x2=tmp$x,y2=tmp$y))
+
+            newTemp<-rbind(plotMin.temp,tmp2,
+                           plotMin.temp[1,], plotMax.temp,tmp2,plotMax.temp[1,])
+            myPolyData<-rbind(myPolyData,newTemp)
           }
-          #propDf.temp <- dplyr::filter(propDf,groupid==i)
-          #tmp<-propDf[propDf.temp$prop==max(propDf.temp$prop),]
-          #tmp<-tmp[1,] #還沒想到一次連兩個點的方法 先只取第一個
-          #tmp2<-plotMin.temp[1,]
-          #tmp2[,c("cos","sin")]<-c(tmp$x,tmp$y)
-          #myPathData<-rbind(myPathData,data.frame(x1=tmp$x,y1=tmp$y,x2=tmp$x,y2=tmp$y))
-
-          newTemp<-rbind(plotMin.temp,tmp2,
-                         plotMin.temp[1,], plotMax.temp,tmp2,plotMax.temp[1,])
-          myPolyData<-rbind(myPolyData,newTemp)
+          p<-p+geom_path(data=myPathData,aes(x=myPathData$x1, y=myPathData$y1),lty=0)+
+            geom_path(data=myPathData,aes(x=myPathData$x2, y=myPathData$y2),lty=0)
         }
-        p<-p+geom_path(data=myPathData,aes(x=myPathData$x1, y=myPathData$y1),lty=0)+
-          geom_path(data=myPathData,aes(x=myPathData$x2, y=myPathData$y2),lty=0)
       }
 
       if(allnP!=nP){
-        tmpN<-dim(myPolyData)[1]/indNum
-        myPolyData[,"obsGroup"]<-as.factor(rep(1:indNum,each=tmpN))
+        if(nP != 0){
+          tmpN<-dim(myPolyData)[1]/indNum
+          myPolyData[,"obsGroup"]<-as.factor(rep(1:indNum,each=tmpN))
+          tempPolyDf <- myPolyData[,c(1,2,3,5)]
+        }
+
         tempRectDf <- totalRectDf[,c(1,2,3,6)]
-        tempPolyDf <- myPolyData[,c(1,2,3,5)]
-        colnames(tempRectDf)<-colnames(tempPolyDf)
-        polyDf<-as.data.frame(rbind(tempPolyDf,tempRectDf))
+
+        colnames(tempRectDf) <- c("cos", "sin", "group", "obsGroup")
+        #colnames(tempRectDf)<-colnames(tempPolyDf)
+        if(nP != 0){
+          polyDf<-as.data.frame(rbind(tempPolyDf,tempRectDf))
+        }else{
+          polyDf <- tempRectDf
+        }
+
         p<-p+geom_polygon(data=polyDf,aes(x=polyDf$cos,y=polyDf$sin,group=polyDf$group,fill=polyDf$obsGroup,col=polyDf$obsGroup),
-                          alpha=alpha)+
-          geom_point(data=plotMin,aes(x=plotMin$cos,y=plotMin$sin))+
-          geom_point(data=plotMax,aes(x=plotMax$cos,y=plotMax$sin))
+                          alpha=alpha)
+        if(nP != 0){
+          p <- p +  geom_point(data=plotMin,aes(x=plotMin$cos,y=plotMin$sin))+
+            geom_point(data=plotMax,aes(x=plotMax$cos,y=plotMax$sin))
+        }
+
       }else{
         if(type=="quantile"){
           p<-p+geom_polygon(data=myPolyData,aes(x=myPolyData$cos,y=myPolyData$sin,fill=myPolyData$group,col=myPolyData$group),alpha = alpha)
@@ -466,18 +493,20 @@ ggInterval_radar <-function(data=NULL,layerNumber=3,
     #else{ #this is else for if(fillbetween)
     else if(type=="rect"){
       #add cut segment
-      rectPolyData<-data.frame(NULL)
-      gId <- 1
-      for(g in levels(as.factor(cutDf[[1]]$obsGroup))){
-        cutDf.temp<-lapply(1:4,FUN = function(x){as.data.frame(dplyr::filter(cutDf[[x]],cutDf[[x]]$obsGroup==g))})
-        #print(cutDf.temp)
-        for(i in 1:nP){
-          tmpDf<-data.frame(x=c(cutDf.temp[[1]]$x2[i],cutDf.temp[[2]]$x2[i],cutDf.temp[[4]]$x2[i],cutDf.temp[[3]]$x2[i]),
-                            y=c(cutDf.temp[[1]]$y2[i],cutDf.temp[[2]]$y2[i],cutDf.temp[[4]]$y2[i],cutDf.temp[[3]]$y2[i]),
-                            varGroup=as.factor(rep(gId,4)),
-                            obsGroup=as.factor(g))
-          rectPolyData<-rbind(rectPolyData,tmpDf)
-          gId<-gId+1
+      if(nP != 0){
+        rectPolyData<-data.frame(NULL)
+        gId <- 1
+        for(g in levels(as.factor(cutDf[[1]]$obsGroup))){
+          cutDf.temp<-lapply(1:4,FUN = function(x){as.data.frame(dplyr::filter(cutDf[[x]],cutDf[[x]]$obsGroup==g))})
+          #print(cutDf.temp)
+          for(i in 1:nP){
+            tmpDf<-data.frame(x=c(cutDf.temp[[1]]$x2[i],cutDf.temp[[2]]$x2[i],cutDf.temp[[4]]$x2[i],cutDf.temp[[3]]$x2[i]),
+                              y=c(cutDf.temp[[1]]$y2[i],cutDf.temp[[2]]$y2[i],cutDf.temp[[4]]$y2[i],cutDf.temp[[3]]$y2[i]),
+                              varGroup=as.factor(rep(gId,4)),
+                              obsGroup=as.factor(g))
+            rectPolyData<-rbind(rectPolyData,tmpDf)
+            gId<-gId+1
+          }
         }
       }
       #print(cutDf)
@@ -485,9 +514,15 @@ ggInterval_radar <-function(data=NULL,layerNumber=3,
       #numeric
       if(allnP!=nP){
         tempRectDf<-totalRectDf[,c(1,2,3,6)]
-        colnames(tempRectDf) <- colnames(rectPolyData)
-        levels(tempRectDf$obsGroup) <- levels(rectPolyData$obsGroup)
-        rectPolyData<-as.data.frame(rbind(tempRectDf,rectPolyData))
+        #colnames(tempRectDf) <- colnames(rectPolyData)
+        colnames(tempRectDf) <- c("x", "y", "varGroup", "obsGroup")
+        if(nP != 0){
+          levels(tempRectDf$obsGroup) <- levels(rectPolyData$obsGroup)
+          rectPolyData<-as.data.frame(rbind(tempRectDf,rectPolyData))
+        }else{
+          rectPolyData <- tempRectDf
+        }
+
       }
       p<-p+geom_polygon(data=rectPolyData,aes(x=.data$x,y=.data$y,group=.data$varGroup,
                                               fill=.data$obsGroup,col=.data$obsGroup),alpha=alpha)
@@ -532,13 +567,16 @@ ggInterval_radar <-function(data=NULL,layerNumber=3,
 
     #colnames shift out of figure 0.1 unit (colnamesDrift)
     newD <- shift(d, unit = colnamesDrift)
-    p<-p+geom_segment(data=d,aes(x=0,y=0,xend=d$x,yend=d$y),lty=base_lty,alpha=0.6)+
-      geom_point(data=plotMax,aes(x=0,y=0,alpha=plotMax$Variables))+
-      geom_text(data=newD,aes(x=newD$x,y=newD$y,label=c(colnames(rawiData))))
+    p<-p+geom_segment(data=d,aes(x=0,y=0,xend=d$x,yend=d$y),lty=base_lty,alpha=0.6)
+    if(nP != 0){
+      p <- p + geom_point(data=plotMax,aes(x=0,y=0,alpha=plotMax$Variables))+
+        geom_text(data=newD,aes(x=newD$x,y=newD$y,label=c(colnames(rawiData))))
+
+    }
 
 
 
-    if(addText && type!="quantile"){
+    if(addText && type!="quantile" && nP != 0){
       p<-p+geom_text(data=textMin,aes(x=textMin$cos,y=textMin$sin,label=textMin$min))+
         geom_text(data=textMax,aes(x=textMax$cos,y=textMax$sin,label=textMax$max))
     }
@@ -565,7 +603,8 @@ ggInterval_radar <-function(data=NULL,layerNumber=3,
     if(type=="quantile"){
       myTitle<-"Radar : quantile plot"
     }else{
-      myTitle<-paste0("Radar : ",paste(sapply(rownames(iData), paste, collapse=":"), collapse=","))
+      #myTitle<-paste0("Radar : ",paste(sapply(rownames(iData), paste, collapse=":"), collapse=","))
+      myTitle = "Radar plot"
     }
     p<-p+labs(title=myTitle)+
       scale_colour_discrete(name = "Group")+
@@ -589,6 +628,10 @@ ggInterval_radar <-function(data=NULL,layerNumber=3,
     u<-1
     for(i in levels(as.factor(plotMin$group))){
       #print(i)
+      if(nP == 0){
+        stop("Cannot allows discrete variables only, under the parameter inOneFig = FALSE,
+             please adjust inOneFig to TRUE.")
+      }
       plotMin.temp <- dplyr::filter(plotMin,plotMin$group==i)
       plotMax.temp <- dplyr::filter(plotMax,plotMax$group==i)
       textMin.temp <- dplyr::filter(textMin,textMin$group==i)
