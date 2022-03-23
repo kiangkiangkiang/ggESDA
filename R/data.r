@@ -139,3 +139,16 @@
 #' ggInterval_index(mtcars.i, aes(x = mpg))
 #' @keywords datasets
 "mtcars.i"
+
+
+#' @name Cardiological2
+#' @title Cardiological data example
+#' @description Cardiological interval data example.
+#' @usage data(Cardiological2)
+#' @references Billard L. and  Diday E. (2006).Symbolic data analysis:
+#' Conceptual statistics and data mining. Wiley, Chichester.
+#' @examples
+#' data(Cardiological2)
+#' ggInterval_index(Cardiological2, aes(x = Syst))
+#' @keywords datasets
+"Cardiological2"

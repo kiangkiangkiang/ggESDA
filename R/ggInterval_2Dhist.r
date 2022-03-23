@@ -86,7 +86,7 @@ ggInterval_2Dhist<- function(data = NULL,mapping = aes(NULL),
     recX <- seq(minX,maxX,(maxX-minX)/xBins)
     recY <- seq(minY,maxY,(maxY-minY)/yBins)
 
-    # start for test(test ch3 fig4.1)
+    # start for test(test ch4 fig4.1)
     # recX <- c(90, 110, 130, 150, 170, 190, 210)
     # recY <- c(45, 65, 80, 95, 125)
     # end for test

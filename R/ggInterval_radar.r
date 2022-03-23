@@ -91,6 +91,8 @@ ggInterval_radar <-function(data=NULL,layerNumber=3,
   colnamesDrift <- 0.18
   xyLimits <- extendUnit + 1.25 + colnamesDrift
   textShift<-0.065
+  textSize <- 4
+  textCol <- "gray20"
   #
 
   fillBetween=TRUE #not fix complete
@@ -535,7 +537,8 @@ ggInterval_radar <-function(data=NULL,layerNumber=3,
       newPropDf<-as.data.frame(dplyr::filter(newPropDf,newPropDf$groupid==levels(newPropDf$groupid)[1]))
 
       if(addText_modal){
-        p<-p+geom_text(data=newPropDf,aes(x=newPropDf$x+textShift,y=newPropDf$y+textShift,label=newPropDf$varLevels),vjust=2.15,hjust=0.5)
+        p<-p+geom_text(data=newPropDf,aes(x=newPropDf$x+textShift,y=newPropDf$y+textShift,label=newPropDf$varLevels),vjust=2.15,hjust=0.5,
+                       size = textSize, col = textCol)
       }
       #print(totalRectDf)
 
@@ -553,7 +556,8 @@ ggInterval_radar <-function(data=NULL,layerNumber=3,
         }
         propTextDf<-data.frame(tempd,prop=propDf$prop)
         #print(propTextDf)
-        p<-p+geom_text(data=propTextDf,aes(x=propTextDf$x+textShift,y=propTextDf$y,label=round(propTextDf$prop,2)))
+        p<-p+geom_text(data=propTextDf,aes(x=propTextDf$x+textShift,y=propTextDf$y,label=round(propTextDf$prop,2)),
+                       size = textSize, col = textCol)
       }
     }
     #print("5")
@@ -577,8 +581,10 @@ ggInterval_radar <-function(data=NULL,layerNumber=3,
 
 
     if(addText && type!="quantile" && nP != 0){
-      p<-p+geom_text(data=textMin,aes(x=textMin$cos,y=textMin$sin,label=textMin$min))+
-        geom_text(data=textMax,aes(x=textMax$cos,y=textMax$sin,label=textMax$max))
+      p<-p+geom_text(data=textMin,aes(x=textMin$cos,y=textMin$sin,label=textMin$min),
+                     size = textSize, col = textCol)+
+        geom_text(data=textMax,aes(x=textMax$cos,y=textMax$sin,label=textMax$max),
+                  size = textSize, col = textCol)
     }
     if(!showXYLabs){
       p<-p+scale_x_continuous(labels =NULL,limits = c(-xyLimits,xyLimits))+
