@@ -571,7 +571,7 @@ ggInterval_radar <-function(data=NULL,layerNumber=3,
 
     #colnames shift out of figure 0.1 unit (colnamesDrift)
     newD <- shift(d, unit = colnamesDrift)
-    p<-p+geom_segment(data=d,aes(x=0,y=0,xend=d$x,yend=d$y),lty=base_lty,alpha=0.6)
+    p<-p+geom_segment(data=d,aes(x=0,y=0,xend=d$x,yend=d$y),lty=base_lty,alpha=0.6, col = "gray50")
     if(nP != 0){
       p <- p + geom_point(data=plotMax,aes(x=0,y=0,alpha=plotMax$Variables))+
         geom_text(data=newD,aes(x=newD$x,y=newD$y,label=c(colnames(rawiData))))
@@ -817,7 +817,7 @@ plotFun<-function(p,iData,plotMin.temp,plotMax.temp,d,showXYLabs,showLegend,fill
   }
 
   newD <- shift(d,0.1)
-  base<-base+geom_segment(data=d,aes(x=0,y=0,xend=d$x,yend=d$y),lty=base_lty,alpha=0.6)+
+  base<-base+geom_segment(data=d,aes(x=0,y=0,xend=d$x,yend=d$y),lty=base_lty,alpha=0.6,col="gray50")+
     geom_point(data=plotMax.temp,aes(x=0,y=0,alpha=plotMax.temp$Variables))+
     geom_text(data=newD,aes(x=newD$x,y=newD$y,label=c(colnames(rawiData))))
 
@@ -883,7 +883,7 @@ generateCircle <- function(nLayer=NULL,extendUnit=0.5){
     r = quantile(seq(0+extendUnit,1+extendUnit,1/(nLayer-1)),seq(0,1,1/(nLayer-1)))
   )
   p<-ggplot() +
-    ggforce::geom_circle(aes(x0 = circles$x0, y0 = circles$y0, r = circles$r), data = circles)
+    ggforce::geom_circle(aes(x0 = circles$x0, y0 = circles$y0, r = circles$r), data = circles, col = "gray50")
   return(p)
 }
 generatePoint<-function(nPoly=NULL,nLayer=NULL,extendUnit=0.5){
