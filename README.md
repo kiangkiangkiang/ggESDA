@@ -8,7 +8,7 @@ Symbolic data analysis (SDA) is an extension of standard data analysis where sym
 
 It is recommended that download the package on CRAN, although the latest version is always upload to github first. The version in github may exist some bugs that are not fix completely.
 
-### CRAN (Update in 2022-01-10)
+### CRAN (Update at 2022-01-10)
 
 The <b>ggESDA</b> package is avaliable on <a href="https://cran.r-project.org/web/packages/ggESDA/index.html">CRAN</a>. The Reference manual and Vignettes can be found there.
 
@@ -16,7 +16,7 @@ The <b>ggESDA</b> package is avaliable on <a href="https://cran.r-project.org/we
 
 or 
 
-### github (Update in 2022-03-22)
+### github (Update at 2022-03-23)
 
 `devtools::install_github("kiangkiangkiang/ggESDA")`
 
@@ -29,7 +29,8 @@ After installation, the following steps will illustrate how to use the package. 
 - cov function
 - sym_scale function
 - fix radar problem (now it can only plot modal multi-value variables)
-- update Cardiological data
+- update Cardiological data (correct data is Cardiological2)
+- adjust text(size and color) in radar plot
 ## Creating
 
 The example data is called <b>facedata</b> </a><a href="#ref3">[3]</a>. It will be the interval form with minimal and maximal, known as <b>interval-valued</b> data. However, most of the symbolic data are not exist at the beginning. Instead, they are usually aggregated by clustering algorithm from a classical data. Thus, we will use `classic2sym()` function to summarize classical data into symbolic data.
