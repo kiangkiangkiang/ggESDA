@@ -16,7 +16,7 @@ The <b>ggESDA</b> package is avaliable on <a href="https://cran.r-project.org/we
 
 or 
 
-### github (Update at 2022-03-23)
+### github (Update at 2022-04-12)
 
 `devtools::install_github("kiangkiangkiang/ggESDA")`
 
@@ -31,6 +31,8 @@ After installation, the following steps will illustrate how to use the package. 
 - fix radar problem (now it can only plot modal multi-value variables)
 - update Cardiological data (correct data is Cardiological2)
 - adjust text(size and color) in radar plot
+- Add table output on ggInterval_hist()
+- Add table output on ggInterval_2Dhist()
 ## Creating
 
 The example data is called <b>facedata</b> </a><a href="#ref3">[3]</a>. It will be the interval form with minimal and maximal, known as <b>interval-valued</b> data. However, most of the symbolic data are not exist at the beginning. Instead, they are usually aggregated by clustering algorithm from a classical data. Thus, we will use `classic2sym()` function to summarize classical data into symbolic data.
