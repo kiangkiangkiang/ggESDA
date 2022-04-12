@@ -48,6 +48,8 @@ ggInterval_2Dhist<- function(data = NULL,mapping = aes(NULL),
   iData <- ggSymData$intervalData
   p<-dim(data)[2]
   n<-dim(iData)[1]
+  resultSet <- NULL
+
 
   #test big O
   if(n*xBins*yBins >= 35000 & n*xBins*yBins < 50000){
@@ -191,6 +193,26 @@ ggInterval_2Dhist<- function(data = NULL,mapping = aes(NULL),
     if(addFreq){
       base<-base+geom_text(aes(x=xmid,y=ymid,label=round(freq,1)))
     }
-    return(base)
+    resultSet[["plot"]] <- base
+
+    #make table
+    myTable <- matrix(0, nrow = xBins, ncol = yBins)
+    for(r in 1:xBins){
+      for(c in 1:yBins){
+        myTable[r, c] <- round(freq.matrix$freq[(c - 1) * xBins + r], 3)
+      }
+    }
+    cNames <- paste0("[", paste(unique(round(freq.matrix$y1), 2), round(unique(freq.matrix$y2), 2), sep = ":"), "]")
+    rNames <- paste0("[", paste(unique(round(freq.matrix$x1), 2), round(unique(freq.matrix$x2), 2), sep = ":"), "]")
+    s1 <- apply(myTable, 1, sum)
+    s2 <- apply(myTable, 2, sum)
+    myTable <- cbind(myTable, s1, round(s1/n, 3))
+    myTable <- rbind(myTable, c(s2, n, " "),
+                     c(round(s2/n, 3), " ", 1))
+
+    rownames(myTable) <- c(rNames, paste0("Frequency of ", attr1), paste0("Margin of ", attr1))
+    colnames(myTable) <- c(cNames, paste0("Frequency of ", attr2), paste0("Margin of ", attr2))
+    resultSet[[paste0("Table (", attr1, ", ", attr2, ")")]] <- as.data.frame(myTable)
+    return(resultSet)
   })
 }
