@@ -61,7 +61,8 @@ ggInterval_hist<-function(data = NULL,mapping = aes(NULL),method="equal-bin",bin
   }
   p<-dim(iData)[2]
   n<-dim(iData)[1]
-
+  resultSet <- NULL
+  base <- NULL
 
   #test figure clearly
   if(method=="equal-bin" & bins>200 & bins<=1000){
@@ -166,7 +167,7 @@ ggInterval_hist<-function(data = NULL,mapping = aes(NULL),method="equal-bin",bin
           end<-length(which(round(f[,1],2)<=round(d[i,2],2)))
           #end debug
 
-          f[start:end,i+1]<-1
+          f[start:end,i+1] <- 1
         }
 
         f<-cbind(temp,apply(f[,-1],1,FUN=sum))
@@ -185,7 +186,7 @@ ggInterval_hist<-function(data = NULL,mapping = aes(NULL),method="equal-bin",bin
         x1<-f[x[,1],1]
         x2<-f[x[,2],1]
         plotData<-rbind(plotData,
-                        data.frame(x1,x2,y1=0,y2=y/n,group=factor(attr[u])))
+                        data.frame(x1,x2,y1=0,y2=y,group=factor(attr[u])))
 
         tempDf <- data.frame(start = rep(NA, length(x1)),
                              end = rep(NA, length(x1)))
@@ -222,7 +223,19 @@ ggInterval_hist<-function(data = NULL,mapping = aes(NULL),method="equal-bin",bin
         base <- base + labs(x=attr,y="frequency")+
           scale_x_continuous(breaks = midP, labels=nameList)
       }
-      return(base)
+
+      #make table
+      for(var in unique(plotData$group)){
+        this.myhist <- dplyr::filter(plotData, group == var)
+        this.nameList <- paste0("[", paste(this.myhist$x1, this.myhist$x2, sep = ":"),"]")
+        myName <- paste0("Table ", var)
+        resultSet[[myName]] <- data.frame("Interval" = unique(this.nameList),
+                                          "Cumulative Concepts" = this.myhist$y2)
+
+      }
+
+      resultSet[["plot"]] <- base
+      return(resultSet)
 
     }else if(method=="equal-bin"){
       myhist <- NULL ; intervalDf <- NULL
@@ -236,7 +249,15 @@ ggInterval_hist<-function(data = NULL,mapping = aes(NULL),method="equal-bin",bin
         mmd.temp <- dplyr::filter(mmd, this.attr == work.attr)
         #seperate the attribute into bins
         dist<-(max(mmd.temp[, "maximal"])-min(mmd.temp[, "minimal"]))/bins
+        #original:, till 2022 4 12
         interval<-seq(min(mmd.temp[, "minimal"]),max(mmd.temp[, "maximal"]),dist)
+
+        # adjust interval: not finish yet
+        # interval<-seq(min(mmd.temp[, "minimal"]) - dist/2,
+        #               max(mmd.temp[, "maximal"]) + dist/2, dist)
+
+
+
 
         #test for ch3, p.84, figure3.3
         #interval <- c(0, 4, 7, 10, 13, 16, 19)
@@ -331,6 +352,19 @@ ggInterval_hist<-function(data = NULL,mapping = aes(NULL),method="equal-bin",bin
           }else{
             stop("The position is not implemented.")
           }
+
+          #make table
+          for(var in unique(myhist$group)){
+            this.var.myhist <- dplyr::filter(myhist, group == var)
+            this.nameList <- paste0("[", paste(this.var.myhist$start, this.var.myhist$end, sep = ":"),"]")
+            for(i in unique(myhist$myFill)){
+              this.myhist <- dplyr::filter(this.var.myhist, myFill == i)
+              myName <- paste("Table ", paste(unique(this.myhist$group), i, sep = ": "))
+              resultSet[[myName]] <- data.frame("Interval" = unique(this.nameList),
+                                                "Observed.Frequency" = this.myhist$frequency,
+                                                "Relative.Frequency" = this.myhist$frequency/sum(this.myhist$frequency))
+            }
+          }
         }else{
             mymapping <- list(mapping=aes(xmin=start, xmax=end, ymin=0, ymax=frequency),fill="grey",col="black")
             allmapping <-as.list(structure(as.expression(c(usermapping,mymapping)),class="uneval"))
@@ -339,8 +373,19 @@ ggInterval_hist<-function(data = NULL,mapping = aes(NULL),method="equal-bin",bin
               facet_grid(group ~ .) +
               labs(x = "", y="frequency") +
               scale_x_continuous(n.breaks = 8)
+
+            #make table
+            for(var in unique(myhist$group)){
+              this.myhist <- dplyr::filter(myhist, group == var)
+              this.nameList <- paste0("[", paste(this.myhist$start, this.myhist$end, sep = ":"),"]")
+              myName <- paste0("Table ", var)
+              resultSet[[myName]] <- data.frame("Interval" = unique(this.nameList),
+                                                "Observed Frequency" = this.myhist$frequency,
+                                                "Relative Frequency" = this.myhist$frequency/sum(this.myhist$frequency))
+
+            }
           }
-      }else{
+      }else{ #not plot all
         if(isGroup){
           if(position == "identity"){
             base <- ggplot(data = myhist, aes(fill = myhist$myFill)) +
@@ -364,6 +409,14 @@ ggInterval_hist<-function(data = NULL,mapping = aes(NULL),method="equal-bin",bin
           }else{
             stop("The position is not implemented.")
           }
+          #make table
+          for(i in unique(myhist$myFill)){
+            this.myhist <- dplyr::filter(myhist, myFill == i)
+            myName <- paste("Table ", paste(unique(this.myhist$group), i, sep = ": "))
+            resultSet[[myName]] <- data.frame("Interval" = unique(nameList),
+                                                                   "Observed Frequency" = this.myhist$frequency,
+                                                                   "Relative Frequency" = this.myhist$frequency/sum(this.myhist$frequency))
+          }
 
         }else{
           base <- ggplot(data=myhist, aes(x=factor(interval),y=frequency))+
@@ -373,9 +426,17 @@ ggInterval_hist<-function(data = NULL,mapping = aes(NULL),method="equal-bin",bin
             scale_x_discrete(labels = nameList)+
             scale_fill_manual(values=rep("black",bins*length(attr)))+
             guides(colour = FALSE, alpha = FALSE,fill=FALSE)
+
+          #make table
+          resultSet[[paste0("Table ", unique(myhist$group))]] <- data.frame("Interval" = nameList,
+                                                                           "Observed Frequency" = myhist$frequency,
+                                                                           "Relative Frequency" = myhist$frequency/sum(myhist$frequency))
+
         }
       }
-      return(base)
+
+      resultSet[["plot"]] <- base
+      return(resultSet)
 
     }else{
       stop(paste0("ERROR : Unrecognize method : ",method," ."))
