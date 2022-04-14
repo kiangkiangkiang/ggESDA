@@ -12,16 +12,18 @@ summary(object, ...)
 
 \method{summary}{default}(object, ...)
 
-\method{summary}{symbolic_tbl}(x, ...)
+\method{summary}{symbolic_tbl}(object, ...)
 
-\method{summary}{symbolic_interval}(x, ...)
+\method{summary}{symbolic_interval}(object, ...)
 
-\method{summary}{symbolic_modal}(x, ...)
+\method{summary}{symbolic_modal}(object, summary_fun = "mean", ...)
 }
 \arguments{
 \item{object}{an object for which a summary is desired.}
 
 \item{...}{additional arguments affecting the summary produced.}
+
+\item{summary_fun}{only works when the symbolic_modal class input, it determine which summary function be applied for each modal.}
 
 \item{x}{a result of the default method of summary().}
 
@@ -44,6 +46,8 @@ summary(facedata)
 
 #For both interval-valued and modal multi-valued
 summary(Environment)
+
+summary(Environment$URBANICITY, summary_fun = "quantile")
 
 
 }
