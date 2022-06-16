@@ -97,10 +97,13 @@ ggInterval_scatter <- function(data = NULL,mapping = aes(NULL)){
 
 
     mymapping <- list(mapping=aes(xmin=x1, xmax=x2, ymin=y1, ymax=y2,alpha=0.5,fill = gray.colors(n), col = gray.colors(n)))
+    #mymapping <- list(mapping=aes(xmin=x1, xmax=x2, ymin=y1, ymax=y2,alpha=0.5))
     allmapping <-as.list(structure(as.expression(c(usermapping,mymapping)),class="uneval"))
 
 
 
+    #ggplot(data=d,aes(x = x1, y = y1))+
+    #  do.call(geom_rect,ss)
 
     #start plot
     ggplot(data=d,aes(x = x1, y = y1))+
@@ -108,5 +111,6 @@ ggInterval_scatter <- function(data = NULL,mapping = aes(NULL)){
       geom_text(label=myRowNames)+
       guides(colour = FALSE, alpha = FALSE, fill = FALSE)+
       labs(x=attr1,y=attr2)
+
   })
 }

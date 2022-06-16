@@ -188,9 +188,11 @@ classic2sym<-function(data=NULL,groupby = "kmeans",k=5,minData=NULL,maxData=NULL
            if(length(as.character(groupby))>1){
              groupby <- as.character(groupby)[-1]
            }else{groupby <- as.character(groupby)[1]}
+
            d<-RSDA::classic.to.sym(data,groupby)
            d<-buildRowName(data,d,groupby)
            #d<-tibble::as.tibble(d)
+
            numericData <- unlist(lapply(data.frame(tibble::as.tibble(d)[,1:dim(d)[2]]) ,FUN = RSDA::is.sym.interval))
            numericData <- d[,numericData]
 
@@ -201,7 +203,7 @@ classic2sym<-function(data=NULL,groupby = "kmeans",k=5,minData=NULL,maxData=NULL
   )
   #final
   if(!("symbolic_tbl" %in% class(data))){
-    class(pkg.env$intervalData) <- append(class(pkg.env$intervalData),"symbolic_tbl")
+    class(pkg.env$intervalData) <- c("symbolic_tbl", class(pkg.env$intervalData))
   }
   symObj<-ggESDA$new(rawData=pkg.env$rawData,
                        statisticsDF=pkg.env$statisticsDF,
@@ -296,7 +298,11 @@ buildRowName <- function(rData,iData,attrList){
     }
   }
   idx<-which(unlist(lapply(combination,function(x){x%in%notIn})))
-  combination<-combination[-idx]
+
+  if(length(idx) > 0){
+    combination<-combination[-idx]
+  }
+
 
   #build rownames by combination
   rownames(iData)<-combination
