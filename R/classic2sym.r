@@ -97,8 +97,14 @@ classic2sym<-function(data=NULL,groupby = "kmeans",k=5,minData=NULL,maxData=NULL
   if("ggESDA" %in% class(data) || "symbolic_tbl" %in% class(data)){
     stop("ERROR : please using classical data frame.")
   }
+  pkg.env <- new.env()
   pkg.env$rawData <- data
   pkg.env$modal <- NULL
+  pkg.env$statistics <- c("min","median","max","mean")
+  pkg.env$statisticsDF<-NULL
+  pkg.env$result<-NULL
+  pkg.env$intervalData<-NULL
+  pkg.env$rawData<-NULL
   data <- as.data.frame(data)
 
   if(groupby == "customize" & !is.null(modalData)){
@@ -205,6 +211,7 @@ classic2sym<-function(data=NULL,groupby = "kmeans",k=5,minData=NULL,maxData=NULL
   if(!("symbolic_tbl" %in% class(data))){
     class(pkg.env$intervalData) <- c("symbolic_tbl", class(pkg.env$intervalData))
   }
+
   symObj<-ggESDA$new(rawData=pkg.env$rawData,
                        statisticsDF=pkg.env$statisticsDF,
                        intervalData=pkg.env$intervalData,
@@ -212,6 +219,7 @@ classic2sym<-function(data=NULL,groupby = "kmeans",k=5,minData=NULL,maxData=NULL
 
   return(symObj)
 }
+
 
 
 
@@ -404,10 +412,4 @@ buildModal <- function(data, modalData){
 
 
 
-pkg.env <- new.env()
-pkg.env$statistics <- c("min","median","max","mean")
-pkg.env$statisticsDF<-NULL
-pkg.env$result<-NULL
-pkg.env$intervalData<-NULL
-pkg.env$rawData<-NULL
 
