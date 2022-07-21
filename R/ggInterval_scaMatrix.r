@@ -41,7 +41,7 @@
 #' mydata <- ggESDA::Cardiological
 #' ggInterval_scaMatrix(mydata[,1:3],aes(fill="black",alpha=0.2))
 #' @export
-ggInterval_scaMatrix <- function(data = NULL,mapping = aes(NULL),showLegend=TRUE){
+ggInterval_scaMatrix <- function(data = NULL,mapping = aes(NULL), showLegend=FALSE){
   #data preparing
   . <- NULL
   argsNum<-length(mapping)
@@ -128,7 +128,7 @@ ggInterval_scaMatrix <- function(data = NULL,mapping = aes(NULL),showLegend=TRUE
 
 
   #start plot
-  ggplot(data=plotData, aes(.data$x1,.data$y1))+
+  result <- ggplot(data=plotData, aes(.data$x1,.data$y1))+
     do.call(geom_rect,allmapping)+
     scale_fill_manual(name="Concept",
                       values=gray.colors(n),
@@ -138,4 +138,10 @@ ggInterval_scaMatrix <- function(data = NULL,mapping = aes(NULL),showLegend=TRUE
     guides(colour = FALSE, alpha = FALSE)+
     facet_grid(.data$yv~.data$xv, scales="free")+
     labs(x="",y="")
+
+  if(showLegend){
+    return(result)
+  }else{
+    return(result + theme(legend.position = "None"))
+  }
 }
