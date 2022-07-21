@@ -37,7 +37,7 @@ cov.default <- function(x, y = NULL, use = "everything",
 
 #' @rdname cov
 #' @export
-cov.symbolic_interval <- function(x, y, method = c("centers", "billard"),
+cov.symbolic_interval <- function(x, y, method = c("centers", "BD"),
                                   na.rm = FALSE, ...) {
   Gj <- function(a, b, vmean) {
     if ((a + b) / 2 <= vmean) {
@@ -54,7 +54,7 @@ cov.symbolic_interval <- function(x, y, method = c("centers", "billard"),
     out <- cov((min(x) + max(x)) / 2, (min(y) + max(y)) / 2)
     return(out)
   }
-  if (method == "billard") {
+  if (method == "BD") {
     ss <- 0
     vmean.x <- mean(x, method = "centers")
     vmean.y <- mean(y, method = "centers")

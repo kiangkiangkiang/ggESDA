@@ -40,7 +40,7 @@
 #'                    values=rainbow(10),
 #'                    name="Group")
 #' @export
-ggInterval_scatter <- function(data = NULL,mapping = aes(NULL)){
+ggInterval_scatter <- function(data = NULL,mapping = aes(NULL), ...){
   #data preparing
   . <- NULL
   argsNum<-length(mapping)
@@ -96,11 +96,24 @@ ggInterval_scatter <- function(data = NULL,mapping = aes(NULL)){
     d <- addFactor(rawData = data, iData = d)
 
 
-    mymapping <- list(mapping=aes(xmin=x1, xmax=x2, ymin=y1, ymax=y2,alpha=0.5,fill = gray.colors(n), col = gray.colors(n)))
+    fcLocation <- c(which(names(mapping) == "fill"), which(names(mapping) == "col"))
+    if(length(fcLocation) != 0){
+      usermapping <- mapping[-fcLocation] #Aesthetic without fill, col
+    }else{
+      usermapping <- mapping
+    }
+    # if(is.null(args$fill)){
+    #   args$fill <- grDevices::gray.colors(n)
+    # }
+    # if(is.null(args$col)){
+    #   args$col <- grDevices::gray.colors(n)
+    # }
+
+
+    mymapping <- list(d, mapping=aes(xmin=d$x1, xmax=d$x2, ymin=d$y1, ymax=d$y2,alpha=0.5,fill = eval(args$fill), col = eval(args$col)), ...)
+
     #mymapping <- list(mapping=aes(xmin=x1, xmax=x2, ymin=y1, ymax=y2,alpha=0.5))
-    allmapping <-as.list(structure(as.expression(c(usermapping,mymapping)),class="uneval"))
-
-
+    allmapping <-as.list(structure(as.expression(c(mymapping,usermapping)),class="uneval"))
 
     #ggplot(data=d,aes(x = x1, y = y1))+
     #  do.call(geom_rect,ss)
@@ -109,8 +122,8 @@ ggInterval_scatter <- function(data = NULL,mapping = aes(NULL)){
     ggplot(data=d,aes(x = x1, y = y1))+
       do.call(geom_rect,allmapping)+
       geom_text(label=myRowNames)+
-      guides(colour = FALSE, alpha = FALSE, fill = FALSE)+
-      labs(x=attr1,y=attr2)
+      guides(colour = FALSE, alpha = FALSE)+
+      labs(x=attr1,y=attr2,fill="Concepts")
 
   })
 }

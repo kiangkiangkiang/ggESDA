@@ -128,6 +128,8 @@ ggInterval_PCA<-function(data = NULL,mapping = aes(NULL),plot=TRUE,
 
     base <- ggplot(d, aes(.data$x1, .data$y1)) +
       do.call(geom_segment, allmapping)
+
+
   }
 
 
