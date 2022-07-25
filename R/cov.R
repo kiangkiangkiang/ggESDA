@@ -37,8 +37,26 @@ cov.default <- function(x, y = NULL, use = "everything",
 
 #' @rdname cov
 #' @export
-cov.symbolic_interval <- function(x, y, method = c("centers", "BD"),
+cov.symbolic_tbl <- function(x, ...) {
+  iData <- x
+
+  isnumericData <- unlist(lapply(data.frame(iData[1:dim(iData)[2]]) ,FUN = is.sym.interval))
+  numericData <- data.frame(iData[,which(isnumericData)])
+  p <- ncol(numericData)
+
+  d <- sapply(1:p, function(a) sapply(1:p, function(b) cov(numericData[[a]], numericData[[b]], ...)))
+  d <- as.data.frame(d)
+  colnames(d) <- colnames(iData[,which(isnumericData)])
+  rownames(d) <- colnames(iData[,which(isnumericData)])
+  return(d)
+
+}
+
+#' @rdname cov
+#' @export
+cov.symbolic_interval <- function(x, y = NULL, method = c("centers", "B", "BD", "BG"),
                                   na.rm = FALSE, ...) {
+  m <- length(x)
   Gj <- function(a, b, vmean) {
     if ((a + b) / 2 <= vmean) {
       return(-1)
@@ -68,4 +86,19 @@ cov.symbolic_interval <- function(x, y, method = c("centers", "BD"),
     }
     return((1 / (3 * length(x))) * ss)
   }
+  if (method == "B") {
+    a <- sum((min(x) + max(x)) * (min(y) + max(y))) / (4 * m)
+    b <- (sum((min(x) + max(x))) * sum((min(y) + max(y)))) / (4 * m^2)
+    return(a - b)
+  }
+  if(method == "BG"){
+    x_bar <- mean(x)
+    y_bar <- mean(y)
+    a <- 2 * (min(x) - x_bar) * (min(y) - y_bar)
+    b <- (min(x) - x_bar) * (max(y) - y_bar)
+    c <- (max(x) - x_bar) * (min(y) - y_bar)
+    d <- 2 * (max(x) - x_bar) * (max(y) - y_bar)
+    return(sum(a + b + c + d) / (6 * m))
+  }
 }
+

@@ -2,6 +2,7 @@
 
 S3method(cov,default)
 S3method(cov,symbolic_interval)
+S3method(cov,symbolic_tbl)
 S3method(scale,default)
 S3method(scale,symbolic_interval)
 S3method(scale,symbolic_tbl)
