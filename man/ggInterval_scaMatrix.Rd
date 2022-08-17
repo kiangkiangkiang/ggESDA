@@ -4,7 +4,7 @@
 \alias{ggInterval_scaMatrix}
 \title{scatter plot for all variable by interval data.}
 \usage{
-ggInterval_scaMatrix(data = NULL,mapping = aes(NULL),showLegend=TRUE)
+ggInterval_scaMatrix(data = NULL,mapping = aes(NULL), showLegend=FALSE)
 }
 \arguments{
 \item{data}{A ggESDA object. It can also be either RSDA object or
@@ -44,7 +44,7 @@ ggInterval_scaMatrix(mtcars[,c("mpg","wt","qsec")],
     aes(col="red",lty=2,fill="blue",alpha=0.3))
 
 
-myIris <- classic2sym(iris,groupby = Species)$intervalData
+myIris <- classic2sym(iris,groupby = "Species")$intervalData
 ggInterval_scaMatrix(myIris[,1:3])
 
 

@@ -31,7 +31,7 @@
 #' #Recommend to add coord_flip() to make the plot more visible
 #' p+coord_flip()
 #'
-#' myIris<-classic2sym(iris,groupby=Species)
+#' myIris<-classic2sym(iris,groupby="Species")
 #' myIris<-myIris$intervalData
 #' p<-ggInterval_indexImage(myIris,aes(myIris$Petal.Length),full_strip=FALSE,column_condition=TRUE)
 #' p

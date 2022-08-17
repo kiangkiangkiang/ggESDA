@@ -3,10 +3,6 @@
 #' @title summary for symbolic data table
 #' @description summary for symbolic data table
 #' @param object an object for which a summary is desired.
-#' @param x a result of the default method of summary().
-#' @param maxsum integer, indicating how many levels should be shown for factors.
-#' @param digits integer, used for number formatting with signif() (for summary.default) or format() (for summary.data.frame). In summary.default, if not specified (i.e., missing(.)), signif() will not be called anymore (since R >= 3.4.0, where the default has been changed to only round in the print and format methods).
-#' @param quantile.type integer code used in quantile(*, type=quantile.type) for the default method.
 #' @param summary_fun only works when the symbolic_modal class input, it determine which summary function be applied for each modal.
 #' @param ... additional arguments affecting the summary produced.
 #' @return Return a summary table.
@@ -45,6 +41,8 @@ summary.default <- function(object, ...) {
 #' @export
 summary.symbolic_tbl <- function(object, ...){
   pkg.env$inPackage <- TRUE
+  symbolic_interval <- NULL
+  symbolic_modal <- NULL
   iData.boolean <- unlist(lapply(object, RSDA::is.sym.interval))
   mData.boolean <- unlist(lapply(object, RSDA::is.sym.modal))
   if(!all(iData.boolean|mData.boolean)){
@@ -61,7 +59,7 @@ summary.symbolic_tbl <- function(object, ...){
     }
     tmp <- tmp[, -1]
     if(class(tmp)[1] == "symbolic_interval"){
-      tmp <- data.frame(tibble(tmp))
+      tmp <- data.frame(dplyr::tibble(tmp))
       rownames(tmp) <- c("Min.", "1st Qu.", "Median", "Mean", "3rd Qu.", "Max.", "Std.")
     }
     colnames(tmp) <- colnames(object)[iData_ind]

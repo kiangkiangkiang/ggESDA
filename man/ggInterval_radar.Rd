@@ -65,10 +65,10 @@ symbolic data.
 Environment.n <- Environment[, 5:17]
 ggInterval_radar(Environment.n,
                 plotPartial = 2,
-                showLegend = F,
-                base_circle = T,
+                showLegend = FALSE,
+                base_circle = TRUE,
                 base_lty = 2,
-                addText = F
+                addText = FALSE
 ) +
  labs(title = "") +
  scale_fill_manual(values = c("gray50")) +
@@ -76,10 +76,10 @@ ggInterval_radar(Environment.n,
 
 ggInterval_radar(Environment,
                 plotPartial = 2,
-                showLegend = F,
-                base_circle = F,
+                showLegend = FALSE,
+                base_circle = FALSE,
                 base_lty = 1,
-                addText = T
+                addText = TRUE
 ) +
  labs(title = "") +
  scale_fill_manual(values = c("gray50")) +

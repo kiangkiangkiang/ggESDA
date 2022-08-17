@@ -10,7 +10,6 @@
 #'  one of the strings 'everything', 'all.obs', 'complete.obs', 'na.or.complete',
 #'  or 'pairwise.complete.obs'.
 #' @param method The method to be use.
-#' @param na.rm As in R cor function.
 #' @param ... As in R cor function.
 #'
 #' @return Return a real number.

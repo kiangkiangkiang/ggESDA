@@ -24,14 +24,6 @@ summary(object, ...)
 \item{...}{additional arguments affecting the summary produced.}
 
 \item{summary_fun}{only works when the symbolic_modal class input, it determine which summary function be applied for each modal.}
-
-\item{x}{a result of the default method of summary().}
-
-\item{maxsum}{integer, indicating how many levels should be shown for factors.}
-
-\item{digits}{integer, used for number formatting with signif() (for summary.default) or format() (for summary.data.frame). In summary.default, if not specified (i.e., missing(.)), signif() will not be called anymore (since R >= 3.4.0, where the default has been changed to only round in the print and format methods).}
-
-\item{quantile.type}{integer code used in quantile(*, type=quantile.type) for the default method.}
 }
 \value{
 Return a summary table.

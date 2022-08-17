@@ -4,7 +4,7 @@
 \alias{ggInterval_scatter}
 \title{scatter plot for two continuous interval data}
 \usage{
-ggInterval_scatter(data = NULL,mapping = aes(NULL))
+ggInterval_scatter(data = NULL,mapping = aes(NULL), ...)
 }
 \arguments{
 \item{data}{A ggESDA object.It can also be either RSDA object or
@@ -15,6 +15,8 @@ data.}
 If specified and inherit. aes = TRUE (the default),
 it is combined with the default mapping at the top level of
 the plot. You must supply mapping if there is no plot mapping.}
+
+\item{...}{Others in ggplot2.}
 }
 \value{
 Return a ggplot2 object.
@@ -36,7 +38,7 @@ ggInterval_scatter(mtcars[,c("mpg","wt","qsec")],
     col="red",lty=2,fill="blue",alpha=0.3))
 
 
-myIris <- classic2sym(iris,groupby = Species)$intervalData
+myIris <- classic2sym(iris,groupby = "Species")$intervalData
 p<-ggInterval_scatter(myIris,aes(myIris$Petal.Length,myIris$Petal.Width))
 p
 p+scale_fill_manual(labels=rownames(myIris),

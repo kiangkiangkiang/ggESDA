@@ -56,7 +56,7 @@ data and raw data(if it exist) and typically statistics.
 classic2sym(iris)
 classic2sym(mtcars, groupby = "kmeans", k = 10)
 classic2sym(iris, groupby = "hclust", k = 7)
-classic2sym(iris, groupby = Species)
+classic2sym(iris, groupby = "Species")
 
 x1<-runif(10, -30, -10)
 y1<-runif(10, -10, 30)

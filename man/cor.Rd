@@ -34,8 +34,6 @@ correlation in the presence of missing values. This must be (an abbreviation of)
  or 'pairwise.complete.obs'.}
 
 \item{method}{The method to be use.}
-
-\item{na.rm}{As in R cor function.}
 }
 \value{
 Return a real number.

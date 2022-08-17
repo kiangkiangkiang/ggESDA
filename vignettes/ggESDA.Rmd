@@ -45,7 +45,7 @@ library(ggESDA)
 
 ```{r createData}
 #aggregated by the variable Species in iris
-iris_interval<-classic2sym(iris,groupby = Species)$intervalData
+iris_interval<-classic2sym(iris,groupby = "Species")$intervalData
 iris_interval
 class(iris_interval)
 dim(iris_interval)

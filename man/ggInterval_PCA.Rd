@@ -51,7 +51,7 @@ d<-mapply(c(10,20,40,80,160),c(20,40,80,160,320),FUN=runif,n=1000)
 d<-data.frame(qq=matrix(d,ncol=4))
 ggInterval_PCA(d)
 
-myIris<-classic2sym(iris,Species)
+myIris<-classic2sym(iris,"Species")
 p<-ggInterval_PCA(myIris,plot=FALSE)
 p$ggplotPCA
 p$scores_interval

@@ -38,7 +38,7 @@
 #' d<-data.frame(qq=matrix(d,ncol=4))
 #' ggInterval_PCA(d)
 #'
-#' myIris<-classic2sym(iris,Species)
+#' myIris<-classic2sym(iris,"Species")
 #' p<-ggInterval_PCA(myIris,plot=FALSE)
 #' p$ggplotPCA
 #' p$scores_interval

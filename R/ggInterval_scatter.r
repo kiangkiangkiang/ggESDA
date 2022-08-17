@@ -12,8 +12,9 @@
 #' If specified and inherit. aes = TRUE (the default),
 #' it is combined with the default mapping at the top level of
 #' the plot. You must supply mapping if there is no plot mapping.
+#' @param ... Others in ggplot2.
 #' @return Return a ggplot2 object.
-#' @usage ggInterval_scatter(data = NULL,mapping = aes(NULL))
+#' @usage ggInterval_scatter(data = NULL,mapping = aes(NULL), ...)
 #' @examples
 #' a<-rnorm(1000,0,5)
 #' b<-runif(1000,-20,-10)
@@ -26,7 +27,7 @@
 #'     col="red",lty=2,fill="blue",alpha=0.3))
 #'
 #'
-#' myIris <- classic2sym(iris,groupby = Species)$intervalData
+#' myIris <- classic2sym(iris,groupby = "Species")$intervalData
 #' p<-ggInterval_scatter(myIris,aes(myIris$Petal.Length,myIris$Petal.Width))
 #' p
 #' p+scale_fill_manual(labels=rownames(myIris),

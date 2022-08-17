@@ -21,7 +21,7 @@
 #' @param showLegend whether show the legend.
 #' @return Return a plot with no longer a ggplot2 object,instead
 #' of a marrangeGrob object.
-#' @usage ggInterval_scaMatrix(data = NULL,mapping = aes(NULL),showLegend=TRUE)
+#' @usage ggInterval_scaMatrix(data = NULL,mapping = aes(NULL), showLegend=FALSE)
 #' @examples
 #' a<-rnorm(1000,0,5)
 #' b<-runif(1000,-20,-10)
@@ -34,7 +34,7 @@
 #'     aes(col="red",lty=2,fill="blue",alpha=0.3))
 #'
 #'
-#' myIris <- classic2sym(iris,groupby = Species)$intervalData
+#' myIris <- classic2sym(iris,groupby = "Species")$intervalData
 #' ggInterval_scaMatrix(myIris[,1:3])
 #'
 #'

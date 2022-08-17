@@ -40,7 +40,7 @@ d<-mapply(c(10,20,40,80,160),c(20,40,80,160,320),FUN=runif,n=1000)
 d<-data.frame(qq=matrix(d,ncol=1))
 ggInterval_minmax(d,aes(qq))
 
-myIris<-classic2sym(iris,groupby=Species)
+myIris<-classic2sym(iris,groupby="Species")
 myIris<-myIris$intervalData
 ggInterval_minmax(myIris,aes(myIris$Petal.Length))+
    theme_classic()

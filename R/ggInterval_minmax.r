@@ -29,7 +29,7 @@
 #' d<-data.frame(qq=matrix(d,ncol=1))
 #' ggInterval_minmax(d,aes(qq))
 #'
-#' myIris<-classic2sym(iris,groupby=Species)
+#' myIris<-classic2sym(iris,groupby="Species")
 #' myIris<-myIris$intervalData
 #' ggInterval_minmax(myIris,aes(myIris$Petal.Length))+
 #'    theme_classic()
