@@ -2,7 +2,7 @@ Package: ggESDA
 Type: Package
 Title: Exploratory Symbolic Data Analysis with 'ggplot2'
 Version: 0.2.0
-Date: 2022-01-14
+Date: 2022-08-17
 Author: Bo-Syue Jiang
 Maintainer: Bo-Syue Jiang <lukajiang1998@gmail.com>
 Description: Implements an extension of 'ggplot2' and visualizes the symbolic data with multiple plot which can be adjusted by more general and flexible input arguments. It also provides a function to transform the classical data to symbolic data by both clustering algorithm and customized method.

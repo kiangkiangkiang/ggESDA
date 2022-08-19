@@ -10,7 +10,7 @@ It is recommended that download the package on CRAN, although the latest version
 
 ### CRAN (Update at 2022-08-17)
 
-The <b>ggESDA</b> package is avaliable on <a href="https://cran.r-project.org/web/packages/ggESDA/index.html">CRAN</a>. The Reference manual and Vignettes can be found there.
+The <b>ggESDA</b> package is avaliable on <a href="https://cran.r-project.org/package=ggESDA">CRAN</a>. The Reference manual and Vignettes can be found there.
 
 `install.packages("ggESDA")`
 
@@ -20,7 +20,7 @@ or
 
 `devtools::install_github("kiangkiangkiang/ggESDA")`
 
-After installation, the following steps will illustrate how to use the package. More details (code) about it can be found on <a href="https://cran.r-project.org/web/packages/ggESDA/vignettes/ggESDA.html">vignettes</a>.
+After installation, the following steps will illustrate how to use the package. More details (code) about it can be found on <a href="https://cran.r-project.org/package=ggESDA">vignettes</a>.
 
 #### Update items (only avaliable from github now)
 - clustering by facets_* (index, scatter ...)
