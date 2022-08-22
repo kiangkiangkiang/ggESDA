@@ -23,7 +23,8 @@ or
 After installation, the following steps will illustrate how to use the package. More details (code) about it can be found on <a href="https://cran.r-project.org/package=ggESDA">vignettes</a>.
 
 #### Update items 
-##### Version 0.2.0
+<details>	
+  <summary><b><samp>Version 0.2.0 </samp></b></summary>
 - clustering by facets_* (index, scatter ...)
 - clustering histogram using fill
 - clustering indexplot using fill or group
@@ -36,6 +37,8 @@ After installation, the following steps will illustrate how to use the package. 
 - Add table output on ggInterval_2Dhist()
 - change scale_sym() into scale() (generic function).
 - add summary() function (generic function)
+</details>	
+
 ## Creating
 
 The example data is called <b>facedata</b> </a><a href="#ref3">[3]</a>. It will be the interval form with minimal and maximal, known as <b>interval-valued</b> data. However, most of the symbolic data are not exist at the beginning. Instead, they are usually aggregated by clustering algorithm from a classical data. Thus, we will use `classic2sym()` function to summarize classical data into symbolic data.
