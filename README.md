@@ -22,7 +22,8 @@ or
 
 After installation, the following steps will illustrate how to use the package. More details (code) about it can be found on <a href="https://cran.r-project.org/package=ggESDA">vignettes</a>.
 
-#### Update items (only avaliable from github now)
+#### Update items 
+##### Version 0.2.0
 - clustering by facets_* (index, scatter ...)
 - clustering histogram using fill
 - clustering indexplot using fill or group
