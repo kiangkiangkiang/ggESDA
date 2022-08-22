@@ -25,18 +25,18 @@ After installation, the following steps will illustrate how to use the package. 
 #### Update items 
 <details>	
   <summary><b><samp>Version 0.2.0 </samp></b></summary>
-- clustering by facets_* (index, scatter ...)
-- clustering histogram using fill
-- clustering indexplot using fill or group
-- cov function
-- sym_scale function
-- fix radar problem (now it can only plot modal multi-value variables)
-- update Cardiological data (correct data is Cardiological2)
-- adjust text(size and color) in radar plot
-- Add table output on ggInterval_hist()
-- Add table output on ggInterval_2Dhist()
-- change scale_sym() into scale() (generic function).
-- add summary() function (generic function)
+<li>clustering by facets_* (index, scatter ...)</li>
+<li>clustering histogram using fill</li>
+<li>clustering indexplot using fill or group</li>
+<li>cov function</li>
+<li>sym_scale function</li>
+<li>fix radar problem (now it can only plot modal multi-value variables)</li>
+<li>update Cardiological data (correct data is Cardiological2)</li>
+<li>adjust text(size and color) in radar plot</li>
+<li>Add table output on ggInterval_hist()</li>
+<li>Add table output on ggInterval_2Dhist()</li>
+<li>change scale_sym() into scale() (generic function).</li>
+<li>add summary() function (generic function)</li>
 </details>	
 
 ## Creating
