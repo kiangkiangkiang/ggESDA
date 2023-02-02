@@ -2,7 +2,9 @@
 
 Symbolic data analysis (SDA) is an extension of standard data analysis where symbolic data tables are used as input and symbolic objects are made output as a result. The data units are called symbolic since they are more complex than standard ones, as they not only contain values or categories, but also include internal variation and structure.<a href="#ref1">[1]</a><a href="#ref2">[2]</a>
 
-<b>ggESDA</b> is an extension of ggplot2 for visualizing the symbolic data based on exploratory data analysis (EDA). The package contains many useful graphic techniques functions. Furthermore, the users can also transform the classical data into the symbolic data by the function in this package, which is one of the most important processing in SDA. For the details of the package study, you can see in <a href="https://github.com/kiangkiangkiang/RESEARCH/blob/master/ggESDA_Jiang&Wu.pdf">Jiang and Wu(2022)</a>.
+<b>ggESDA</b> is an extension of ggplot2 for visualizing the symbolic data based on exploratory data analysis (EDA). The package contains many useful graphic techniques functions. Furthermore, the users can also transform the classical data into the symbolic data by the function in this package, which is one of the most important processing in SDA. For the details of the package study, you can see in <a href="https://hdl.handle.net/11296/2kfvjr">臺灣碩博士論文</a> or <a href="https://github.com/kiangkiangkiang/RESEARCH/blob/master/ggESDA_Jiang&Wu.pdf">Jiang and Wu(2022)</a>.
+
+
 
 ## Package installation
 
