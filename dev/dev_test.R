@@ -11,5 +11,6 @@ reinstall_mac <- function(){
   Concepts <- as.factor(rep(c("FRA", "HUS", "INC", "ISA", "JPL", "KHA",
                               "LOT", "PHI", "ROM"), each = 3))
 }
-
+#roxygen2::roxygenise()
+#右上角->build->build binary...
 reinstall_mac()

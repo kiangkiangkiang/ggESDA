@@ -1,0 +1,795 @@
+
+\documentclass[11pt]{article}
+\usepackage{epsfig, color, hyperref, fancybox}
+\usepackage{amsfonts}
+%\usepackage{movie15}
+\setlength{\tabcolsep}{1.25mm} \setlength{\textheight}{21cm}
+\setlength{\topmargin}{-0.5in} \setlength{\textwidth}{15cm}
+\setlength{\oddsidemargin}{0in} \setlength{\evensidemargin}{0in}
+\setlength{\parindent}{0.25in}
+\renewcommand{\baselinestretch}{1.2}
+\newcommand{\mt}{\multicolumn}
+%\renewcommand{\thefootnote}{\fnsymbol{footnote}}
+%\newtheorem{condition}{Condition}%
+%\newtheorem{theorem}{Theorem}
+%\newtheorem{lemma}{Lemma}
+%\newtheorem{remark}{Remark}
+
+\newcommand{ \mbf }[1]{\mbox{\boldmath ${#1}$}}
+\definecolor{grey}{gray}{.15}
+\definecolor{MyDarkBlue}{rgb}{0,0.08,0.45}
+\newcommand{\Editor}[1]{
+\begin{center}
+ \parbox{15cm}{\ovalbox{{\bf Editor}}  #1}
+\end{center}}
+
+
+\newcommand{\AEditor}[1]{
+\begin{center}
+ \parbox{15cm}{\ovalbox{{\bf AE}}  #1}
+\end{center}}
+
+\newcommand{\reviewer}[2]{
+\begin{center}
+ \parbox{15cm}{\ovalbox{{\bf Reviewer \##1}}: \color{black} #2}
+\end{center}}
+
+\newcommand{\authors}[1]{
+
+ \parbox{15cm}{\textcolor{blue}{\it Authors}: \color{red}#1}
+ \\ \vspace{0.3cm}
+}
+
+\newcommand{\conti}[1]{
+\begin{center}
+ \parbox{15cm}{\color{black}#1}
+ \\ \vspace{0.3cm}
+\end{center}}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                    Title                               %
+%                                                        %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{document}
+
+
+\title{{\small Manuscript Number: RJournal 2022-156} \\
+	{\bf Response to AE and Reviewers} \\
+ggESDA: An R Package for Exploratory Symbolic Data Analysis using ggplot2}
+
+\author{Bo-Syue Jiang$^{\rm a}$ and Han-Ming Wu$^{\rm b}$
+\vspace{6pt}\\
+$^{a}${\em{Department of Statistics, National Taipei University}}\\
+$^{b}${\em{Department of Statistics, National Chengchi University}}}
+
+\date{\today}
+\maketitle
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%             Say something to Editor                    %
+%                                                        %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Dear Editor of the R Journal,\\
+
+Thank you for providing us with the opportunity to revise our manuscript. We greatly appreciate the comments from the Editor, AE, and both reviewers. In response to these comments, we have made revisions to the article, package, and codes. Below, you will find our point-by-point response to the reviewers' comments. The reviewers' suggestions and criticisms have significantly improved the manuscript.
+
+Once again, we would like to express our gratitude for considering our paper for publication in the R Journal. We welcome any further constructive comments. We look forward to hearing from you soon.
+\vspace{0.5cm}
+\noindent Sincerely Yours, 
+
+\noindent Wu, Han-Ming (Hank), Associate Professor \\
+Department of Statistics, National Chengchi University\\
+No. 64, Sec. 2, ZhiNan Rd., Wenshan District,
+Taipei City 11605, Taiwan \\
+Tel.: +886-2-29393091\\
+E-mail: \textcolor{blue}{wuhm@g.nccu.edu.tw}\\
+Website: \textcolor{blue}{\url{http://www.hmwu.idv.tw}}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                        TO AE                           %
+%                                                        %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\clearpage\pagenumbering{arabic} \noindent {\bf
+	Manuscript ID: RJournal 2022-156}
+
+\noindent {\bf Title: ggESDA: An R Package for Exploratory Symbolic Data Analysis using ggplot2} \\
+
+\subsection*{Responses to Editor's Comments}
+\vspace{0.5cm}
+
+\begin{itemize}
+\item
+Please consider restructuring your paper into the new journal template described at \url{https://journal.r-project.org/submissions.html}. This will produce both pdf and html versions, and makes your work more accessible to visually impaired readers.
+\authors{
+Thank you for your valuable feedback. Our paper has been restructured into the new journal template using {\tt rjtools} as described on the website \url{https://journal.r-project.org/submissions.html}. We agree that having both {\tt pdf} and {\tt html} versions of our work will improve accessibility for visually impaired readers, which is an important aspect of making research more inclusive.
+}
+
+
+\item
+Please ensure that the text of all of your figures is readable. Currently the plots are very small in the pdf, and the text is microscopic.
+\authors{
+
+}
+
+
+\item
+Captions need to follow the structure described in Figures section of \url{https://rjournal.github.io/rjtools/articles/format-details.html}: "Note that the structure of a thorough caption is three components: (1) what is the plot/table about, (2) specific details of plot/table, like what type of display and how variables are mapped, (3) the most important thing that the reader should learn.”
+\authors{
+
+}
+\end{itemize}
+ 
+
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                        TO AE                           %
+%                                                        %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\clearpage\pagenumbering{arabic} \noindent {\bf
+	Manuscript ID: RJournal 2022-156}
+
+\noindent {\bf Title: ggESDA: An R Package for Exploratory Symbolic Data Analysis using ggplot2} \\
+
+\subsection*{Responses to AE's Comments}
+\vspace{0.5cm}
+
+
+\begin{itemize}
+\item
+The article is about 'for Exploratory Symbolic Data Analysis using ggplot2'. Both reviewers agreed that this work needed major revision. Both reviewers proposed a very large number of comments on the structure of the article (the first reviewer said it was confusing, the second said it was good, but I rather agree with the former, it needs some work), on the specific wording of the paper as well as on the software. There are a lot of changes, but I don't see any blockers, the authors should be able to make them all.
+\end{itemize}
+\authors{The tidyverse style guide: \url{https://style.tidyverse.org/}}
+
+%The review comment you received for your R package journal article means %that the reviewer has identified several changes they would like you to %make in your manuscript. However, they do not see any major issues %(blockers) that would prevent you from addressing their suggestions. In %other words, the reviewer believes you should be able to make the %requested changes and improve the manuscript based on their feedback. %It's generally a positive sign, as it indicates that your manuscript is %on the right track and can be improved with some revisions. You should %carefully review the suggestions provided by the reviewer and make the %necessary changes to address their concerns before resubmitting your %manuscript.
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                        TO Reviewer 1                   %
+%                                                        %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\clearpage\pagenumbering{arabic} \noindent {\bf
+	Manuscript ID: RJournal 2022-156}
+
+\noindent {\bf Title: ggESDA: An R Package for Exploratory Symbolic Data Analysis using ggplot2} \\
+
+\subsection*{Responses to Reviewer 1's Comments}
+\vspace{0.5cm}
+
+%%—— Reviewer 1 —
+%Review of the manuscript submission to RJournal about ggESDA package.
+
+\begin{itemize}
+\item
+The manuscript describes a new R package, {ggESDA} that extends {ggplot2} to visualization of symbolic data, represented as intervals. The structure of the manuscript is very good, authors explain various design decisions and naming conventions. Authors give examples of existing R packages that include similar functionality and give a satisfactory explanation of differences between the other packages and {ggESDA}.
+\authors{
+
+}
+
+
+\item
+In general, the manuscript gives a good introduction to the topic of symbolic data analysis and visualization, as well as a great overview of the many functions implemented in the new package. However, both the manuscript, the code attached to the manuscript, and the code in the {ggESDA} source needs to be heavily revised. Below, I provide detailed comments.
+\authors{
+
+}
+\end{itemize}
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                            % 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection*{--- ARTICLE: ---}
+\begin{itemize}
+\item[-] very good structure of the article!
+
+\item[-] when including the R code, try to include it so that it can be copied and pasted - try using the {\tt reprex} package, then you wouldn't have to include the code as a separate R-script
+\authors{Jiang/Wu}
+
+
+\item[-] English could be improved
+\authors{}
+
+\item[-] some mistakes:
+\item[-] on page 1, 7th line from the bottom - wrong name of the package and wrong link!
+\authors{}
+
+\item[-] page 6, "Aggregation by categorical variable" - you mention that RSDA package has the function {\tt classic.to.sym()}, while you've implemented a similar one, {\tt classic2sym()} - why did you do that? Can't the user use the one from RSDA? What is the improvement of your implementation over the one from RSDA?
+\authors{Jiang}
+Jiang回覆：基本上classic2sym主要是延伸RSDA::classic.to.sym，其能實現的功能在classic2sym都可以，分群方法只是當初為了能快速實驗DEMO而加的，「groupby=某個變數名稱」和RSDA::classic.to.sym(concept=某個變數)能達到的效果也一樣，最主要多的點就是group="customize"，以連續型變數來說：假設使用者的資料庫是只有最小值和最大值，那麼就我所知RSDA無法快速透過這些最小值和最大值建立一個symbolic資料表，以離散（比例）變數來說：資料庫假設有很多比例資料（加總＝1），那麼RSDA應該也是完全無法根據這些比例建構資料表。舉例來說，資料庫有每個縣市的薪資的最小值和最大值，以及每個縣市的男女比例，理論來說這樣的資料型態應該類似symbolic資料表（row=縣市,col=薪資,性別），然而這種情境之下，RSDA::classic.to.sym卻很難處理，而ggESDA::classic2sym可以快速處理（?ggESDA::classic2sym()內的#example for build modal data有示範類似的情境）
+
+
+\item[-] page 7, "Descriptive statistics for interval-valued data" - this paragraph needs to be revised, the sentences are not logically connected with one another, and there need to be some more references
+\authors{}
+
+
+\item[-] page 13, 3rd line from the bottom - both dates are the same
+\authors{}
+
+
+\item[-] page 14, "The min max plot" - a bit misleading description, because the blue points on the plot have {\tt x=y (minimum}, as I understand), while the red points have {\tt x=min and y=max}
+\authors{}
+
+\item[-] page 20, last sentence before the code snippet for Figure 13(a) - there is a mistake in examples, both AH and POLITICS show the same type of distribution, while from the text it seems like the authors wanted to show various types of skewed distributions
+\authors{}
+
+
+\item[-] code in the text is not nicely styled, much nicer code is in the vignette!
+\authors{The tidyverse style guide: \url{https://style.tidyverse.org/}}
+
+
+\item[-] when running many functions from ggESDA, I get many warnings indicating that the implementation uses deprecated versions of various functions or arguments and mixing of {\tt tidyverse} and base R - since you're extending \{ggplot2\}, you should stick to tidyverse style.
+\end{itemize}
+\authors{Jiang}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                            % 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection*{--- R SCRIPT: ---}
+\begin{itemize}
+\item[-] don't use "{\tt rm(list=ls())}"! (you can read more about this e.g., here: \verb|http://www2.stat.duke.edu/~rcs46/lectures_2015/01-markdown-git/slides/naming-slides/naming-slides.pdf|)
+\authors{}
+
+
+\item[-] naming of variables with '.' is not recommended
+\authors{Jiang/Wu, The tidyverse style guide: \url{https://style.tidyverse.org/}}
+
+
+\item[-] give output of {\tt sessionInfo()} at the end - this will show all the versions of the packages you were using, your OS, and R version
+\authors{}
+
+
+\item[-] I get warning when using {\tt classic2sym()}:
+\begin{verbatim}
+"Warning message:
+`as.tibble()` was deprecated in tibble 2.0.0.
+Please use `as_tibble()` instead.
+The signature and semantics have changed, see `?as_tibble`."
+\end{verbatim}
+\authors{Jiang}
+
+
+
+
+\item[-] general: in the {\tt .R} script, use "{\tt ----}" after the name of the section to create a nice 'table of contents', instead of "\verb|############|"
+\authors{Jiang/Wu}
+
+
+\item[-] it's not recommended to load libraries in the middle of the code
+\authors{Jiang/Wu}
+
+
+\item[-] don't use global variables! (e.g., code to Fig.6 and 7, and other) - you should instead create a variable inside the data table that you are visualizing
+\authors{Jiang/Wu}
+
+
+
+\item[-] Fig.6:  - title is not very informative; this is a paper on visualization, so the examples should also be well constructed
+\authors{}
+
+\item[-] Fig.6: - code shows the use of {\tt classic2sym()} function, but the argument {\tt 'groupby = "customize"'} is not explained well neither in the manuscript, nor in the R help
+
+\authors{Jiang/Wu}
+
+
+\item[-] Fig.7: - in the R-script, there is superassignment used, apparently to be able to use the function argument in the '{\tt aes()}' mapping - this is not a correct way; the correct code would be something like the following:
+\begin{verbatim}
+ggInterval_minmax(facedata, aes(!!sym(x), size = 2))
+\end{verbatim}
+please, check the {\tt \{rlang\}} documentation (e.g., here:
+\url{https://rlang.r-lib.org/reference/injection-operator.html\#injecting-expressions})
+\authors{Jiang}
+
+
+
+
+\item[-] Fig.9 - warning:
+\begin{verbatim}
+"> ggInterval_scatter(facedata, aes(x = BC, y = AD, fill = Subjects),
++                    col = "black") +
++   scale_fill_brewer(palette = "Set1") +
++   labs(fill = "Subjects")
+Warning messages:
+1: Ignoring unknown parameters: x, y
+2: `guides(<scale> = FALSE)` is deprecated. Please use `guides(<scale> = "none")` instead.
+3: Use of `d$x1` is discouraged. Use `x1` instead.
+4: Use of `d$x2` is discouraged. Use `x2` instead.
+5: Use of `d$y1` is discouraged. Use `y1` instead.
+6: Use of `d$y2` is discouraged. Use `y2` instead."
+\end{verbatim}
+\authors{Jiang}
+
+
+\item[-] Fig.10(b) - what does the '{\tt col = "white"}' argument inside the '{\tt aes()}' mapping mean? Are there specific '{\tt aes}' arguments that ggESDA implements?
+\authors{Jiang}
+
+
+\item[-] Fig.12(a) - lots of warnings and the figure looked differently than the one in the manuscript:
+\begin{verbatim}
+"> # Figure 12(a)
+> library(ggthemes)
+> p <- ggInterval_radar(Environment, plotPartial = c(4, 6),
++                  showLegend = F, base_circle = F, base_lty = 1,
++                  addText = F, addText_modal = F) +
++   scale_fill_manual(values = c("darkred", "darkblue")) +
++   scale_color_manual(values = c("darkred", "darkblue")) +
++   labs(title = "") +
++   theme_hc()
+Scale for 'fill' is already present. Adding another scale for 'fill', which will replace the existing scale.
+Scale for 'colour' is already present. Adding another scale for 'colour', which will replace the existing scale.
+Warning messages:
+1: `guides(<scale> = FALSE)` is deprecated. Please use `guides(<scale> = "none")` instead.
+2: Using alpha for a discrete variable is not advised.
+> gridExtra::marrangeGrob(list(p), nrow=1, ncol=1)
+There were 20 warnings (use warnings() to see them)
+> warnings()
+Warning messages:
+1: Use of `d$x` is discouraged. Use `x` instead.
+2: Use of `d$y` is discouraged. Use `y` instead.
+3: Use of `myPathData$x1` is discouraged. Use `x1` instead.
+4: Use of `myPathData$y1` is discouraged. Use `y1` instead.
+5: Use of `myPathData$x2` is discouraged. Use `x2` instead.
+6: Use of `myPathData$y2` is discouraged. Use `y2` instead.
+7: Use of `polyDf$cos` is discouraged. Use `cos` instead.
+8: Use of `polyDf$sin` is discouraged. Use `sin` instead.
+9: Use of `polyDf$group` is discouraged. Use `group` instead.
+10: Use of `polyDf$obsGroup` is discouraged. Use `obsGroup` instead.
+11: Use of `polyDf$obsGroup` is discouraged. Use `obsGroup` instead.
+12: Use of `plotMin$cos` is discouraged. Use `cos` instead.
+13: Use of `plotMin$sin` is discouraged. Use `sin` instead.
+14: Use of `plotMax$cos` is discouraged. Use `cos` instead.
+15: Use of `plotMax$sin` is discouraged. Use `sin` instead.
+16: Use of `d$x` is discouraged. Use `x` instead.
+17: Use of `d$y` is discouraged. Use `y` instead.
+18: Use of `plotMax$Variables` is discouraged. Use `Variables` instead.
+19: Use of `newD$x` is discouraged. Use `x` instead.
+20: Use of `newD$y` is discouraged. Use `y` instead."
+
+   (it seems like there is one plotting device not closed because when I ran
+   'dev.off()', I got output 'null device 1')
+\end{verbatim}
+\authors{Jiang}
+
+
+
+\item[-] similar warnings for Figure 12(b)
+\authors{Jiang}
+
+
+\item[-] the same warnings and problem with device graphics for Fig.13(a) and 13(b); additionally, I get a figure that's showing darkest inside and lightest outside, while in the manuscript, it's reversed
+\authors{Jiang/Wu}
+
+
+\item[-] general comment: avoid abbreviating boolean constants (i.e., write out 'TRUE' and 'FALSE' instead of 'T' or 'F')
+\authors{Jiang/Wu}
+\end{itemize}
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                            % 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection*{--- PACKAGE: ---}
+\begin{itemize}
+\item[-] there are no tests in the source code - you should create those, you can find {\tt \{testthat\}} useful for this purpose
+\authors{Jiang, 
+{\tt testthat}: Unit Testing for R: \url{https://cran.r-project.org/web/packages/testthat/index.html}
+}
+
+
+\item[-] vignette is fine, but may be too long - you might wanna split it into smaller, more focused chunks
+\authors{Jiang}
+
+
+\item[-] naming of the scripts in the R directory is both "{\tt .R}" and "{\tt .r}" - decide on one
+\authors{Jiang/Wu}
+
+
+\item[-] loading the package also loads {\tt \{ggplot2\}} and {\tt \{tidyverse\}}
+\begin{itemize}
+\item[-] {\tt {ggplot2}} is part of the {\tt {tidyverse}}, so you don't have to load it separately
+\item[-] dependence on {\tt \{tidyverse\}} is highly not recommended since {\tt \{tidyverse\}} is a huge bundle of packages - you should check which functions do you need and import only those
+\item[-] you might find this info useful:
+\verb|https://devguide.ropensci.org/building.html#pkgdependencies|
+  (the entire book is very useful as well!)
+\end{itemize}
+\authors{Jiang}
+
+
+
+\item[-] in the code, the naming of the variables is not consistent: once it's with '.', once camelCase; and the styling should be improved: use spaces and new lines to make the code more readable ({\tt \{styler\}} package might help here: \verb|https://styler.r-lib.org/|)
+\authors{Jiang/Wu,
+camelCase: pineApple, 
+Snake Case: pine\_apple\_pineapple
+}
+
+
+\item[-] the exported functions have a nice documentation, but all the other ones are not documented at all; comments in the code are scarce
+\authors{Jiang
+
+}
+
+
+\item[-] you might wanna consider submitting the package to rOpenSci Statistic Software Review: \verb|https://ropensci.org/stat-software-review/|
+\authors{Jiang/Wu
+
+}
+
+
+\end{itemize}
+
+
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                        TO Reviewer 2                   %
+%                                                        %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\clearpage\pagenumbering{arabic} \noindent {\bf
+	Manuscript ID: RJournal 2022-156}
+
+\noindent {\bf Title: ggESDA: An R Package for Exploratory Symbolic Data Analysis using ggplot2} \\
+
+\subsection*{Responses to Reviewer 2's Comments}
+\vspace{0.5cm}
+%—— Reviewer 2 ——
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                            % 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection*{Installing the package}
+\begin{itemize}
+\item[]
+Firstly, I have been unable to install the package, because I get the following error when loading the dependency “RSDA”: 
+\begin{verbatim}
+Error: package or namespace load failed for ‘RSDA’ in dyn.load(file, DLLpath = 
+DLLpath, ...): 
+unable to load shared object '/Library/Frameworks/R.framework/Versions/4.2-arm64/Resources/library/Matrix/libs/Matrix.so': 
+
+dlopen(/Library/Frameworks/R.framework/Versions/4.2-arm64/Resources/library/Matrix/libs/Matrix.so, 0x0006): Library not loaded: 
+/Library/Frameworks/R.framework/Versions/4.2-arm64/Resources/lib/libquadmath.0.dylib 
+
+Referenced from: /Library/Frameworks/R.framework/Versions/4.2-arm64/Resources/library/Matrix/libs/Matrix.so 
+
+Reason: tried: '/Library/Frameworks/R.framework/Versions/4.2-arm64/Resources/lib/libquadmath.0.dylib' (no such file), '/usr/lib/libquadmath.0.dylib' 
+(no such file) 
+\end{verbatim}
+I am running on an M1 Mac. Could the authors please advise on how to solve this? 
+\end{itemize}
+
+\authors{Jiang/Wu
+
+}
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                            % 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection*{Review}
+\begin{itemize}
+\item[-]
+While there is value in the functionalities provided by authors, the paper is poorly written and needs substantial improvements before being considered for publication. Language usage throughout the manuscript needs to be greatly improved, since there are numerous ungrammatical sentences which make ideas difficult to understand. The structure of many sections is chaotic, leading to confusion when trying to understand the functionalities.
+\authors{
+
+}
+
+
+\item[-]
+The arguments of the plotting functions are not properly described anywhere. Sometimes, possible values are given for some of the arguments but the outcome of providing all the possible different values is not explained (e.g., for arguments taking logical values, the outcome is explained sometimes for FALSE or TRUE value, but not for both). Default behaviors are not clearly stated either. 
+\authors{
+
+}
+
+
+\item[-]
+Below are some instances of the issues found, but these are not comprehensive. The authors need to identify all instances of problems similar to those listed below them and correct them:
+\end{itemize}
+\authors{
+
+}
+
+
+
+\begin{itemize}
+\item[-] Inconsistent verb tense usage (e.g., page 1, “These packages implement statistical and machine learning methods, primarily for interval-valued data, such as dimension reduction, clustering, and regression, among others. Furthermore, some of these packages provided basic and limited graphical tools such as scatterplots “). 
+\authors{
+
+}
+
+
+\item[-] Another example of inconsistent verb tense usage, in asbtract: “Nowadays the collected data keeps getting bigger and complex. The description of data was no longer stored by a form of a single value but the intervals, histograms and/or distributions.”. First verb is “keeps” (present tense), second is “was” (past tense). In general, this two sentences in the abstract sound ungrammatical/confusing. 
+\authors{
+
+}
+
+
+\item[-] Page 2: “The first part is devoted to data manipulation, such as read and write from/to files, and aggregation.” It should be “… such as reading and writing …”. Additionally, as mentioned further below, authors do not really provide any functionality in their package for reading/writing files. 
+\authors{Jiang/Wu
+
+}
+Jiang回覆: ggESDA可透過RSDA提供的function讀寫檔案：To deal with the input and output of the interval-valued data, ggESDA utilizes R functions, read.sym.table() and write.sym.table(), which are provided by RSDA. Symbolic data can be written and read as CSV files with a pre-defined format. With this design, users of SDA-related packages can become familiar with ggESDA quickly. Please refer to the help manual of read.sym.table() and write.sym.table() in the RSDA package for details.
+
+
+\item[-] Page 2: “the {\tt ggplot2}”, change to just “{\tt ggplot2}” or “{\tt the ggplot2 package}”. The usage of “the” needs to be fixed throughout the manuscript. 
+\authors{
+
+}
+
+
+\item[-] Page 4: “For instance, the packages of {\tt ggtern} (Hamilton and Ferry, 2018), {\tt gganatogram} (Maag, 2018), {\tt ggstatsplot} (Patil, 2021), and etc.”. The expression “the packages of XXXX”, sounds strange. Replace with “the XXX packages” or “the packages XXX, XXX and XXX”. Also, avoid expressions such as “and etc.” 
+\authors{
+
+}
+
+
+\item[-] Paragraph describing face recognition dataset “The six measurements designed to identify each face are expressed as the number of pixels in an image. Specifically, they are the distance spanned by the eyes (denoted by {\tt X1 = AD}), the distance between the eyes ({\tt X2 = BC}), the distance from the outer right eye to the upper middle lip between the nose and mouth ({\tt X3 = AH}), the corresponding distance for the left eye ({\tt X4 = DH}), the distance from the upper middle lip to the outside of the mouth on the right side ({\tt X5 = EH}), as well as the distance to the left side of the mouth ({\tt X6 = GH}). These measurements were taken from a sequence of more than 1,000 images and cover a wide range of values which make them interval variables. “ It is confusing to describe the dataset by first saying that the six measurements are expressed as the number of pixels in an image, and then say what each measurement is. State first the different measurements, and then state that the unit for all of them is pixels. 
+\authors{
+
+}
+
+
+\item[-] Page 5: “When applied to an interval variable, summary function returns the summary statistics….”. It should be “the summary function …”. 
+\authors{
+
+}
+
+
+\item[-] Missing short description of the 2nd included dataset (Environmental questionnaire). Similarly as what is done for the face recognition dataset, do not just point to an external reference, but include a brief summary. 
+\authors{
+
+}
+
+
+
+\item[-] Description of classic2sym function is confusing and needs major improvements. 
+\authors{Jiang/Wu
+
+}
+
+
+\item[-] Page 6: “One can also possible aggregate observations based on user-defined categories.” Ungrammatical sentence. Also, provide details about the usage of user-defined categories. 
+\authors{
+
+}
+
+
+\item[-] Authors state: “Alternatively, users can create interval-valued data tables using the function {\tt classic.to.sym} in the RSDA package.”. How does it differ from the classic2sym function introduced by the authors? 
+\authors{Jiang/Wu
+{\tt classic.to.sym}, {\tt classic\_to\_sym}?, {\tt classic2sym}?
+}
+
+
+
+\item[-] Authors say package provides functions for reading/writing from files, but these are provided from RSDA package. Therefore, remove the statement that the presented package provides such functionalities, or implement them. 
+\authors{
+
+}
+
+
+\item[-] Page 7: “For example, the five-number summary of numerical data (minimum, 25\% quartiles, median, 70\% quartiles, and maximum).” The upper quartile is the 75\% percentile. It does not make sense to say “25\% quartiles”. Amend this to refer to the 25th and 75th percentiles as lower and upper quartiles. Better say lower and upper quartiles. 
+\authors{
+
+}
+
+
+\item[-] Page 7: “…should be provided before (some) graphing techniques…” . Remove “(some)”. 
+\authors{
+
+}
+
+
+\item[-] Page 7: “The SDA literature contains some algorithms for calculating descriptive statistics for interval-valued data. 
+Denote the $i$th observation of a univariate interval-valued variable $X$ by $[a_i, b_i], i=1, \cdots, n$ and the 
+$i$th observation of a bivariate interval-valued variables $(X_1, X_2)$ by  $([a_{i1}, b_{i1}], [a_{i2}, b_{i2}]), i=1, \cdots, n$. 
+We have implemented basic descriptive statistics for univariate and bivariate interval-valued variables according to Irpino and Verde (2015). Formulas can be found in Table 3. The following code illustrates how to obtain these descriptive statistics. Ith must go as superindex.”. This paragraph is confusing, both due to the language and structure of ideas. Firstly, a notation is used, then a citation is presented, and then the previously presented notation is not used, and no more details of the chosen methodology are given. This needs complete rewording. 
+\authors{
+
+}
+
+
+\item[-] The authors state they have implemented functionalities to calculate descriptive statistics. However, judging from the example by the end of page 7, 2 of these are simply applications of the standard “{\tt mean}” and “{\tt sd}” functions. For the other 2, i.e., {\tt cov} and {\tt cor}, these are also implemented in the RSDA package. How do they differ, if there is any difference? In general, it seems the authors have not provided much, if any, novel functionality for calculation of descriptive statistics. Either more work would be required in this aspect of the package, or the wording in the paper should be changed to reflect this. A possible idea might be a function that directly calculates and presents in a proper way all of the mentioned descriptive statistics. 
+\authors{Jiang/Wu
+
+}
+
+
+\item[-] Section Standardization of interval-valued data : the implemented functions to perform this operation are not described. I assume it is the scale function, but this needs proper explanation. 
+\authors{Jiang/Wu
+
+}
+
+
+\item[-] Page 9: “With it, you can quickly scan large amounts of data in order to seek out anomalies and unusual observations.” Avoid using sentences such as “you XXX” for consistency and style. 
+\authors{
+
+}
+
+
+\item[-] Page 9: wrong usage of “The” in “The figure 2(a)”, change to Figure 2(a). 
+\authors{
+
+}
+
+
+\item[-] With titles of sections of plots, avoid naming them as “The XXX”, instead refer to them directly as XXX. 
+\authors{
+
+}
+
+
+\item[-] Index plot: “The Figure 2(c) shows a variant of index plot with an image strip that displays the intervals’ range through sequential colors.” It should be noted the color does not add additional information, since it just emphasizes the $X$ range. Change this description to be more clear. 
+\authors{
+
+}
+
+
+
+\item[-] Description of figure 2(d) also very unclear. 
+\authors{
+
+}
+
+
+\item[-] Page 9: “As we can see, the set of three faces within each subject is cohesive within that subject. Obviously, subjects LOT, KHA, INC, and FRA have lower AD values than average.” A few issues with this: 
+\begin{itemize}
+\item 	
+There is no LOT, KHA, INC and FRA subjects. These are categories, repharese this. In general, the authors throughout the paper seem to refer to the different categories (nationalities) as individuals. This seems to be a wrong interpretation of the dataset. Please correct throughout: 
+\item
+Avoid wording such as “Obviously, XXXX”. 
+\item
+Avoid usage of “As we can see” 
+\end{itemize}
+\authors{
+
+}
+
+\item[-] Figure 2, titles of panels (e.g., Index plot-Column Condition), what are these? These titles are confusing. Change or remove. 
+\authors{
+
+}
+
+
+\item[-] Page 9: “we observed that two people, HUS and KHA, have different quantities of AH and DH measurements.” As mentioned before, these are 2 nationalities , i.e., 2 groups of people, not individual people. Also, change this sentence to be more descriptive, not just stating “X and Y differ in Z and W”. E.g., how to they differ? Both higher in one group? Both lower? 
+\authors{
+
+}
+
+
+\item[-] Page 10: “Note that with the argument {\tt plotAll = T}”. what happens if {\tt plotAll = F}? Describe. 
+\authors{Jiang/Wu
+
+}
+
+\item[-] Boxplot section: what Is explained here, and presented in the corresponding figure (Figure 4) differs from my standard understanding of a boxplot (a box representing the 5-number summary). Change section to explain this. 
+\authors{
+
+}
+
+
+\item[-] Page 12: "For the above steps, the subinterval $I_g$ may not be necessary to have the same width. All boundaries of the intervals can be used to compute the breaks $\xi_{g}$. To be more precise, we pool $a_i$ and $b_i$ into a new vector and sort it as $(x^{(1)}, x^{(2)}, \cdots, x^{(2n)})$ where $x^{(j)} \leq x^{(j+1)}$, $j = 1, 2, \cdots, 2n-1$. The frequency for the subinterval $I'_g = [x^{(j)}, x^{(j+1)})$ can be obtained from the Equation (1). This histogram is known as the non-equidistant-bin histogram." Multiple sentences of this paragraph are ungrammatical and make the paragraph very confusing. Fix. 
+\authors{Jiang/Wu
+
+}
+
+
+\item[-] In general, the histogram section is confusing. Maybe change focus to describe differences (if any) with standard histograms of non-interval variables. 
+\authors{
+
+}
+
+
+\item[-] Page 12: "The line plot In a line plot, data is displayed along an ordered sequence or number line (usually on x-axis), showing how the data changes over time and if the data points are random or exhibit any patterns." Line plot refers in general to a plot of Y vs X where the different values are connected by lines, instead of just dots as in a scatterplot. Not necessarily vs time, although frequent. Change this part to better explain this type of plot. 
+\authors{
+
+}
+
+
+\item[-] Page 13: "The interval time series plot shown in Figure 6 is accomplished by the functions {\tt ggInterval\_index} and {\tt geom\_line}, with an economist theme." Not necessary to explicitly state the ggplot theme in text. 
+\authors{
+
+}
+
+
+\item[-] Minmax plots: 
+\begin{itemize}
+\item
+Explicitly say that each pair of dots connected by line corresponds to an interval. 
+\item
+Explicitly state that the reference line would correspond to intervals where {\tt min = max}. 
+\end{itemize}
+\authors{
+
+}
+
+
+\item[-] Page 14: “As an alternative, the literature commonly uses center and range to represent intervals”. Avoid sentences such as “the literature communly uses”. Directly say “Another commonly used method to XXX is YYY …” or similar. 
+\authors{
+
+}
+
+
+\item[-] Page 15: “The bivariate plot provides the means to determine how variables relate to each other when measured on the same sample of subjects.” Avoid referring to the bivariate plot as if it was a single type of plot, when as described next, it is a full ensemble of plots. 
+\authors{
+
+}
+
+
+\item[-] Page 15: “Two main groups of observations can be distinguished. The AD and BC measurements of one group are larger while those of the other group are smaller.” Avoid such long wording of simple statements, e.g., say “Two main groups of faces can be observed, differing on their AD and BC values”. 
+\authors{
+
+}
+
+
+\item[-] Page 17, “except in the special case of classical data”, is classical data “non-interval data”? If so, say explicitly - Multivariate plots section: 
+\begin{itemize}
+\item 	I assume these refer to cases of more than 2 variables. If so, say explicitly (as opposed to bivariate) 
+\item Avoid expressions such as “the multivariate data sets”. Change to “multivariate data sets”, since otherwise, it gives the false impression that you are referring only to a specific ensemble of multivariate data sets. 
+\end{itemize}
+\authors{
+
+}
+
+
+\item[-] Page 18: “The scatterplot matrix is commonly used to display multivariate data on two dimensions. It provides the bivariate relationships between combinations of variables using a grid (or matrix) of scatterplots.” Avoid this language, plots don’t provide things, but a means to visualize things. 
+\authors{
+
+}
+
+
+\item[-] Page 20: “As a result, they can be used to identify which variables are scoring high, low, or similar, or whether any variables consist of outliers.” Scoring in what scale? Confusing sentence. 
+\authors{
+
+}
+
+
+\item[-] Page 20: “To represent modal multi-valued variables, the stacked bar is used”: change to “…stacked bars are used…” 
+
+
+\item[-] Image plot section: a “matrix display condition” is mentioned, how is this even turned on? Confusing section - Multiple instances of the issues described above are found in the rest of the sections, as well as before. Authors should identify them and fix them. 
+\authors{
+
+}
+\end{itemize}
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                            % 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection*{As a general comment}
+\begin{itemize}
+\item[-] As a general comment, the structure of the paper and that of the different subsections is confusing. For example, it might be clearer to first introduced the different datasets that will be used during the examples, rather than introducing them ad-hoc as required. For the subsections for each plot, the authors need to state more clearly and in a much more structured way which function produces them, the main arguments and the effect of different values, how the plot differs from the equivalent for non-interval data and the purpose of each plot. 
+\authors{
+
+}
+
+
+\item[-] 
+A comment about the code of the package itself: many functions use repetitive code patterns, such as: 
+\begin{verbatim}
+if(any(unlist(lapply(as.data.frame(data[,1:p]),FUN=identical,x=eval(this.x))))){ attr<-which(unlist(lapply(as.data.frame(data[,1:p]),FUN=identical,x=eval(this.x)))) attr<-names(attr) 
+}else if(any(unlist(lapply(as.data.frame(data[,1:p]),FUN=identical,x=eval(this.y))))){ attr<-which(unlist(lapply(as.data.frame(data[,1:p]),FUN=identical,x=eval(this.y)))) attr<-names(attr) 
+}else 
+\end{verbatim}
+Avoid such repetitions of code by placing this code into an auxiliary function and calling it when required. 
+\authors{Jiang
+
+}
+\end{itemize}
+
+\end{document}
+ 
+ 
