@@ -27,13 +27,13 @@ properties.
 \section{Methods}{
 \subsection{Public methods}{
 \itemize{
-\item \href{#method-new}{\code{ggESDA$new()}}
-\item \href{#method-clone}{\code{ggESDA$clone()}}
+\item \href{#method-ggESDA-new}{\code{ggESDA$new()}}
+\item \href{#method-ggESDA-clone}{\code{ggESDA$clone()}}
 }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-new"></a>}}
-\if{latex}{\out{\hypertarget{method-new}{}}}
+\if{html}{\out{<a id="method-ggESDA-new"></a>}}
+\if{latex}{\out{\hypertarget{method-ggESDA-new}{}}}
 \subsection{Method \code{new()}}{
 initialize all data, check whether satisfy theirs form
 \subsection{Usage}{
@@ -45,10 +45,23 @@ initialize all data, check whether satisfy theirs form
 )}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{rawData}}{Classical data frame.}
+
+\item{\code{statisticsDF}}{Data frame contained the statistic of raw data.}
+
+\item{\code{intervalData}}{Interval-valued data frame.}
+
+\item{\code{clusterResult}}{The clustering result from classical data drame to interval-valued data frame.}
+}
+\if{html}{\out{</div>}}
+}
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-clone"></a>}}
-\if{latex}{\out{\hypertarget{method-clone}{}}}
+\if{html}{\out{<a id="method-ggESDA-clone"></a>}}
+\if{latex}{\out{\hypertarget{method-ggESDA-clone}{}}}
 \subsection{Method \code{clone()}}{
 The objects of this class are cloneable with this method.
 \subsection{Usage}{

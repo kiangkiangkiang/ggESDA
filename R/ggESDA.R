@@ -8,6 +8,11 @@
 #' properties.
 #' @import R6
 #'
+#' @param rawData Classical data frame.
+#' @param statisticsDF Data frame contained the statistic of raw data.
+#' @param intervalData Interval-valued data frame.
+#' @param clusterResult The clustering result from classical data drame to interval-valued data frame.
+#'
 #' @export
 ggESDA<-R6::R6Class(
   classname = "ggESDA",

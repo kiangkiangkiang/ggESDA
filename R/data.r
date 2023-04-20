@@ -38,6 +38,7 @@
 #' \dontrun{
 #' data(facedata)
 #' ggInterval_hist(facedata, aes(x = AD))
+#' }
 #' @keywords datasets
 #' @source \url{https://CRAN.R-project.org/package=RSDA}
 "facedata"

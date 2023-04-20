@@ -41,6 +41,12 @@ data('facedata')
 \description{
 Symbolic data matrix with all the variables of interval type.
 }
+\examples{
+\dontrun{
+data(facedata)
+ggInterval_hist(facedata, aes(x = AD))
+}
+}
 \references{
 Billard L. and  Diday E. (2006).
 Symbolic data analysis: Conceptual statistics and data mining. Wiley, Chichester.

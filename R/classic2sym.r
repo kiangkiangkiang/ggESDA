@@ -8,9 +8,9 @@
 #' @import rlang stats vctrs
 #' @importFrom RSDA classic.to.sym
 #' @importFrom stringr str_split
-#' @ipmortForm tibble rownames_to_column
-#' @ipmortForm tibble column_to_rownames
-#' @ipmortForm prodlim row.match
+#' @importFrom tibble rownames_to_column
+#' @importFrom tibble column_to_rownames
+#' @importFrom prodlim row.match
 #' @param data A classical data frame that you want to be converted into
 #' a interval data
 #' @param groupby A way to aggregate. It can be either a clustering method
@@ -92,6 +92,7 @@
 #' symObj$statisticsDF       #statistics
 
 #' @export
+
 classic2sym<-function(data=NULL,groupby = "kmeans",k=5,minData=NULL,maxData=NULL,
                       modalData = NULL){
   if("ggESDA" %in% class(data) || "symbolic_tbl" %in% class(data)){
