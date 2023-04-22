@@ -18,7 +18,10 @@ The <b>ggESDA</b> package is avaliable on <a href="https://cran.r-project.org/pa
 
 or 
 
-### github (Update at 2022-08-17)
+### github (Update at 2023-04-22)
+
+Now fixing some usages. We will release a temp version by 2023-05-01.
+Please install from CRAN...
 
 `devtools::install_github("kiangkiangkiang/ggESDA")`
 
