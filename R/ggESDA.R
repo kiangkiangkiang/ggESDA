@@ -7,14 +7,12 @@
 #' data which is from RSDA transformation will still contain RSDA
 #' properties.
 #' @import R6
-#'
 #' @param raw_data Classical data frame.
 #' @param statistics Data frame contained the statistic of raw data.
 #' @param interval_data Interval-valued data frame.
 #' @param cluster_result The clustering result from classical data drame to interval-valued data frame.
-#'
 #' @export
-ggESDA<-R6::R6Class(
+ggESDA <- R6::R6Class(
   classname = "ggESDA",
   public = list(
     #' @field raw_data the data from user.
@@ -31,13 +29,12 @@ ggESDA<-R6::R6Class(
 
     #' @description
     #' initialize all data, check whether satisfy theirs form
-    initialize = function(raw_data=NULL, statistics=NULL,
-                          interval_data=NULL, cluster_result=NULL){
+    initialize = function(raw_data = NULL, statistics = NULL,
+                          interval_data = NULL, cluster_result = NULL){
       self$raw_data <- raw_data
       self$statistics <- statistics
       self$interval_data <- interval_data
       self$cluster_result <- cluster_result
-
       if(!private$test_data_type_legal()){
         stop("Object type error in statistics")
       }
@@ -53,11 +50,12 @@ ggESDA<-R6::R6Class(
       output: Boolean. if true, all items in statistics are data.frame.
       '
       n <- length(self$statistics)
-      is_all_data_frame <- all(unlist(lapply(self$statistics[1:n], FUN=is.data.frame)))
+      is_all_data_frame <- all(unlist(lapply(self$statistics[1:n], FUN = is.data.frame)))
       return(is_all_data_frame)
     }
   )
 )
+
 
 test_data_type <- function(data){
   '
@@ -81,21 +79,22 @@ test_data_type <- function(data){
   }
 }
 
-test_univariate <- function(iData, this.x, this.y){
+
+test_univariate <- function(iData, aes_x, aes_y){
   '
   test_univariate is to test whether it is exactly one variables (x or y) in aes() that user input.
 
   input:
     - iData: Interval-valued data frame.
-    - this.x: x variable in aes().
-    - this.y: y variable in aes().
+    - aes_x: x variable in aes().
+    - aes_y: y variable in aes().
 
   output:
   '
-  num_variables <- dim(iData)[2]
+  num_of_variables <- dim(iData)[2]
   with(iData, {
-    is_x_exist <- any(unlist(lapply(iData[, 1:num_variables], FUN=identical, x=eval(this.x))))
-    is_y_exist <- any(unlist(lapply(iData[, 1:num_variables], FUN=identical, x=eval(this.y))))
+    is_x_exist <- any(unlist(lapply(iData[, 1:num_of_variables], FUN = identical, x = eval(aes_x))))
+    is_y_exist <- any(unlist(lapply(iData[, 1:num_of_variables], FUN = identical, x = eval(aes_y))))
     if(is_x_exist && is_y_exist){
       stop("ERROR : This plot must have exactly one variable")
     }
@@ -103,13 +102,22 @@ test_univariate <- function(iData, this.x, this.y){
 }
 
 
-addFactor <- function(raw_data, iData){
+add_factor_variables <- function(raw_data, iData){
+  '
+  add_factor_variables is to add original factor variables, which esists
+  in raw_data, into interval_valued data frame.
+
+  input:
+    - raw_data: Raw data frame before converting into iData.
+    - iData: Interval-valued data frame.
+
+  output: Symbolic data frame with interval-valued and factor variables.
+  '
   tryCatch({
       test <- unlist(lapply(raw_data, is.factor))
       if(any(test)){
          factorIndex <- which(test)
          if(dim(raw_data)[1] == dim(iData)[1]){
-           #OK
            for(i in factorIndex){
              iData <- dplyr::bind_cols(iData, tmp = raw_data[[i]])
              colnames(iData)[dim(iData)[2]] <- colnames(raw_data)[i]
@@ -117,7 +125,7 @@ addFactor <- function(raw_data, iData){
          }
       }
       return(iData)
-  },error = function(err) {
+  }, error = function(err) {
       return(iData)
   })
 }

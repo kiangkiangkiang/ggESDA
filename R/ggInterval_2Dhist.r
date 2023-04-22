@@ -15,204 +15,181 @@
 #' it is combined with the default mapping at the top level of
 #' the plot. You must supply mapping if there is no plot mapping.
 #' It is the same as the mapping of ggplot2.
-#' @param xBins x axis bins, which mean how many partials
+#' @param x_bins x axis bins, which mean how many partials
 #' x variable will be separate into.
-#' @param yBins y axis bins.It is the same as xBins.
-#' @param removeZero whether remove data whose frequency is equal to zero
-#' @param addFreq where add frequency text in each cells.
+#' @param y_bins y axis bins.It is the same as x_bins.
+#' @param is_zero_remove whether remove data whose frequency is equal to zero
+#' @param is_frequency_visible where add frequency text in each cells.
 #' @return Return a ggplot2 object.
-#' @usage ggInterval_2Dhist(data = NULL,mapping = aes(NULL)
-#' ,xBins = 14,yBins=16,removeZero = FALSE,
-#' addFreq = TRUE)
+#' @usage ggInterval_2Dhist(data = NULL, mapping = aes(NULL),
+#'  x_bins = 14, y_bins = 16, is_zero_remove = FALSE,
+#'  is_frequency_visible=TRUE)
 #' @examples
 #' ggInterval_2Dhist(oils, aes(x = GRA, y = FRE),
-#'   xBins = 5, yBins = 5)
+#'   x_bins = 5, y_bins = 5)
 #'
 #' @export
-ggInterval_2Dhist<- function(data = NULL,mapping = aes(NULL),
-                             xBins = 14,yBins=16,removeZero = FALSE,
-                             addFreq = TRUE){
-
-  #test big O
-  if(xBins+yBins>200) {
+ggInterval_2Dhist <- function(data = NULL, mapping = aes(NULL),
+                              x_bins = 14, y_bins = 16, is_zero_remove = FALSE,
+                              is_frequency_visible = TRUE){
+  # test time consuming
+  if(x_bins + y_bins > 200) {
     stop("ERROR : Bins are too large to calculate.Suggest two bins be smaller than 100.")
   }
 
-  #data preparing
-  argsNum<-length(mapping)
-  args<-lapply(mapping[1:argsNum],FUN=rlang::get_expr)
-  this.x <- args$x ; this.y <- args$y
+  # data preparing
+  argsNum <- length(mapping)
+  args <- lapply(mapping[1:argsNum], FUN = rlang::get_expr)
+  aes_x <- args$x; aes_y <- args$y
 
-  #test data illegal
-  ggSymData <- testData(data)
-  iData <- ggSymData$intervalData
-  p<-dim(data)[2]
-  n<-dim(iData)[1]
-  resultSet <- NULL
+  # test data illegal
+  iData <- test_data_type(data)$interval_data
+  num_of_variables <- dim(data)[2]
+  num_of_concepts <- dim(iData)[1]
+  result <- NULL
 
-
-  #test big O
-  if(n*xBins*yBins >= 35000 & n*xBins*yBins < 50000){
+  # test time consuming
+  if(num_of_concepts * x_bins * y_bins >= 35000 & num_of_concepts * x_bins * y_bins < 50000){
     warning("The number of observations and bins are not suggested be too large.")
-  }else if(n*xBins*yBins >= 50000){
+  }else if(num_of_concepts * x_bins * y_bins >= 50000){
     stop("The number of observations and bins are too large that will out of time limit.")
   }
 
+  # start process
+  with(data, {
+    # get attrs
+    attr1 <- which(unlist(lapply(data[, 1:num_of_variables], FUN = identical, x = eval(aes_x))))
+    attr1 <- names(attr1)
+    attr2 <- which(unlist(lapply(data[, 1:num_of_variables], FUN = identical, x = eval(aes_y))))
+    attr2 <- names(attr2)
 
-  #start process
-  with(data,{
-    #get attrs
-    attr1<-which(unlist(lapply(data[,1:p],FUN=identical,x=eval(this.x))))
-    attr1<-names(attr1)
-    attr2<-which(unlist(lapply(data[,1:p],FUN=identical,x=eval(this.y))))
-    attr2<-names(attr2)
-    #if cannot find attr
-    if(length(attr1)==0 || length(attr2)==0){
+    # if cannot find attr
+    if(length(attr1) == 0 || length(attr2) == 0){
       stop("ERROR : Missing attributes x or y in data frame.")
     }
 
-    #test attribute illegal
-    if( all((!is.numeric(data[[attr1]])) ,!RSDA::is.sym.interval(data[[attr1]]) )
+    # test attribute illegal
+    if(all((!is.numeric(data[[attr1]])), !RSDA::is.sym.interval(data[[attr1]]))
         ||  all((!is.numeric(data[[attr2]])), !RSDA::is.sym.interval(data[[attr2]]))){
       stop("ERROR : Variables in Scatter Plot can only be numeric.")
     }
 
+    # prepare loop data
+    r <- 8
+    x_minimum <- min(iData[[attr1]]$min)
+    x_maximum <- max(iData[[attr1]]$max)
+    y_minimum <- min(iData[[attr2]]$min)
+    y_maximum <- max(iData[[attr2]]$max)
+    x_interval <- seq(x_minimum, x_maximum, (x_maximum - x_minimum) / x_bins)
+    y_interval <- seq(y_minimum, y_maximum, (y_maximum - y_minimum) / y_bins)
+    frequency_matrix <- matrix(0, nrow = x_bins, ncol = y_bins)
 
-    #prepare loop data
-    r<-8
-    minX<-min(iData[[attr1]]$min)
-    maxX<-max(iData[[attr1]]$max)
-    minY<-min(iData[[attr2]]$min)
-    maxY<-max(iData[[attr2]]$max)
-
-    recX <- seq(minX,maxX,(maxX-minX)/xBins)
-    recY <- seq(minY,maxY,(maxY-minY)/yBins)
-
-    # start for test(test ch4 fig4.1)
-    # recX <- c(90, 110, 130, 150, 170, 190, 210)
-    # recY <- c(45, 65, 80, 95, 125)
-    # end for test
-
-
-    freq.Rectangle <- matrix(0,nrow=xBins,ncol=yBins)
-
-    #start loop to calculate frequency values in histogram matrix
-
-    #print(recX)
-    #print(recY)
-
-
-    for(rx in 1:(length(recX)-1)){
-      for(ry in 1:(length(recY)-1)){
-        for(obs in 1:n){
-          fx<-0;fy<-0
-          a <- iData[[attr1]][obs]$min
-          b <- iData[[attr1]][obs]$max
-          headIn<-a %>% between(recX[rx],recX[rx+1])
-          tailIn<-b %>% between(recX[rx],recX[rx+1])
-          contain <- recX[rx] %>% between(a,b)
-          if(headIn|tailIn|contain){
-            temp<-sort(c(recX[rx],recX[rx+1],a,b))
-            if(b-a == 0){
+    # start loop to calculate frequency values in histogram matrix
+    for(xi in 1:(length(x_interval) - 1)){
+      for(yi in 1:(length(y_interval) - 1)){
+        for(concept in 1:num_of_concepts){
+          fx <- 0; fy <- 0
+          # calculate x
+          a <- iData[[attr1]][concept]$min
+          b <- iData[[attr1]][concept]$max
+          head_inside <- a %>% between(x_interval[xi], x_interval[xi + 1])
+          tail_inside <- b %>% between(x_interval[xi], x_interval[xi + 1])
+          contain <- x_interval[xi] %>% between(a, b)
+          if(head_inside | tail_inside | contain){
+            temp <- sort(c(x_interval[xi], x_interval[xi + 1], a, b))
+            if(b - a == 0){
               fx <- fx + 1
             }else{
-              fx<-fx+((temp[3]-temp[2])/(b-a))
+              fx <- fx + ((temp[3] - temp[2]) / (b - a))
             }
           }
 
-
-          a <- iData[[attr2]][obs]$min
-          b <- iData[[attr2]][obs]$max
-          headIn<-a %>% between(recY[ry],recY[ry+1])
-          tailIn<-b %>% between(recY[ry],recY[ry+1])
-          contain <- recY[ry] %>% between(a,b)
-          if(headIn|tailIn|contain){
-            temp<-sort(c(recY[ry],recY[ry+1],a,b))
-            if(b-a == 0){
+          # calculate y
+          a <- iData[[attr2]][concept]$min
+          b <- iData[[attr2]][concept]$max
+          head_inside <- a %>% between(y_interval[yi], y_interval[yi + 1])
+          tail_inside <- b %>% between(y_interval[yi], y_interval[yi + 1])
+          contain <- y_interval[yi] %>% between(a, b)
+          if(head_inside | tail_inside | contain){
+            temp <- sort(c(y_interval[yi], y_interval[yi + 1], a, b))
+            if(b - a == 0){
               fy <- fy + 1
             }else{
-              fy<-fy+((temp[3]-temp[2])/(b-a))
+              fy <- fy + ((temp[3] - temp[2]) / (b - a))
             }
           }
-          freq.Rectangle[rx,ry] <- freq.Rectangle[rx,ry]+fx*fy
-          # if(is.na(fx*fy)){
-          #   print(paste0("this is na, rx = ",rx,". ry = ",ry,". obs = ",obs))
-          # }
+          frequency_matrix[xi,yi] <- frequency_matrix[xi, yi] + fx * fy
         }
       }
     }
-
-
-    #return(freq.Rectangle)
-
     #end loop for calculate
 
     #build data frame to plot (combine margin and values)
-    freq.matrix<-c(as.matrix(freq.Rectangle))
-
-    if(all(round(freq.matrix, 1) == 0)){
+    frequency_matrix <- c(as.matrix(frequency_matrix))
+    if(all(round(frequency_matrix, 1) == 0)){
       warning("Visualize data by 10 times frequency.")
-      freq.matrix <- freq.matrix * 10
+      frequency_matrix <- frequency_matrix * 10
     }
-
-    freq.matrix<-cbind(freq.matrix,
-                       rep(recX[1:(length(recX)-1)],length(recY)-1),
-                       rep(recX[2:length(recX)],length(recY)-1),
-                       rep(recY[1:(length(recY)-1)],each=length(recX)-1),
-                       rep(recY[2:length(recY)],each=length(recX)-1)
+    frequency_matrix<-cbind(
+        frequency_matrix,
+        rep(x_interval[1:(length(x_interval) - 1)], length(y_interval) - 1),
+        rep(x_interval[2:length(x_interval)], length(y_interval) - 1),
+        rep(y_interval[1:(length(y_interval) - 1)], each = length(x_interval) - 1),
+        rep(y_interval[2:length(y_interval)], each = length(x_interval) - 1)
     )
-
-    colnames(freq.matrix)<-c("freq","x1","x2","y1","y2")
-    freq.matrix<-as.data.frame(freq.matrix)
-    #freq.matrix$freq <- freq.matrix$freq/dim(iData)[1]
-    freq.matrix[,"xmid"] <- (freq.matrix$x1+freq.matrix$x2)/2
-    freq.matrix[,"ymid"] <- (freq.matrix$y1+freq.matrix$y2)/2
+    colnames(frequency_matrix) <- c("freq", "x1", "x2", "y1", "y2")
+    frequency_matrix <- as.data.frame(frequency_matrix)
+    frequency_matrix[, "xmid"] <- (frequency_matrix$x1 + frequency_matrix$x2) / 2
+    frequency_matrix[, "ymid"] <- (frequency_matrix$y1 + frequency_matrix$y2) / 2
 
     #escape sparse matrix
-    if(removeZero){
-      freq.matrix<-freq.matrix[freq.matrix$freq!=0,]
+    if(is_zero_remove){
+      frequency_matrix <- frequency_matrix[frequency_matrix$freq != 0, ]
     }
-    m <- (max(freq.matrix$freq)+min(freq.matrix$freq))/2
+    midpoint <- (max(frequency_matrix$freq) + min(frequency_matrix$freq)) / 2
 
     #build Aesthetic
-    usermapping <- mapping[-c(1,2)] #Aesthetic without x,y
-    mymapping <- list(data=freq.matrix,
-                      mapping=aes(xmin=x1, xmax=x2, ymin=y1, ymax=y2,
-                                  fill=freq,alpha=0.5))
-    allmapping <-as.list(structure(as.expression(c(usermapping,mymapping)),class="uneval"))
-
+    origin_mapping <- mapping[-c(1, 2)] #Aesthetic without x,y
+    converted_mapping <- list(data = frequency_matrix,
+                              mapping = aes(xmin = x1, xmax = x2, ymin = y1, ymax = y2,
+                              fill = freq, alpha = 0.5))
+    plot_mapping <- as.list(
+      structure(
+        as.expression(c(origin_mapping, converted_mapping)),
+        class = "uneval"
+        )
+      )
 
     #plot
-    base <- ggplot(freq.matrix,aes(x1,y1))+
-      do.call(geom_rect,allmapping)+
-      scale_fill_gradient2(low = "blue",mid="yellow",
-                           high = "red",midpoint = m,
-                           limits=c(0,max(freq.matrix$freq)))+
-      labs(x=attr1,y=attr2,title="2D hist.")+
+    base <- ggplot(frequency_matrix, aes(x1, y1)) +
+      do.call(geom_rect, plot_mapping) +
+      scale_fill_gradient2(low = "blue", mid="yellow",
+                           high = "red", midpoint = midpoint,
+                           limits = c(0, max(frequency_matrix$freq))) +
+      labs(x = attr1, y = attr2, title = "2D hist.")+
       guides(alpha = FALSE)
-    if(addFreq){
-      base<-base+geom_text(aes(x=xmid,y=ymid,label=round(freq,1)))
+    if(is_frequency_visible){
+      base <- base + geom_text(aes(x = xmid, y = ymid, label = round(freq, 1)))
     }
-    resultSet[["plot"]] <- base
+    result[["plot"]] <- base
 
     #make table
-    myTable <- matrix(0, nrow = xBins, ncol = yBins)
-    for(r in 1:xBins){
-      for(c in 1:yBins){
-        myTable[r, c] <- round(freq.matrix$freq[(c - 1) * xBins + r], 3)
+    myTable <- matrix(0, nrow = x_bins, ncol = y_bins)
+    for(r in 1:x_bins){
+      for(c in 1:y_bins){
+        myTable[r, c] <- round(frequency_matrix$freq[(c - 1) * x_bins + r], 3)
       }
     }
-    cNames <- paste0("[", paste(unique(round(freq.matrix$y1), 2), round(unique(freq.matrix$y2), 2), sep = ":"), "]")
-    rNames <- paste0("[", paste(unique(round(freq.matrix$x1), 2), round(unique(freq.matrix$x2), 2), sep = ":"), "]")
+    col_names <- paste0("[", paste(unique(round(frequency_matrix$y1), 2), round(unique(frequency_matrix$y2), 2), sep = ":"), "]")
+    row_names <- paste0("[", paste(unique(round(frequency_matrix$x1), 2), round(unique(frequency_matrix$x2), 2), sep = ":"), "]")
     s1 <- apply(myTable, 1, sum)
     s2 <- apply(myTable, 2, sum)
-    myTable <- cbind(myTable, s1, round(s1/n, 3))
-    myTable <- rbind(myTable, c(s2, n, " "),
-                     c(round(s2/n, 3), " ", 1))
-
-    rownames(myTable) <- c(rNames, paste0("Frequency of ", attr1), paste0("Margin of ", attr1))
-    colnames(myTable) <- c(cNames, paste0("Frequency of ", attr2), paste0("Margin of ", attr2))
-    resultSet[[paste0("Table (", attr1, ", ", attr2, ")")]] <- as.data.frame(myTable)
-    return(resultSet)
+    myTable <- cbind(myTable, s1, round(s1 / num_of_concepts, 3))
+    myTable <- rbind(myTable, c(s2, num_of_concepts, " "),
+                     c(round(s2 / num_of_concepts, 3), " ", 1))
+    rownames(myTable) <- c(row_names, paste0("Frequency of ", attr1), paste0("Margin of ", attr1))
+    colnames(myTable) <- c(col_names, paste0("Frequency of ", attr2), paste0("Margin of ", attr2))
+    result[[paste0("Table (", attr1, ", ", attr2, ")")]] <- as.data.frame(myTable)
+    return(result)
   })
 }

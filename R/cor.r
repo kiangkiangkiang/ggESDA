@@ -3,8 +3,8 @@
 #' @aliases cor
 #' @author Oldemar Rodriguez Rojas
 #' @description This function compute the symbolic correlation
-#' @param x First symbolic num_variables.
-#' @param y Second symbolic num_variables.
+#' @param x First symbolic num_of_variables.
+#' @param y Second symbolic num_of_variables.
 #' @param use an optional character string giving a method for computing
 #' correlation in the presence of missing values. This must be (an abbreviation of)
 #'  one of the strings 'everything', 'all.obs', 'complete.obs', 'na.or.complete',
@@ -40,9 +40,9 @@ cor.symbolic_tbl <- function(x, ...) {
 
   is_numeric_data <- unlist(lapply(data.frame(iData[1:dim(iData)[2]]) ,FUN = is.sym.interval))
   numeric_data <- data.frame(iData[, which(is_numeric_data)])
-  num_variables <- ncol(numeric_data)
+  num_of_variables <- ncol(numeric_data)
 
-  cor_matrix <- sapply(1:num_variables, function(x) sapply(1:num_variables, function(y) cor(numeric_data[[x]], numeric_data[[y]], ...)))
+  cor_matrix <- sapply(1:num_of_variables, function(x) sapply(1:num_of_variables, function(y) cor(numeric_data[[x]], numeric_data[[y]], ...)))
   cor_matrix <- as.data.frame(cor_matrix)
   colnames(cor_matrix) <- colnames(iData[,which(is_numeric_data)])
   rownames(cor_matrix) <- colnames(iData[,which(is_numeric_data)])
