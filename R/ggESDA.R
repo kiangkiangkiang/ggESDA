@@ -9,7 +9,7 @@
 #' @import R6
 #' @param raw_data Classical data frame.
 #' @param statistics Data frame contained the statistic of raw data.
-#' @param interval_data Interval-valued data frame.
+#' @param symbolic_data Interval-valued data frame.
 #' @param cluster_result The clustering result from classical data drame to interval-valued data frame.
 #' @export
 ggESDA <- R6::R6Class(
@@ -21,8 +21,8 @@ ggESDA <- R6::R6Class(
     #' @field statistics contains min max mean median dataframe for each group of symbolic data
     statistics = "list",
 
-    #' @field interval_data interval data from RSDA type
-    interval_data = "data.frame",
+    #' @field symbolic_data interval data from RSDA type
+    symbolic_data = "data.frame",
 
     #' @field cluster_result clustering result
     cluster_result = "list",
@@ -30,10 +30,10 @@ ggESDA <- R6::R6Class(
     #' @description
     #' initialize all data, check whether satisfy theirs form
     initialize = function(raw_data = NULL, statistics = NULL,
-                          interval_data = NULL, cluster_result = NULL){
+                          symbolic_data = NULL, cluster_result = NULL){
       self$raw_data <- raw_data
       self$statistics <- statistics
-      self$interval_data <- interval_data
+      self$symbolic_data <- symbolic_data
       self$cluster_result <- cluster_result
       if(!private$test_data_type_legal()){
         stop("Object type error in statistics")

@@ -43,7 +43,7 @@ ggInterval_2Dhist <- function(data = NULL, mapping = aes(NULL),
   aes_x <- args$x; aes_y <- args$y
 
   # test data illegal
-  iData <- test_data_type(data)$interval_data
+  iData <- test_data_type(data)$symbolic_data
   num_of_variables <- dim(data)[2]
   num_of_concepts <- dim(iData)[1]
   result <- NULL
@@ -122,9 +122,9 @@ ggInterval_2Dhist <- function(data = NULL, mapping = aes(NULL),
         }
       }
     }
-    #end loop for calculate
+    # end loop for calculate
 
-    #build data frame to plot (combine margin and values)
+    # build data frame to plot (combine margin and values)
     frequency_matrix <- c(as.matrix(frequency_matrix))
     if(all(round(frequency_matrix, 1) == 0)){
       warning("Visualize data by 10 times frequency.")
@@ -142,14 +142,14 @@ ggInterval_2Dhist <- function(data = NULL, mapping = aes(NULL),
     frequency_matrix[, "xmid"] <- (frequency_matrix$x1 + frequency_matrix$x2) / 2
     frequency_matrix[, "ymid"] <- (frequency_matrix$y1 + frequency_matrix$y2) / 2
 
-    #escape sparse matrix
+    # escape sparse matrix
     if(is_zero_remove){
       frequency_matrix <- frequency_matrix[frequency_matrix$freq != 0, ]
     }
     midpoint <- (max(frequency_matrix$freq) + min(frequency_matrix$freq)) / 2
 
-    #build Aesthetic
-    origin_mapping <- mapping[-c(1, 2)] #Aesthetic without x,y
+    # build Aesthetic
+    origin_mapping <- mapping[-c(1, 2)] # Aesthetic without x,y
     converted_mapping <- list(data = frequency_matrix,
                               mapping = aes(xmin = x1, xmax = x2, ymin = y1, ymax = y2,
                               fill = freq, alpha = 0.5))
@@ -160,7 +160,7 @@ ggInterval_2Dhist <- function(data = NULL, mapping = aes(NULL),
         )
       )
 
-    #plot
+    # plot
     base <- ggplot(frequency_matrix, aes(x1, y1)) +
       do.call(geom_rect, plot_mapping) +
       scale_fill_gradient2(low = "blue", mid="yellow",
@@ -173,7 +173,7 @@ ggInterval_2Dhist <- function(data = NULL, mapping = aes(NULL),
     }
     result[["plot"]] <- base
 
-    #make table
+    # make table
     myTable <- matrix(0, nrow = x_bins, ncol = y_bins)
     for(r in 1:x_bins){
       for(c in 1:y_bins){

@@ -38,16 +38,15 @@ cor.default <- function(x, y = NULL, use = "everything", method = c("pearson", "
 cor.symbolic_tbl <- function(x, ...) {
   iData <- x
 
-  is_numeric_data <- unlist(lapply(data.frame(iData[1:dim(iData)[2]]) ,FUN = is.sym.interval))
-  numeric_data <- data.frame(iData[, which(is_numeric_data)])
-  num_of_variables <- ncol(numeric_data)
+  is_interval_data <- unlist(lapply(data.frame(iData[1:dim(iData)[2]]), FUN = is.sym.interval))
+  interval_data <- data.frame(iData[, which(is_interval_data)])
+  num_of_variables <- ncol(interval_data)
 
-  cor_matrix <- sapply(1:num_of_variables, function(x) sapply(1:num_of_variables, function(y) cor(numeric_data[[x]], numeric_data[[y]], ...)))
+  cor_matrix <- sapply(1:num_of_variables, function(x) sapply(1:num_of_variables, function(y) cor(interval_data[[x]], interval_data[[y]], ...)))
   cor_matrix <- as.data.frame(cor_matrix)
-  colnames(cor_matrix) <- colnames(iData[,which(is_numeric_data)])
-  rownames(cor_matrix) <- colnames(iData[,which(is_numeric_data)])
+  colnames(cor_matrix) <- colnames(iData[, which(is_interval_data)])
+  rownames(cor_matrix) <- colnames(iData[, which(is_interval_data)])
   return(cor_matrix)
-
 }
 
 #' @rdname cor

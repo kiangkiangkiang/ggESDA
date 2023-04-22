@@ -40,16 +40,15 @@ cov.default <- function(x, y = NULL, use = "everything",
 cov.symbolic_tbl <- function(x, ...) {
   iData <- x
 
-  is_numeric_data <- unlist(lapply(data.frame(iData[1:dim(iData)[2]]) ,FUN = is.sym.interval))
-  numeric_data <- data.frame(iData[,which(is_numeric_data)])
-  num_of_variables <- ncol(numeric_data)
+  is_interval_data <- unlist(lapply(data.frame(iData[1:dim(iData)[2]]), FUN = is.sym.interval))
+  interval_data <- data.frame(iData[, which(is_interval_data)])
+  num_of_variables <- ncol(interval_data)
 
-  cov_matrix <- sapply(1:num_of_variables, function(x) sapply(1:num_of_variables, function(y) cov(numeric_data[[a]], numeric_data[[b]], ...)))
+  cov_matrix <- sapply(1:num_of_variables, function(x) sapply(1:num_of_variables, function(y) cov(interval_data[[a]], interval_data[[b]], ...)))
   cov_matrix <- as.data.frame(cov_matrix)
-  colnames(cov_matrix) <- colnames(iData[,which(is_numeric_data)])
-  rownames(cov_matrix) <- colnames(iData[,which(is_numeric_data)])
+  colnames(cov_matrix) <- colnames(iData[, which(is_interval_data)])
+  rownames(cov_matrix) <- colnames(iData[, which(is_interval_data)])
   return(cov_matrix)
-
 }
 
 #' @rdname cov

@@ -5,9 +5,10 @@
 ### 共同
 
 ```yaml
+numericData: numeric_data
 rawData: raw_data
 statisticsDF: statistics
-intervalData: interval_data
+intervalData: symbolic_data
 clusterResult: cluster_result
 testData: test_data_type
 testXY: test_univariate
@@ -60,7 +61,19 @@ recY: y_interval
 5. 要注意檔案之間的連動性，ex rawData很多檔案都會用到，要小心
 
 
-
+## 暫時不確定會不會有誤
+```R
+  # 這段看起來很醜, iData已經是interval了 為什麼還要再確認一次？
+  ggSymData <- testData(data)
+  iData <- ggSymData$intervalData
+  myRowNames <- rownames(iData)
+  #preparing data
+  p<-dim(iData)[2]
+  n<-dim(iData)[1]
+  numericData <- unlist(lapply(iData[,1:p] ,FUN = RSDA::is.sym.interval))
+  iData <- iData[,numericData]
+  
+```
 
 
 
