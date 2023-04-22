@@ -1,4 +1,4 @@
-# Develop Log
+# Develop Log of ggESDA
 
 ## hackmd
 
@@ -6,7 +6,7 @@ https://hackmd.io/TkH0xO_sRdKib_9bFDh-Gw?both
 
 ## TODO
 
-- Coding Style (. -> _)
+~~- Coding Style (. -> _)~~
 - 修正「uses deprecated versions of various functions」類似的warning messages
 - as.tibble() -> as_tibble()
 - 修正「load libraries in the middle」
@@ -20,12 +20,21 @@ https://hackmd.io/TkH0xO_sRdKib_9bFDh-Gw?both
 - .R, .r統一
 - tidyverse用到什麼再import 不要全進來
 - 所有的變數命名用python style
-- 
+
 
 
 
 
 ## DOING
+
+- Coding Style (. -> _) 
+    - cor, cov
+    - ggESDA 4 大物件都改了, testData（要去範例檔案 github vignnt, paper都看有沒有影響）
+    - ggInterval_2Dhist
+    - ggInterval_2DhistMatrix (line 83)
+      - 目前遇到問題是不知道把ggSymData改掉好不好 
+
+- 增加一些docstring for inner function
 
 ## DONE
 
@@ -62,6 +71,8 @@ Avoid such repetitions of code by placing this code into an auxiliary function a
     3. 解釋一下scale內部詳細運算邏輯
     4. 解釋plotAll = F
     5. 
+
+
 
 
 
