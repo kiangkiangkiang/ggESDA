@@ -4,15 +4,21 @@
 
 ### cor, cov (RSDA寫的我就沒動)
 
-- p -> variables
-- 一些小變數不太需要提
+- 內部使用變數
 
 ### ggESDA
 
-- rawData -> raw_data
-- 
+```yaml
+rawData: raw_data
+statisticsDF: statistics
+intervalData: interval_data
+clusterResult: cluster_result
+invalidDataType: test_data_type_legal
+isAllDF: is_all_data_frame
+testData: test_data_type
+testXY: test_univariate
 
-
+```
 
 # 可能影響
 
@@ -21,6 +27,7 @@
 3. paper要改
 4. 版本更動說明要提我改了什麼以及可能影響的用法，並舉例
 5. 要注意檔案之間的連動性，ex rawData很多檔案都會用到，要小心
+
 
 
 

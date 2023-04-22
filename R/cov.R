@@ -3,8 +3,8 @@
 #' @aliases cov
 #' @author Oldemar Rodriguez Rojas
 #' @description This function compute the symbolic covariance.
-#' @param x First symbolic variables.
-#' @param y Second symbolic variables.
+#' @param x First symbolic num_variables.
+#' @param y Second symbolic num_variables.
 #' @param use an optional character string giving a method for computing
 #' covariances in the presence of missing values. This must be (an abbreviation of)
 #'  one of the strings 'everything', 'all.obs', 'complete.obs', 'na.or.complete',
@@ -40,14 +40,14 @@ cov.default <- function(x, y = NULL, use = "everything",
 cov.symbolic_tbl <- function(x, ...) {
   iData <- x
 
-  numeric_data_check_list <- unlist(lapply(data.frame(iData[1:dim(iData)[2]]) ,FUN = is.sym.interval))
-  numeric_data <- data.frame(iData[,which(numeric_data_check_list)])
-  variables <- ncol(numeric_data)
+  is_numeric_data <- unlist(lapply(data.frame(iData[1:dim(iData)[2]]) ,FUN = is.sym.interval))
+  numeric_data <- data.frame(iData[,which(is_numeric_data)])
+  num_variables <- ncol(numeric_data)
 
-  cov_matrix <- sapply(1:variables, function(x) sapply(1:variables, function(y) cov(numeric_data[[a]], numeric_data[[b]], ...)))
+  cov_matrix <- sapply(1:num_variables, function(x) sapply(1:num_variables, function(y) cov(numeric_data[[a]], numeric_data[[b]], ...)))
   cov_matrix <- as.data.frame(cov_matrix)
-  colnames(cov_matrix) <- colnames(iData[,which(numeric_data_check_list)])
-  rownames(cov_matrix) <- colnames(iData[,which(numeric_data_check_list)])
+  colnames(cov_matrix) <- colnames(iData[,which(is_numeric_data)])
+  rownames(cov_matrix) <- colnames(iData[,which(is_numeric_data)])
   return(cov_matrix)
 
 }
