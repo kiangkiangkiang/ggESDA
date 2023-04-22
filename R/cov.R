@@ -40,15 +40,15 @@ cov.default <- function(x, y = NULL, use = "everything",
 cov.symbolic_tbl <- function(x, ...) {
   iData <- x
 
-  isnumericData <- unlist(lapply(data.frame(iData[1:dim(iData)[2]]) ,FUN = is.sym.interval))
-  numericData <- data.frame(iData[,which(isnumericData)])
-  p <- ncol(numericData)
+  numeric_data_check_list <- unlist(lapply(data.frame(iData[1:dim(iData)[2]]) ,FUN = is.sym.interval))
+  numeric_data <- data.frame(iData[,which(numeric_data_check_list)])
+  variables <- ncol(numeric_data)
 
-  d <- sapply(1:p, function(a) sapply(1:p, function(b) cov(numericData[[a]], numericData[[b]], ...)))
-  d <- as.data.frame(d)
-  colnames(d) <- colnames(iData[,which(isnumericData)])
-  rownames(d) <- colnames(iData[,which(isnumericData)])
-  return(d)
+  cov_matrix <- sapply(1:variables, function(x) sapply(1:variables, function(y) cov(numeric_data[[a]], numeric_data[[b]], ...)))
+  cov_matrix <- as.data.frame(cov_matrix)
+  colnames(cov_matrix) <- colnames(iData[,which(numeric_data_check_list)])
+  rownames(cov_matrix) <- colnames(iData[,which(numeric_data_check_list)])
+  return(cov_matrix)
 
 }
 
@@ -97,8 +97,8 @@ cov.symbolic_interval <- function(x, y = NULL, method = c("centers", "B", "BD", 
     a <- 2 * (min(x) - x_bar) * (min(y) - y_bar)
     b <- (min(x) - x_bar) * (max(y) - y_bar)
     c <- (max(x) - x_bar) * (min(y) - y_bar)
-    d <- 2 * (max(x) - x_bar) * (max(y) - y_bar)
-    return(sum(a + b + c + d) / (6 * m))
+    cov_matrix <- 2 * (max(x) - x_bar) * (max(y) - y_bar)
+    return(sum(a + b + c + cov_matrix) / (6 * m))
   }
 }
 

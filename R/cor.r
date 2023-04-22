@@ -38,15 +38,15 @@ cor.default <- function(x, y = NULL, use = "everything", method = c("pearson", "
 cor.symbolic_tbl <- function(x, ...) {
   iData <- x
 
-  isnumericData <- unlist(lapply(data.frame(iData[1:dim(iData)[2]]) ,FUN = is.sym.interval))
-  numericData <- data.frame(iData[,which(isnumericData)])
-  p <- ncol(numericData)
+  numeric_data_check_list <- unlist(lapply(data.frame(iData[1:dim(iData)[2]]) ,FUN = is.sym.interval))
+  numeric_data <- data.frame(iData[,which(numeric_data_check_list)])
+  variables <- ncol(numeric_data)
 
-  d <- sapply(1:p, function(a) sapply(1:p, function(b) cor(numericData[[a]], numericData[[b]], ...)))
-  d <- as.data.frame(d)
-  colnames(d) <- colnames(iData[,which(isnumericData)])
-  rownames(d) <- colnames(iData[,which(isnumericData)])
-  return(d)
+  cor_matrix <- sapply(1:variables, function(x) sapply(1:variables, function(y) cor(numeric_data[[x]], numeric_data[[y]], ...)))
+  cor_matrix <- as.data.frame(cor_matrix)
+  colnames(cor_matrix) <- colnames(iData[,which(numeric_data_check_list)])
+  rownames(cor_matrix) <- colnames(iData[,which(numeric_data_check_list)])
+  return(cor_matrix)
 
 }
 

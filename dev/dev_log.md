@@ -1,5 +1,9 @@
 # Develop Log
 
+## hackmd
+
+https://hackmd.io/TkH0xO_sRdKib_9bFDh-Gw?both
+
 ## TODO
 
 - Coding Style (. -> _)
@@ -60,9 +64,4 @@ Avoid such repetitions of code by placing this code into an auxiliary function a
     5. 
 
 
-
-test
-test2
-
-test2
 
